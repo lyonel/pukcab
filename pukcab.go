@@ -7,11 +7,24 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/BurntSushi/toml"
 )
 
 const defaultCommand = "help"
 const defaultSchedule = "daily"
 const defaultConfig = "/etc/pukcab.conf"
+
+type Config struct {
+	Server string
+	Include []string
+	Exclude []string
+
+	Vault   string
+	Catalog string
+}
+
+var cfg Config
 
 var name string = "hostname"
 var date int64 = -1
@@ -38,6 +51,9 @@ func newbackup() {
 	log.Println("name: ", name)
 	log.Println("date: ", date)
 	log.Println("schedule: ", schedule)
+	log.Println("server: ", cfg.Server)
+	log.Println("include: ", cfg.Include)
+	log.Println("exclude: ", cfg.Exclude)
 }
 
 func submitfiles() {
@@ -62,6 +78,12 @@ func usage() {
 	os.Exit(1)
 }
 
+func loadconfig() {
+	if _, err := toml.DecodeFile(defaultConfig, &cfg); err != nil {
+		log.Fatal("Failed to parse configuration: ", err)
+	}
+}
+
 func main() {
 	name, _ = os.Hostname()
 	flag.StringVar(&name, "name", name, "Backup name")
@@ -69,6 +91,8 @@ func main() {
 	flag.StringVar(&schedule, "schedule", defaultSchedule, "Backup schedule")
 	flag.StringVar(&schedule, "r", defaultSchedule, "-schedule")
 	flag.Usage = usage
+
+	loadconfig()
 
 	if len(os.Args) <= 1 { // no command specified
 		os.Args = append(os.Args, defaultCommand)
