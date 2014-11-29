@@ -52,12 +52,20 @@ func contains(set []string, e string) bool {
 			return true
 		}
 
-		if filepath.IsAbs(a) && strings.HasPrefix(e, a+string(filepath.Separator)) {
-			return true
-		}
+		if filepath.IsAbs(a) {
+			if strings.HasPrefix(e, a+string(filepath.Separator)) {
+				return true
+			}
+		} else {
+			if matched, _ := filepath.Match(a, filepath.Base(e)); matched {
+				return true
+			}
 
-		if matched, _ := filepath.Match(a, e); matched {
-			return true
+			if strings.HasPrefix(a, "."+string(filepath.Separator)) {
+				if _, err := os.Lstat(filepath.Join(e, a)); !os.IsNotExist(err) {
+					return true
+				}
+			}
 		}
 	}
 	return false
