@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/BurntSushi/toml"
+	"github.com/antage/mntent"
 )
 
 const defaultCommand = "help"
@@ -16,7 +18,7 @@ const defaultSchedule = "daily"
 const defaultConfig = "/etc/pukcab.conf"
 
 type Config struct {
-	Server string
+	Server  string
 	Include []string
 	Exclude []string
 
@@ -44,7 +46,28 @@ func expire() {
 	log.Println("age: ", age)
 }
 
-func newbackup() {
+func contains(set []string, e string) bool {
+	for _, a := range set {
+		if a == e {
+			return true
+		}
+
+		if filepath.IsAbs(a) && strings.HasPrefix(e, a+string(filepath.Separator)) {
+			return true
+		}
+
+		if matched, _ := filepath.Match(a, e); matched {
+			return true
+		}
+	}
+	return false
+}
+
+func included(e *mntent.Entry) bool {
+	return !(contains(cfg.Exclude, e.Types[0]) || contains(cfg.Exclude, e.Directory)) && (contains(cfg.Include, e.Types[0]) || contains(cfg.Include, e.Directory))
+}
+
+func backup() {
 	flag.Parse()
 
 	date = time.Now().Unix()
@@ -54,6 +77,33 @@ func newbackup() {
 	log.Println("server: ", cfg.Server)
 	log.Println("include: ", cfg.Include)
 	log.Println("exclude: ", cfg.Exclude)
+
+	directories := make(map[string]bool)
+	devices := make(map[string]bool)
+
+	if mtab, err := mntent.Parse("/etc/mtab"); err != nil {
+		log.Println("Failed to parse /etc/mtab: ", err)
+	} else {
+		for i := range mtab {
+			if !devices[mtab[i].Name] && included(mtab[i]) {
+				devices[mtab[i].Name] = true
+				directories[mtab[i].Directory] = true
+			}
+		}
+	}
+
+	for d := range directories {
+		fmt.Println(d)
+	}
+}
+
+func newbackup() {
+	flag.Parse()
+
+	date = time.Now().Unix()
+	log.Println("name: ", name)
+	log.Println("date: ", date)
+	log.Println("schedule: ", schedule)
 }
 
 func submitfiles() {
@@ -81,6 +131,13 @@ func usage() {
 func loadconfig() {
 	if _, err := toml.DecodeFile(defaultConfig, &cfg); err != nil {
 		log.Fatal("Failed to parse configuration: ", err)
+	}
+
+	if len(cfg.Include) < 1 {
+		cfg.Include = []string{"ext2", "ext3", "ext4", "btrfs", "xfs", "jfs", "vfat"}
+	}
+	if len(cfg.Exclude) < 1 {
+		cfg.Exclude = []string{"/proc", "/sys", "/selinux", "tmpfs"}
 	}
 }
 
@@ -110,6 +167,8 @@ func main() {
 	}
 
 	switch os.Args[0] {
+	case "backup":
+		backup()
 	case "newbackup":
 		newbackup()
 	case "submitfiles":
