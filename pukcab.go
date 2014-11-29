@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -32,6 +33,9 @@ var name string = "hostname"
 var date int64 = -1
 var schedule string = defaultSchedule
 var age uint = 14
+
+var directories map[string]bool
+var backupset map[string]struct{}
 
 func expire() {
 	flag.Int64Var(&date, "date", date, "Backup set")
@@ -71,8 +75,34 @@ func contains(set []string, e string) bool {
 	return false
 }
 
-func included(e *mntent.Entry) bool {
-	return !(contains(cfg.Exclude, e.Types[0]) || contains(cfg.Exclude, e.Directory)) && (contains(cfg.Include, e.Types[0]) || contains(cfg.Include, e.Directory))
+func includeorexclude(e *mntent.Entry) bool {
+	result := !(contains(cfg.Exclude, e.Types[0]) || contains(cfg.Exclude, e.Directory)) && (contains(cfg.Include, e.Types[0]) || contains(cfg.Include, e.Directory))
+
+	directories[e.Directory] = result
+	return result
+}
+
+func excluded(f string) bool {
+	if _, known := directories[f]; known {
+		return !directories[f]
+	}
+	return contains(cfg.Exclude, f) && !contains(cfg.Include, f)
+}
+
+func addfiles(d string) {
+	backupset[d] = struct{}{}
+	files, _ := ioutil.ReadDir(d)
+	for _, f := range files {
+		file := filepath.Join(d, f.Name())
+
+		if f.Mode()&os.ModeTemporary != os.ModeTemporary {
+			backupset[file] = struct{}{}
+
+			if f.IsDir() && !excluded(file) {
+				addfiles(file)
+			}
+		}
+	}
 }
 
 func backup() {
@@ -86,22 +116,28 @@ func backup() {
 	log.Println("include: ", cfg.Include)
 	log.Println("exclude: ", cfg.Exclude)
 
-	directories := make(map[string]bool)
+	directories = make(map[string]bool)
+	backupset = make(map[string]struct{})
 	devices := make(map[string]bool)
 
 	if mtab, err := mntent.Parse("/etc/mtab"); err != nil {
 		log.Println("Failed to parse /etc/mtab: ", err)
 	} else {
 		for i := range mtab {
-			if !devices[mtab[i].Name] && included(mtab[i]) {
+			if !devices[mtab[i].Name] && includeorexclude(mtab[i]) {
 				devices[mtab[i].Name] = true
-				directories[mtab[i].Directory] = true
 			}
 		}
 	}
 
 	for d := range directories {
-		fmt.Println(d)
+		if directories[d] {
+			addfiles(d)
+		}
+	}
+
+	for f := range backupset {
+		fmt.Println(f)
 	}
 }
 
