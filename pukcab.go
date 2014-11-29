@@ -164,7 +164,7 @@ func usage() {
 	fmt.Fprintf(os.Stderr, "Usage: pukcab %s [options]\n\nOptions:\n", os.Args[0])
 	flag.VisitAll(func(f *flag.Flag) {
 		if f.Usage[0] == '-' {
-			fmt.Fprintf(os.Stderr, "  -%s %s\n   alias for \"%s %s\"\n\n", f.Name, strings.ToUpper(f.Usage[1:]), f.Usage, strings.ToUpper(f.Usage[1:]))
+			fmt.Fprintf(os.Stderr, "  -%s %s\n   alias for %s\n\n", f.Name, strings.ToUpper(f.Usage[1:]), f.Usage)
 		} else {
 			fmt.Fprintf(os.Stderr, "  -%s %s\n   %s\n   default: %q\n\n", f.Name, strings.ToUpper(f.Name), f.Usage, f.DefValue)
 		}
