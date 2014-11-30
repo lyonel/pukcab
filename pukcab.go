@@ -1,16 +1,17 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"log/syslog"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
-	"bufio"
 
 	"github.com/BurntSushi/toml"
 	"github.com/antage/mntent"
@@ -42,8 +43,11 @@ var directories map[string]bool
 var backupset map[string]struct{}
 
 func remotecommand(arg ...string) *exec.Cmd {
+	os.Setenv("SSH_CLIENT", "")
+	os.Setenv("SSH_CONNECTION", "")
+
 	if cfg.Server != "" {
-		cmd := []string{"-q", "-C", "-o", "StrictHostKeyChecking=no", "-o", "UserKnownHostsFile=/dev/null"}
+		cmd := []string{"-q", "-C", "-oBatchMode=yes", "-oStrictHostKeyChecking=no", "-oUserKnownHostsFile=/dev/null"}
 		if cfg.User != "" {
 			cmd = append(cmd, "-l", cfg.User)
 		}
@@ -127,13 +131,7 @@ func addfiles(d string) {
 func backup() {
 	flag.Parse()
 
-	date = time.Now().Unix()
-	log.Println("name: ", name)
-	log.Println("date: ", date)
-	log.Println("schedule: ", schedule)
-	log.Println("server: ", cfg.Server)
-	log.Println("include: ", cfg.Include)
-	log.Println("exclude: ", cfg.Exclude)
+	log.Printf("Starting backup: name=%q schedule=%q\n", name, schedule)
 
 	directories = make(map[string]bool)
 	backupset = make(map[string]struct{})
@@ -156,10 +154,10 @@ func backup() {
 	}
 
 	//for f := range backupset {
-		//fmt.Println(f)
+	//fmt.Println(f)
 	//}
 
-	cmd := remotecommand("newbackup")
+	cmd := remotecommand("newbackup", "-name", name, "-schedule", schedule)
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		log.Fatal(err)
@@ -185,9 +183,10 @@ func newbackup() {
 	flag.Parse()
 
 	date = time.Now().Unix()
-	log.Println("name: ", name)
-	log.Println("date: ", date)
-	log.Println("schedule: ", schedule)
+	if sshclient := strings.Split(os.Getenv("SSH_CLIENT"), " ") ; len(sshclient) > 0 {
+		log.Printf("Remote client: ip=%q\n", sshclient[0])
+	}
+	log.Printf("Creating backup set: date=%d name=%q schedule=%q\n", date, name, schedule)
 
 	fmt.Println(date)
 }
@@ -228,6 +227,11 @@ func loadconfig() {
 }
 
 func main() {
+	if logwriter, err := syslog.New(syslog.LOG_NOTICE, os.Args[0]); err == nil {
+		log.SetOutput(logwriter)
+		log.SetFlags(0)		// no need to add timestamp, syslog will do it for us
+	}
+
 	name, _ = os.Hostname()
 	flag.StringVar(&name, "name", name, "Backup name")
 	flag.StringVar(&name, "n", name, "-name")
