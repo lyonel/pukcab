@@ -15,6 +15,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/antage/mntent"
+	"github.com/mxk/go-sqlite/sqlite3"
 )
 
 const programName = "pukcab"
@@ -41,6 +42,8 @@ var age uint = 14
 
 var directories map[string]bool
 var backupset map[string]struct{}
+
+var catalog *sqlite3.Conn
 
 func remotecommand(arg ...string) *exec.Cmd {
 	os.Setenv("SSH_CLIENT", "")
@@ -179,15 +182,40 @@ func backup() {
 	}
 }
 
+func opencatalog() error {
+	if db, err := sqlite3.Open(filepath.Join(cfg.Catalog, "catalog.db")); err == nil {
+		catalog = db
+
+		if err = catalog.Exec("CREATE TABLE IF NOT EXISTS backups(name TEXT NOT NULL, schedule TEXT NOT NULL, date INTEGER PRIMARY KEY)"); err != nil {
+			return err
+		}
+
+		return nil
+	} else {
+		return err
+	}
+}
+
 func newbackup() {
 	flag.Parse()
 
-	date = time.Now().Unix()
-	if sshclient := strings.Split(os.Getenv("SSH_CLIENT"), " ") ; len(sshclient) > 0 {
+	if sshclient := strings.Split(os.Getenv("SSH_CLIENT"), " "); sshclient[0]!="" {
 		log.Printf("Remote client: ip=%q\n", sshclient[0])
 	}
-	log.Printf("Creating backup set: date=%d name=%q schedule=%q\n", date, name, schedule)
 
+	if err := opencatalog(); err != nil {
+		log.Fatal(err)
+	}
+
+	date = time.Now().Unix()
+	for try := 0; try < 3; try++ {
+		if err := catalog.Exec("INSERT INTO backups (date,name,schedule) VALUES($d,$n,$r)", sqlite3.NamedArgs{"$d": date, "$n": name, "$r": schedule}); err == nil {
+			break
+		}
+		date++
+	}
+
+	log.Printf("Creating backup set: date=%d name=%q schedule=%q\n", date, name, schedule)
 	fmt.Println(date)
 }
 
@@ -229,7 +257,7 @@ func loadconfig() {
 func main() {
 	if logwriter, err := syslog.New(syslog.LOG_NOTICE, os.Args[0]); err == nil {
 		log.SetOutput(logwriter)
-		log.SetFlags(0)		// no need to add timestamp, syslog will do it for us
+		log.SetFlags(0) // no need to add timestamp, syslog will do it for us
 	}
 
 	name, _ = os.Hostname()
