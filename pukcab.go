@@ -6,20 +6,24 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
+	"bufio"
 
 	"github.com/BurntSushi/toml"
 	"github.com/antage/mntent"
 )
 
+const programName = "pukcab"
 const defaultCommand = "help"
 const defaultSchedule = "daily"
 const defaultConfig = "/etc/pukcab.conf"
 
 type Config struct {
 	Server  string
+	User    string
 	Include []string
 	Exclude []string
 
@@ -36,6 +40,21 @@ var age uint = 14
 
 var directories map[string]bool
 var backupset map[string]struct{}
+
+func remotecommand(arg ...string) *exec.Cmd {
+	if cfg.Server != "" {
+		cmd := []string{"-q", "-C", "-o", "StrictHostKeyChecking=no", "-o", "UserKnownHostsFile=/dev/null"}
+		if cfg.User != "" {
+			cmd = append(cmd, "-l", cfg.User)
+		}
+		cmd = append(cmd, cfg.Server)
+		cmd = append(cmd, programName)
+		cmd = append(cmd, arg...)
+		return exec.Command("ssh", cmd...)
+	} else {
+		return exec.Command(programName, arg...)
+	}
+}
 
 func expire() {
 	flag.Int64Var(&date, "date", date, "Backup set")
@@ -136,8 +155,29 @@ func backup() {
 		}
 	}
 
-	for f := range backupset {
-		fmt.Println(f)
+	//for f := range backupset {
+		//fmt.Println(f)
+	//}
+
+	cmd := remotecommand("newbackup")
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := cmd.Start(); err != nil {
+		log.Fatal(err)
+	}
+
+	scanner := bufio.NewScanner(stdout)
+	for scanner.Scan() {
+		fmt.Println(scanner.Text()) // Println will add back the final '\n'
+	}
+	if err := scanner.Err(); err != nil {
+		fmt.Fprintln(os.Stderr, "reading standard input:", err)
+	}
+
+	if err := cmd.Wait(); err != nil {
+		log.Fatal(err)
 	}
 }
 
@@ -148,6 +188,8 @@ func newbackup() {
 	log.Println("name: ", name)
 	log.Println("date: ", date)
 	log.Println("schedule: ", schedule)
+
+	fmt.Println(date)
 }
 
 func submitfiles() {
@@ -161,7 +203,7 @@ func submitfiles() {
 }
 
 func usage() {
-	fmt.Fprintf(os.Stderr, "Usage: pukcab %s [options]\n\nOptions:\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "Usage: %s %s [options]\n\nOptions:\n", programName, os.Args[0])
 	flag.VisitAll(func(f *flag.Flag) {
 		if f.Usage[0] == '-' {
 			fmt.Fprintf(os.Stderr, "  -%s %s\n   alias for %s\n\n", f.Name, strings.ToUpper(f.Usage[1:]), f.Usage)
@@ -220,9 +262,10 @@ func main() {
 	case "expire":
 		expire()
 	case "help":
-		fmt.Fprintf(os.Stderr, "Usage: pukcab help [command]")
+		fmt.Fprintf(os.Stderr, "Usage: %s help [command]", programName)
 	case "-help", "--help", "-h":
-		fmt.Fprintln(os.Stderr, "Usage: pukcab COMMAND [options]\n\nCommands:")
+		fmt.Fprintln(os.Stderr, "Usage: %s COMMAND [options]\n\nCommands:", programName)
+		fmt.Fprintln(os.Stderr, "  backup")
 		fmt.Fprintln(os.Stderr, "  newbackup")
 		fmt.Fprintln(os.Stderr, "  expire")
 		fmt.Fprintln(os.Stderr, "  help")
