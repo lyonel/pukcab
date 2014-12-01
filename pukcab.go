@@ -12,10 +12,11 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+	"database/sql"
 
 	"github.com/BurntSushi/toml"
 	"github.com/antage/mntent"
-	"github.com/mxk/go-sqlite/sqlite3"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 const programName = "pukcab"
@@ -43,7 +44,7 @@ var age uint = 14
 var directories map[string]bool
 var backupset map[string]struct{}
 
-var catalog *sqlite3.Conn
+var catalog *sql.DB
 
 func remotecommand(arg ...string) *exec.Cmd {
 	os.Setenv("SSH_CLIENT", "")
@@ -188,10 +189,10 @@ func backup() {
 }
 
 func opencatalog() error {
-	if db, err := sqlite3.Open(filepath.Join(cfg.Catalog, "catalog.db")); err == nil {
+	if db, err := sql.Open("sqlite3", filepath.Join(cfg.Catalog, "catalog.db")); err == nil {
 		catalog = db
 
-		if err = catalog.Exec("CREATE TABLE IF NOT EXISTS backups(name TEXT NOT NULL, schedule TEXT NOT NULL, date INTEGER PRIMARY KEY)"); err != nil {
+		if _, err = catalog.Exec("CREATE TABLE IF NOT EXISTS backups(name TEXT NOT NULL, schedule TEXT NOT NULL, date INTEGER PRIMARY KEY)"); err != nil {
 			return err
 		}
 
@@ -214,7 +215,7 @@ func newbackup() {
 
 	date = time.Now().Unix()
 	for try := 0; try < 3; try++ {
-		if err := catalog.Exec("INSERT INTO backups (date,name,schedule) VALUES($d,$n,$r)", sqlite3.NamedArgs{"$d": date, "$n": name, "$r": schedule}); err == nil {
+		if _,err := catalog.Exec("INSERT INTO backups (date,name,schedule) VALUES(?,?,?)", date, name, schedule); err == nil {
 			break
 		}
 		date++
