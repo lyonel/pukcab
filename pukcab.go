@@ -59,7 +59,12 @@ func remotecommand(arg ...string) *exec.Cmd {
 		cmd = append(cmd, arg...)
 		return exec.Command("ssh", cmd...)
 	} else {
-		return exec.Command(programName, arg...)
+
+		if exe, err := os.Readlink("/proc/self/exe"); err == nil {
+			return exec.Command(exe, arg...)
+		} else {
+			return exec.Command(programName, arg...)
+		}
 	}
 }
 
@@ -199,7 +204,7 @@ func opencatalog() error {
 func newbackup() {
 	flag.Parse()
 
-	if sshclient := strings.Split(os.Getenv("SSH_CLIENT"), " "); sshclient[0]!="" {
+	if sshclient := strings.Split(os.Getenv("SSH_CLIENT"), " "); sshclient[0] != "" {
 		log.Printf("Remote client: ip=%q\n", sshclient[0])
 	}
 
@@ -243,6 +248,7 @@ func usage() {
 
 func loadconfig() {
 	if _, err := toml.DecodeFile(defaultConfig, &cfg); err != nil {
+		fmt.Fprintln(os.Stderr, "Failed to parse configuration: ", err)
 		log.Fatal("Failed to parse configuration: ", err)
 	}
 
@@ -255,7 +261,7 @@ func loadconfig() {
 }
 
 func main() {
-	if logwriter, err := syslog.New(syslog.LOG_NOTICE, os.Args[0]); err == nil {
+	if logwriter, err := syslog.New(syslog.LOG_NOTICE, filepath.Base(os.Args[0])); err == nil {
 		log.SetOutput(logwriter)
 		log.SetFlags(0) // no need to add timestamp, syslog will do it for us
 	}
