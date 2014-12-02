@@ -218,7 +218,8 @@ func newbackup() {
 		if _,err := catalog.Exec("INSERT INTO backups (date,name,schedule) VALUES(?,?,?)", date, name, schedule); err == nil {
 			break
 		}
-		date++
+		time.Sleep(1 * time.Second)
+		date = time.Now().Unix()
 	}
 
 	log.Printf("Creating backup set: date=%d name=%q schedule=%q\n", date, name, schedule)
