@@ -192,7 +192,11 @@ func opencatalog() error {
 	if db, err := sql.Open("sqlite3", filepath.Join(cfg.Catalog, "catalog.db")); err == nil {
 		catalog = db
 
-		if _, err = catalog.Exec("CREATE TABLE IF NOT EXISTS backups(name TEXT NOT NULL, schedule TEXT NOT NULL, date INTEGER PRIMARY KEY)"); err != nil {
+		if _, err = catalog.Exec(`
+CREATE TABLE IF NOT EXISTS backups(name TEXT NOT NULL, schedule TEXT NOT NULL, date INTEGER PRIMARY KEY, finished INTEGER);
+CREATE TABLE IF NOT EXISTS files(name TEXT NOT NULL, backupid INTEGER NOT NULL, hash TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS vault(hash TEXT PRIMARY KEY, size INTEGER);
+			`); err != nil {
 			return err
 		}
 
