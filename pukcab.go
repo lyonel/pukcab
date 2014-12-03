@@ -193,9 +193,25 @@ func opencatalog() error {
 		catalog = db
 
 		if _, err = catalog.Exec(`
-CREATE TABLE IF NOT EXISTS backups(name TEXT NOT NULL, schedule TEXT NOT NULL, date INTEGER PRIMARY KEY, finished INTEGER);
-CREATE TABLE IF NOT EXISTS files(backupid INTEGER NOT NULL, hash TEXT COLLATE NOCASE, name TEXT NOT NULL, size INTEGER, birth INTEGER, access INTEGER, modify INTEGER, change INTEGER, mode INTEGER, uid INTEGER, gid INTEGER, user TEXT, group TEXT);
-CREATE TABLE IF NOT EXISTS vault(hash TEXT COLLATE NOCASE PRIMARY KEY, size INTEGER);
+CREATE TABLE IF NOT EXISTS backups(name TEXT NOT NULL,
+			schedule TEXT NOT NULL,
+			date INTEGER PRIMARY KEY,
+			finished INTEGER);
+CREATE TABLE IF NOT EXISTS files(backupid INTEGER NOT NULL,
+			hash TEXT COLLATE NOCASE,
+			name TEXT NOT NULL,
+			size INTEGER,
+			birth INTEGER,
+			access INTEGER,
+			modify INTEGER,
+			change INTEGER,
+			mode INTEGER,
+			uid INTEGER,
+			gid INTEGER,
+			username TEXT,
+			groupname TEXT);
+CREATE TABLE IF NOT EXISTS vault(hash TEXT COLLATE NOCASE PRIMARY KEY,
+			size INTEGER);
 			`); err != nil {
 			return err
 		}
