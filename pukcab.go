@@ -180,19 +180,6 @@ func backup() {
 
 	tr := tar.NewReader(stdout)
 
-	globalhdr, err := tr.Next()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	backupset := globalhdr.ModTime.Unix()
-	if backupset <= 0 {
-		fmt.Println("Server error:", globalhdr.Name)
-		log.Fatal("Server error:", globalhdr.Name)
-	} else {
-		log.Printf("New backup: date=%d\n", backupset)
-	}
-
 	for {
 		hdr, err := tr.Next()
 		if err == io.EOF {
@@ -201,7 +188,19 @@ func backup() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println(hdr.Name)
+
+		if hdr.Typeflag == tar.TypeXGlobalHeader {
+			backupset := hdr.ModTime.Unix()
+			if backupset <= 0 {
+				fmt.Println("Server error:", hdr.Name)
+				log.Fatal("Server error:", hdr.Name)
+			} else {
+				date = backupset
+				log.Printf("New backup: date=%d\n", backupset)
+			}
+		} else {
+			fmt.Println(hdr.Name)
+		}
 	}
 
 	if err := cmd.Wait(); err != nil {
@@ -271,7 +270,8 @@ func newbackup() {
 	var previous SQLInt
 	if err := catalog.QueryRow("SELECT MAX(date) AS previous FROM backups WHERE finished AND name=?", name).Scan(&previous); err == nil {
 		globalhdr := &tar.Header{
-			Name:       programName,
+			Name:       name,
+			Linkname:   schedule,
 			Devmajor:   versionMajor,
 			Devminor:   versionMinor,
 			ModTime:    time.Unix(date, 0),
