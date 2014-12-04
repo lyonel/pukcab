@@ -268,19 +268,19 @@ func newbackup() {
 	tw := tar.NewWriter(os.Stdout)
 	defer tw.Close()
 
-	var previous int64
+	var previous SQLInt
 	if err := catalog.QueryRow("SELECT MAX(date) AS previous FROM backups WHERE finished AND name=?", name).Scan(&previous); err == nil {
 		globalhdr := &tar.Header{
 			Name:       programName,
 			Devmajor:   versionMajor,
 			Devminor:   versionMinor,
 			ModTime:    time.Unix(date, 0),
-			ChangeTime: time.Unix(previous, 0),
+			ChangeTime: time.Unix(int64(previous), 0),
 			Typeflag:   tar.TypeXGlobalHeader,
 		}
 		tw.WriteHeader(globalhdr)
 
-		if files, err := catalog.Query("SELECT name,hash,size,access,modify,change,mode,uid,gid,username,groupname FROM files WHERE backupid=? ORDER BY name", previous); err == nil {
+		if files, err := catalog.Query("SELECT name,hash,size,access,modify,change,mode,uid,gid,username,groupname FROM files WHERE backupid=? ORDER BY name", int64(previous)); err == nil {
 			defer files.Close()
 			for files.Next() {
 				var hdr tar.Header
@@ -325,7 +325,7 @@ func newbackup() {
 			Devmajor:   versionMajor,
 			Devminor:   versionMinor,
 			ModTime:    time.Unix(0, 0),
-			ChangeTime: time.Unix(previous, 0),
+			ChangeTime: time.Unix(int64(previous), 0),
 			Typeflag:   tar.TypeXGlobalHeader,
 		}
 		tw.WriteHeader(globalhdr)
