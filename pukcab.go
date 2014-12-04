@@ -1,7 +1,9 @@
 package main
 
 import (
+	"archive/tar"
 	"bufio"
+	"database/sql"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -12,7 +14,6 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-	"database/sql"
 
 	"github.com/BurntSushi/toml"
 	"github.com/antage/mntent"
@@ -20,6 +21,8 @@ import (
 )
 
 const programName = "pukcab"
+const versionMajor = 1
+const versionMinor = 0
 const defaultCommand = "help"
 const defaultSchedule = "daily"
 const defaultConfig = "/etc/pukcab.conf"
@@ -235,7 +238,7 @@ func newbackup() {
 
 	date = time.Now().Unix()
 	for try := 0; try < 3; try++ {
-		if _,err := catalog.Exec("INSERT INTO backups (date,name,schedule) VALUES(?,?,?)", date, name, schedule); err == nil {
+		if _, err := catalog.Exec("INSERT INTO backups (date,name,schedule) VALUES(?,?,?)", date, name, schedule); err == nil {
 			break
 		}
 		time.Sleep(1 * time.Second)
@@ -243,7 +246,72 @@ func newbackup() {
 	}
 
 	log.Printf("Creating backup set: date=%d name=%q schedule=%q\n", date, name, schedule)
-	fmt.Println(date)
+
+	tw := tar.NewWriter(os.Stdout)
+	defer tw.Close()
+
+	var previous int64
+	if err := catalog.QueryRow("SELECT MAX(date) AS previous FROM backups WHERE finished AND name=?", name).Scan(&previous); err == nil {
+		globalhdr := &tar.Header{
+			Name:       programName,
+			Devmajor:   versionMajor,
+			Devminor:   versionMinor,
+			ModTime:    time.Unix(date, 0),
+			ChangeTime: time.Unix(previous, 0),
+			Typeflag:   tar.TypeXGlobalHeader,
+		}
+		tw.WriteHeader(globalhdr)
+
+		if files, err := catalog.Query("SELECT name,hash,size,access,modify,change,mode,uid,gid,username,groupname FROM files WHERE backupid=? ORDER BY name", previous); err == nil {
+			defer files.Close()
+			for files.Next() {
+				var hdr tar.Header
+				var size int64
+				var access int64
+				var modify int64
+				var change int64
+
+				if err := files.Scan(&hdr.Name,
+					&hdr.Linkname,
+					&size,
+					&access,
+					&modify,
+					&change,
+					&hdr.Mode,
+					&hdr.Uid,
+					&hdr.Gid,
+					&hdr.Uname,
+					&hdr.Gname,
+				); err == nil {
+					hdr.ModTime = time.Unix(modify, 0)
+					hdr.AccessTime = time.Unix(access, 0)
+					hdr.ChangeTime = time.Unix(change, 0)
+					if hdr.Linkname == "" {
+						hdr.Typeflag = tar.TypeDir
+					} else {
+						hdr.Typeflag = tar.TypeSymlink
+						//hdr.Xattrs = make(map[string] string)
+						//hdr.Xattrs["size"] = fmt.Sprintf("%d", size)
+					}
+					tw.WriteHeader(&hdr)
+				} else {
+					log.Println(err)
+				}
+			}
+		} else {
+			log.Println(err)
+		}
+	} else {
+		globalhdr := &tar.Header{
+			Name:       programName,
+			Devmajor:   versionMajor,
+			Devminor:   versionMinor,
+			ChangeTime: time.Unix(previous, 0),
+			Typeflag:   tar.TypeXGlobalHeader,
+		}
+		tw.WriteHeader(globalhdr)
+		log.Println(err)
+	}
 }
 
 func submitfiles() {
