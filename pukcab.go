@@ -2,10 +2,10 @@ package main
 
 import (
 	"archive/tar"
-	"bufio"
 	"database/sql"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"log/syslog"
@@ -178,12 +178,30 @@ func backup() {
 		log.Fatal(err)
 	}
 
-	scanner := bufio.NewScanner(stdout)
-	for scanner.Scan() {
-		fmt.Println(scanner.Text()) // Println will add back the final '\n'
+	tr := tar.NewReader(stdout)
+
+	globalhdr, err := tr.Next()
+	if err != nil {
+		log.Fatal(err)
 	}
-	if err := scanner.Err(); err != nil {
-		fmt.Fprintln(os.Stderr, "reading standard input:", err)
+
+	backupset := globalhdr.ModTime.Unix()
+	if backupset <= 0 {
+		fmt.Println("Server error:", globalhdr.Name)
+		log.Fatal("Server error:", globalhdr.Name)
+	} else {
+		log.Printf("New backup: date=%d\n", backupset)
+	}
+
+	for {
+		hdr, err := tr.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(hdr.Name)
 	}
 
 	if err := cmd.Wait(); err != nil {
@@ -303,9 +321,10 @@ func newbackup() {
 		}
 	} else {
 		globalhdr := &tar.Header{
-			Name:       programName,
+			Name:       fmt.Sprintf("%v", err),
 			Devmajor:   versionMajor,
 			Devminor:   versionMinor,
+			ModTime:    time.Unix(0, 0),
 			ChangeTime: time.Unix(previous, 0),
 			Typeflag:   tar.TypeXGlobalHeader,
 		}
