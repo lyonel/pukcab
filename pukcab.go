@@ -189,6 +189,7 @@ func backup() {
 			log.Fatal(err)
 		}
 
+		fmt.Printf("%+v\n", hdr)
 		if hdr.Typeflag == tar.TypeXGlobalHeader {
 			backupset := hdr.ModTime.Unix()
 			if backupset <= 0 {
@@ -198,8 +199,6 @@ func backup() {
 				date = backupset
 				log.Printf("New backup: date=%d\n", backupset)
 			}
-		} else {
-			fmt.Println(hdr.Name)
 		}
 	}
 
@@ -269,8 +268,11 @@ func newbackup() {
 
 	var previous SQLInt
 	if err := catalog.QueryRow("SELECT MAX(date) AS previous FROM backups WHERE finished AND name=?", name).Scan(&previous); err == nil {
+		globaldata := paxHeader("PUKCAB.name=" + name)
+		globaldata = globaldata + paxHeader("PUKCAB.schedule="+schedule)
 		globalhdr := &tar.Header{
 			Name:       name,
+			Size:       int64(len(globaldata)),
 			Linkname:   schedule,
 			Devmajor:   versionMajor,
 			Devminor:   versionMinor,
@@ -279,6 +281,7 @@ func newbackup() {
 			Typeflag:   tar.TypeXGlobalHeader,
 		}
 		tw.WriteHeader(globalhdr)
+		tw.Write([]byte(globaldata))
 
 		if files, err := catalog.Query("SELECT name,hash,size,access,modify,change,mode,uid,gid,username,groupname FROM files WHERE backupid=? ORDER BY name", int64(previous)); err == nil {
 			defer files.Close()
