@@ -268,20 +268,22 @@ func newbackup() {
 
 	var previous SQLInt
 	if err := catalog.QueryRow("SELECT MAX(date) AS previous FROM backups WHERE finished AND name=?", name).Scan(&previous); err == nil {
-		globaldata := paxHeader("PUKCAB.name=" + name)
-		globaldata = globaldata + paxHeader("PUKCAB.schedule="+schedule)
+		globaldata := paxHeaders(map[string]interface{}{
+			".name":         name,
+			".schedule":     schedule,
+			".previous":     int64(previous),
+			".majorversion": versionMajor,
+			".minorversion": versionMinor,
+		})
 		globalhdr := &tar.Header{
-			Name:       name,
-			Size:       int64(len(globaldata)),
-			Linkname:   schedule,
-			Devmajor:   versionMajor,
-			Devminor:   versionMinor,
-			ModTime:    time.Unix(date, 0),
-			ChangeTime: time.Unix(int64(previous), 0),
-			Typeflag:   tar.TypeXGlobalHeader,
+			Name:     name,
+			Size:     int64(len(globaldata)),
+			Linkname: schedule,
+			ModTime:  time.Unix(date, 0),
+			Typeflag: tar.TypeXGlobalHeader,
 		}
 		tw.WriteHeader(globalhdr)
-		tw.Write([]byte(globaldata))
+		tw.Write(globaldata)
 
 		if files, err := catalog.Query("SELECT name,hash,size,access,modify,change,mode,uid,gid,username,groupname FROM files WHERE backupid=? ORDER BY name", int64(previous)); err == nil {
 			defer files.Close()

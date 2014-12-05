@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 // paxHeader formats a single pax record, prefixing it with the appropriate length
@@ -18,4 +19,17 @@ func paxHeader(msg string) string {
 		record = fmt.Sprintf("%d %s\n", size, msg)
 	}
 	return record
+}
+
+func paxHeaders(headers map[string]interface{}) []byte {
+	result := ""
+
+	for k, v := range headers {
+		if k[0] == '.' {
+			k = strings.ToUpper(programName) + k
+		}
+		result = result + paxHeader(k+"="+fmt.Sprintf("%v", v))
+	}
+
+	return []byte(result)
 }
