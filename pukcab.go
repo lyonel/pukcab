@@ -189,6 +189,11 @@ func backup() {
 			log.Fatal(err)
 		}
 
+		if hdr.Typeflag == 'E' {
+				fmt.Println("Server error:", hdr.Name)
+				log.Fatal("Server error:", hdr.Name)
+			}
+
 		fmt.Printf("%+v\n", hdr)
 		if hdr.Typeflag == tar.TypeXGlobalHeader {
 			backupset := hdr.ModTime.Unix()
@@ -313,8 +318,6 @@ func newbackup() {
 						hdr.Typeflag = tar.TypeDir
 					} else {
 						hdr.Typeflag = tar.TypeSymlink
-						//hdr.Xattrs = make(map[string] string)
-						//hdr.Xattrs["size"] = fmt.Sprintf("%d", size)
 					}
 					tw.WriteHeader(&hdr)
 				} else {
@@ -327,11 +330,7 @@ func newbackup() {
 	} else {
 		globalhdr := &tar.Header{
 			Name:       fmt.Sprintf("%v", err),
-			Devmajor:   versionMajor,
-			Devminor:   versionMinor,
-			ModTime:    time.Unix(0, 0),
-			ChangeTime: time.Unix(int64(previous), 0),
-			Typeflag:   tar.TypeXGlobalHeader,
+			Typeflag:   'E',
 		}
 		tw.WriteHeader(globalhdr)
 		log.Println(err)
