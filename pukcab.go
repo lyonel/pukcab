@@ -218,20 +218,20 @@ CREATE TABLE IF NOT EXISTS backups(name TEXT NOT NULL,
 			date INTEGER PRIMARY KEY,
 			finished INTEGER);
 CREATE TABLE IF NOT EXISTS files(backupid INTEGER NOT NULL,
-			hash TEXT COLLATE NOCASE,
+			hash TEXT COLLATE NOCASE NOT NULL DEFAULT '',
 			name TEXT NOT NULL,
-			size INTEGER,
-			birth INTEGER,
-			access INTEGER,
-			modify INTEGER,
-			change INTEGER,
-			mode INTEGER,
-			uid INTEGER,
-			gid INTEGER,
-			username TEXT,
-			groupname TEXT);
+			size INTEGER NOT NULL DEFAULT -1,
+			birth INTEGER NOT NULL DEFAULT 0,
+			access INTEGER NOT NULL DEFAULT 0,
+			modify INTEGER NOT NULL DEFAULT 0,
+			change INTEGER NOT NULL DEFAULT 0,
+			mode INTEGER NOT NULL DEFAULT 0,
+			uid INTEGER NOT NULL DEFAULT 0,
+			gid INTEGER NOT NULL DEFAULT 0,
+			username TEXT NOT NULL DEFAULT '',
+			groupname TEXT NOT NULL DEFAULT '');
 CREATE TABLE IF NOT EXISTS vault(hash TEXT COLLATE NOCASE PRIMARY KEY,
-			size INTEGER);
+			size INTEGER NOT NULL DEFAULT -1);
 			`); err != nil {
 			return err
 		}
