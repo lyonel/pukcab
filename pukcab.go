@@ -2,6 +2,7 @@ package main
 
 import (
 	"archive/tar"
+	"bufio"
 	"database/sql"
 	"flag"
 	"fmt"
@@ -165,18 +166,24 @@ func backup() {
 		}
 	}
 
-	//for f := range backupset {
-	//fmt.Println(f)
-	//}
-
 	cmd := remotecommand("newbackup", "-name", name, "-schedule", schedule)
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		log.Fatal(err)
 	}
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	if err := cmd.Start(); err != nil {
 		log.Fatal(err)
 	}
+
+	for f := range backupset {
+		fmt.Fprintln(stdin, f)
+	}
+	stdin.Close()
 
 	tr := tar.NewReader(stdout)
 
@@ -190,20 +197,14 @@ func backup() {
 		}
 
 		if hdr.Typeflag == 'E' {
-				fmt.Println("Server error:", hdr.Name)
-				log.Fatal("Server error:", hdr.Name)
-			}
+			fmt.Println("Server error:", hdr.Name)
+			log.Fatal("Server error:", hdr.Name)
+		}
 
-		fmt.Printf("%+v\n", hdr)
+		fmt.Printf("%v\n", hdr.Name)
 		if hdr.Typeflag == tar.TypeXGlobalHeader {
-			backupset := hdr.ModTime.Unix()
-			if backupset <= 0 {
-				fmt.Println("Server error:", hdr.Name)
-				log.Fatal("Server error:", hdr.Name)
-			} else {
-				date = backupset
-				log.Printf("New backup: date=%d\n", backupset)
-			}
+			date = hdr.ModTime.Unix()
+			log.Printf("New backup: date=%d files=%d\n", date, len(backupset))
 		}
 	}
 
@@ -223,6 +224,7 @@ CREATE TABLE IF NOT EXISTS backups(name TEXT NOT NULL,
 			finished INTEGER);
 CREATE TABLE IF NOT EXISTS files(backupid INTEGER NOT NULL,
 			hash TEXT COLLATE NOCASE NOT NULL DEFAULT '',
+			type CHAR(1) NOT NULL DEFAULT '?',
 			name TEXT NOT NULL,
 			size INTEGER NOT NULL DEFAULT -1,
 			birth INTEGER NOT NULL DEFAULT 0,
@@ -236,6 +238,10 @@ CREATE TABLE IF NOT EXISTS files(backupid INTEGER NOT NULL,
 			groupname TEXT NOT NULL DEFAULT '');
 CREATE TABLE IF NOT EXISTS vault(hash TEXT COLLATE NOCASE PRIMARY KEY,
 			size INTEGER NOT NULL DEFAULT -1);
+CREATE TRIGGER IF NOT EXISTS cleanup_files AFTER DELETE ON backups FOR EACH ROW
+BEGIN
+			DELETE FROM files WHERE backupid=OLD.date;
+END;
 			`); err != nil {
 			return err
 		}
@@ -274,11 +280,10 @@ func newbackup() {
 	var previous SQLInt
 	if err := catalog.QueryRow("SELECT MAX(date) AS previous FROM backups WHERE finished AND name=?", name).Scan(&previous); err == nil {
 		globaldata := paxHeaders(map[string]interface{}{
-			".name":         name,
-			".schedule":     schedule,
-			".previous":     int64(previous),
-			".majorversion": versionMajor,
-			".minorversion": versionMinor,
+			".name":     name,
+			".schedule": schedule,
+			".previous": int64(previous),
+			".version":  fmt.Sprintf("%d.%d", versionMajor, versionMinor),
 		})
 		globalhdr := &tar.Header{
 			Name:     name,
@@ -329,12 +334,24 @@ func newbackup() {
 		}
 	} else {
 		globalhdr := &tar.Header{
-			Name:       fmt.Sprintf("%v", err),
-			Typeflag:   'E',
+			Name:     fmt.Sprintf("%v", err),
+			ModTime:  time.Now(),
+			Typeflag: 'E',
 		}
 		tw.WriteHeader(globalhdr)
 		log.Println(err)
 	}
+
+	tx, _ := catalog.Begin()
+	scanner := bufio.NewScanner(os.Stdin)
+	for scanner.Scan() {
+		scanner.Text()
+		if _, err := tx.Exec("INSERT INTO files (backupid,name) VALUES(?,?)", date, scanner.Text()); err != nil {
+			tx.Rollback()
+			log.Fatal(err)
+		}
+	}
+	tx.Commit()
 }
 
 func submitfiles() {
