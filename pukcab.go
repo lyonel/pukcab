@@ -12,6 +12,7 @@ import (
 	"log/syslog"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -349,7 +350,7 @@ func newbackup() {
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		scanner.Text()
-		if _, err := tx.Exec("INSERT INTO files (backupid,name) VALUES(?,?)", date, scanner.Text()); err != nil {
+		if _, err := tx.Exec("INSERT INTO files (backupid,name) VALUES(?,?)", date, path.Clean(scanner.Text())); err != nil {
 			tx.Rollback()
 			log.Fatal(err)
 		}
@@ -396,7 +397,7 @@ func submitfiles() {
 
 		// skip usually fake entries used only for extended attributes
 		if hdr.Name != hdr.Linkname {
-			if _, err := tx.Exec("INSERT OR REPLACE INTO files (backupid,name,size,type,linkname,username,groupname,uid,gid,mode,access,modify,change) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)", date, hdr.Name, hdr.Size, string(hdr.Typeflag), hdr.Linkname, hdr.Uname, hdr.Gname, hdr.Uid, hdr.Gid, hdr.Mode, hdr.AccessTime.Unix(), hdr.ModTime.Unix(), hdr.ChangeTime.Unix()); err != nil {
+			if _, err := tx.Exec("INSERT OR REPLACE INTO files (backupid,name,size,type,linkname,username,groupname,uid,gid,mode,access,modify,change) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)", date, path.Clean(hdr.Name), hdr.Size, string(hdr.Typeflag), path.Clean(hdr.Linkname), hdr.Uname, hdr.Gname, hdr.Uid, hdr.Gid, hdr.Mode, hdr.AccessTime.Unix(), hdr.ModTime.Unix(), hdr.ChangeTime.Unix()); err != nil {
 				tx.Rollback()
 				log.Fatal(err)
 			}
