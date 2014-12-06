@@ -375,11 +375,11 @@ func submitfiles() {
 	catalog.QueryRow("SELECT COUNT(*) AS missing FROM files WHERE backupid=?", date).Scan(&files)
 	missing := 0
 	catalog.QueryRow("SELECT COUNT(*) AS missing FROM files WHERE backupid=? AND type='?'", date).Scan(&missing)
-	var finished SQLInt;
+	var finished SQLInt
 	catalog.QueryRow("SELECT name,schedule,finished FROM backups WHERE date=?", date).Scan(&name, &schedule, &finished)
 
 	log.Printf("Receiving files for backup set: date=%d name=%q schedule=%q files=%d missing=%d\n", date, name, schedule, files, missing)
-	if(finished != 0) {
+	if finished != 0 {
 		log.Printf("Warning: backup set date=%d is no longer open\n", date)
 	}
 
