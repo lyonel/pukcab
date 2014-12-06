@@ -372,20 +372,29 @@ func submitfiles() {
 	}
 
 	files := 0
-	catalog.QueryRow("SELECT COUNT(*) AS missing FROM files WHERE backupid=?", date).Scan(&files)
+	catalog.QueryRow("SELECT COUNT(*) FROM files WHERE backupid=?", date).Scan(&files)
+
+	if files ==0 {
+		var lastdate SQLInt
+		catalog.QueryRow("SELECT MAX(date) FROM backups WHERE name=? AND schedule=?", name, schedule).Scan(&lastdate)
+		date = int64(lastdate)
+	}
+
+	files = 0
+	catalog.QueryRow("SELECT COUNT(*) FROM files WHERE backupid=?", date).Scan(&files)
 	missing := 0
-	catalog.QueryRow("SELECT COUNT(*) AS missing FROM files WHERE backupid=? AND type='?'", date).Scan(&missing)
+	catalog.QueryRow("SELECT COUNT(*) FROM files WHERE backupid=? AND type='?'", date).Scan(&missing)
+
 	var finished SQLInt
 	catalog.QueryRow("SELECT name,schedule,finished FROM backups WHERE date=?", date).Scan(&name, &schedule, &finished)
 
 	log.Printf("Receiving files for backup set: date=%d name=%q schedule=%q files=%d missing=%d\n", date, name, schedule, files, missing)
 	if finished != 0 {
-		log.Printf("Warning: backup set date=%d is no longer open\n", date)
+		log.Printf("Warning: backup set date=%d is already complete\n", date)
 	}
 
 	tr := tar.NewReader(os.Stdin)
 
-	tx, _ := catalog.Begin()
 	for {
 		hdr, err := tr.Next()
 		if err == io.EOF {
@@ -397,13 +406,35 @@ func submitfiles() {
 
 		// skip usually fake entries used only for extended attributes
 		if hdr.Name != hdr.Linkname {
-			if _, err := tx.Exec("INSERT OR REPLACE INTO files (backupid,name,size,type,linkname,username,groupname,uid,gid,mode,access,modify,change) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)", date, path.Clean(hdr.Name), hdr.Size, string(hdr.Typeflag), path.Clean(hdr.Linkname), hdr.Uname, hdr.Gname, hdr.Uid, hdr.Gid, hdr.Mode, hdr.AccessTime.Unix(), hdr.ModTime.Unix(), hdr.ChangeTime.Unix()); err != nil {
-				tx.Rollback()
+			var zero time.Time
+			if hdr.ModTime == zero {
+				hdr.ModTime = time.Unix(0, 0)
+			}
+			if hdr.AccessTime == zero {
+				hdr.AccessTime = time.Unix(0, 0)
+			}
+			if hdr.ChangeTime == zero {
+				hdr.ChangeTime = time.Unix(0, 0)
+			}
+			if _, err := catalog.Exec("INSERT OR REPLACE INTO files (backupid,name,size,type,linkname,username,groupname,uid,gid,mode,access,modify,change) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)", date, path.Clean(hdr.Name), hdr.Size, string(hdr.Typeflag), path.Clean(hdr.Linkname), hdr.Uname, hdr.Gname, hdr.Uid, hdr.Gid, hdr.Mode, hdr.AccessTime.Unix(), hdr.ModTime.Unix(), hdr.ChangeTime.Unix()); err != nil {
 				log.Fatal(err)
 			}
 		}
 	}
-	tx.Commit()
+
+	missing = 0
+	if err := catalog.QueryRow("SELECT COUNT(*) FROM files WHERE backupid=? AND type='?'", date).Scan(&missing); err == nil {
+		if missing == 0 {
+			catalog.Exec("UPDATE backups SET finished=? WHERE date=?", time.Now().Unix(), date)
+			log.Printf("Finished backup: date=%d name=%q schedule=%q files=%d\n", date, name, schedule, files)
+			fmt.Printf("Backup %d complete (%d files)\n", date, files)
+		} else {
+			log.Printf("Received files for backup set: date=%d name=%q schedule=%q files=%d missing=%d\n", date, name, schedule, files, missing)
+			fmt.Printf("Received %d files for backup %d (%d files to go)\n", files-missing, date, missing)
+		}
+	} else {
+		log.Fatal(err)
+	}
 }
 
 func usage() {
