@@ -226,6 +226,7 @@ CREATE TABLE IF NOT EXISTS files(backupid INTEGER NOT NULL,
 			hash TEXT COLLATE NOCASE NOT NULL DEFAULT '',
 			type CHAR(1) NOT NULL DEFAULT '?',
 			name TEXT NOT NULL,
+			linkname TEXT NOT NULL DEFAULT '',
 			size INTEGER NOT NULL DEFAULT -1,
 			birth INTEGER NOT NULL DEFAULT 0,
 			access INTEGER NOT NULL DEFAULT 0,
@@ -235,7 +236,8 @@ CREATE TABLE IF NOT EXISTS files(backupid INTEGER NOT NULL,
 			uid INTEGER NOT NULL DEFAULT 0,
 			gid INTEGER NOT NULL DEFAULT 0,
 			username TEXT NOT NULL DEFAULT '',
-			groupname TEXT NOT NULL DEFAULT '');
+			groupname TEXT NOT NULL DEFAULT '',
+			UNIQUE (backupid, name));
 CREATE TABLE IF NOT EXISTS vault(hash TEXT COLLATE NOCASE PRIMARY KEY,
 			size INTEGER NOT NULL DEFAULT -1);
 CREATE TRIGGER IF NOT EXISTS cleanup_files AFTER DELETE ON backups FOR EACH ROW
@@ -342,6 +344,7 @@ func newbackup() {
 		log.Println(err)
 	}
 
+	// Now, get ready to receive file list
 	tx, _ := catalog.Begin()
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
@@ -359,9 +362,47 @@ func submitfiles() {
 	flag.Int64Var(&date, "d", date, "-date")
 	flag.Parse()
 
-	log.Println("name: ", name)
-	log.Println("date: ", date)
-	log.Println("schedule: ", schedule)
+	if sshclient := strings.Split(os.Getenv("SSH_CLIENT"), " "); sshclient[0] != "" {
+		log.Printf("Remote client: ip=%q\n", sshclient[0])
+	}
+
+	if err := opencatalog(); err != nil {
+		log.Fatal(err)
+	}
+
+	files := 0
+	catalog.QueryRow("SELECT COUNT(*) AS missing FROM files WHERE backupid=?", date).Scan(&files)
+	missing := 0
+	catalog.QueryRow("SELECT COUNT(*) AS missing FROM files WHERE backupid=? AND type='?'", date).Scan(&missing)
+	var finished SQLInt;
+	catalog.QueryRow("SELECT name,schedule,finished FROM backups WHERE date=?", date).Scan(&name, &schedule, &finished)
+
+	log.Printf("Receiving files for backup set: date=%d name=%q schedule=%q files=%d missing=%d\n", date, name, schedule, files, missing)
+	if(finished != 0) {
+		log.Printf("Warning: backup set date=%d is no longer open\n", date)
+	}
+
+	tr := tar.NewReader(os.Stdin)
+
+	tx, _ := catalog.Begin()
+	for {
+		hdr, err := tr.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// skip usually fake entries used only for extended attributes
+		if hdr.Name != hdr.Linkname {
+			if _, err := tx.Exec("INSERT OR REPLACE INTO files (backupid,name,size,type,linkname,username,groupname,uid,gid,mode,access,modify,change) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)", date, hdr.Name, hdr.Size, string(hdr.Typeflag), hdr.Linkname, hdr.Uname, hdr.Gname, hdr.Uid, hdr.Gid, hdr.Mode, hdr.AccessTime.Unix(), hdr.ModTime.Unix(), hdr.ChangeTime.Unix()); err != nil {
+				tx.Rollback()
+				log.Fatal(err)
+			}
+		}
+	}
+	tx.Commit()
 }
 
 func usage() {
