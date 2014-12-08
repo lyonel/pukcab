@@ -218,6 +218,8 @@ func opencatalog() error {
 	if db, err := sql.Open("sqlite3", filepath.Join(cfg.Catalog, "catalog.db")); err == nil {
 		catalog = db
 
+		catalog.Exec("PRAGMA synchronous = OFF")
+
 		if _, err = catalog.Exec(`
 CREATE TABLE IF NOT EXISTS backups(name TEXT NOT NULL,
 			schedule TEXT NOT NULL,
@@ -403,6 +405,8 @@ func submitfiles() {
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		//fmt.Printf("%v\n", hdr)
 
 		// skip usually fake entries used only for extended attributes
 		if hdr.Name != hdr.Linkname {
