@@ -3,6 +3,8 @@ package main
 import (
 	"archive/tar"
 	"bufio"
+	"compress/gzip"
+	"crypto/sha512"
 	"database/sql"
 	"flag"
 	"fmt"
@@ -50,6 +52,8 @@ var directories map[string]bool
 var backupset map[string]struct{}
 
 var catalog *sql.DB
+
+var vault string = "/var/" + programName + "/vault"
 
 func remotecommand(arg ...string) *exec.Cmd {
 	os.Setenv("SSH_CLIENT", "")
@@ -376,7 +380,7 @@ func submitfiles() {
 	files := 0
 	catalog.QueryRow("SELECT COUNT(*) FROM files WHERE backupid=?", date).Scan(&files)
 
-	if files ==0 {
+	if files == 0 {
 		var lastdate SQLInt
 		catalog.QueryRow("SELECT MAX(date) FROM backups WHERE name=? AND schedule=?", name, schedule).Scan(&lastdate)
 		date = int64(lastdate)
@@ -406,11 +410,12 @@ func submitfiles() {
 			log.Fatal(err)
 		}
 
-		//fmt.Printf("%v\n", hdr)
-
 		// skip usually fake entries used only for extended attributes
 		if hdr.Name != hdr.Linkname {
 			var zero time.Time
+			var hash string
+			checksum := sha512.New()
+
 			if hdr.ModTime == zero {
 				hdr.ModTime = time.Unix(0, 0)
 			}
@@ -420,7 +425,48 @@ func submitfiles() {
 			if hdr.ChangeTime == zero {
 				hdr.ChangeTime = time.Unix(0, 0)
 			}
-			if _, err := catalog.Exec("INSERT OR REPLACE INTO files (backupid,name,size,type,linkname,username,groupname,uid,gid,mode,access,modify,change) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)", date, path.Clean(hdr.Name), hdr.Size, string(hdr.Typeflag), path.Clean(hdr.Linkname), hdr.Uname, hdr.Gname, hdr.Uid, hdr.Gid, hdr.Mode, hdr.AccessTime.Unix(), hdr.ModTime.Unix(), hdr.ChangeTime.Unix()); err != nil {
+
+			if hdr.Typeflag == tar.TypeReg || hdr.Typeflag == tar.TypeRegA {
+				if tmpfile, err := ioutil.TempFile(vault, programName+"-"); err == nil {
+					gz := gzip.NewWriter(tmpfile)
+					gz.Header.Name = name + ":" + hdr.Name
+					buf := make([]byte, 1024*1024) // 1MiB
+					for {
+						nr, er := tr.Read(buf)
+						if nr > 0 {
+							nw, ew := gz.Write(buf[0:nr])
+							checksum.Write(buf[0:nr])
+							if ew != nil {
+								err = ew
+								break
+							}
+							if nr != nw {
+								err = io.ErrShortWrite
+								break
+							}
+						}
+						if er == io.EOF {
+							break
+						}
+						if er != nil {
+							err = er
+							break
+						}
+					}
+					gz.Close()
+					tmpfile.Close()
+
+					if err != nil {
+						log.Fatal(err)
+					}
+
+					hash = fmt.Sprintf("%x", checksum.Sum(nil))
+
+					os.Rename(tmpfile.Name(), vault+string(filepath.Separator)+hash)
+				}
+
+			}
+			if _, err := catalog.Exec("INSERT OR REPLACE INTO files (hash,backupid,name,size,type,linkname,username,groupname,uid,gid,mode,access,modify,change) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)", hash, date, path.Clean(hdr.Name), hdr.Size, string(hdr.Typeflag), path.Clean(hdr.Linkname), hdr.Uname, hdr.Gname, hdr.Uid, hdr.Gid, hdr.Mode, hdr.AccessTime.Unix(), hdr.ModTime.Unix(), hdr.ChangeTime.Unix()); err != nil {
 				log.Fatal(err)
 			}
 		}
