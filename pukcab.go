@@ -14,7 +14,6 @@ import (
 	"log/syslog"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -356,7 +355,7 @@ func newbackup() {
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		scanner.Text()
-		if _, err := tx.Exec("INSERT INTO files (backupid,name) VALUES(?,?)", date, path.Clean(scanner.Text())); err != nil {
+		if _, err := tx.Exec("INSERT INTO files (backupid,name) VALUES(?,?)", date, filepath.Clean(scanner.Text())); err != nil {
 			tx.Rollback()
 			log.Fatal(err)
 		}
@@ -425,6 +424,10 @@ func submitfiles() {
 			var hash string
 			checksum := sha512.New()
 
+			if !filepath.IsAbs(hdr.Name) {
+				hdr.Name = filepath.Join(string(filepath.Separator), hdr.Name)
+			}
+
 			if hdr.ModTime == zero {
 				hdr.ModTime = time.Unix(0, 0)
 			}
@@ -471,11 +474,11 @@ func submitfiles() {
 
 					hash = fmt.Sprintf("%x", checksum.Sum(nil))
 
-					os.Rename(tmpfile.Name(), vault+string(filepath.Separator)+hash)
+					os.Rename(tmpfile.Name(), filepath.Join(vault, hash))
 				}
 
 			}
-			if _, err := catalog.Exec("INSERT OR REPLACE INTO files (hash,backupid,name,size,type,linkname,username,groupname,uid,gid,mode,access,modify,change) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)", hash, date, path.Clean(hdr.Name), hdr.Size, string(hdr.Typeflag), path.Clean(hdr.Linkname), hdr.Uname, hdr.Gname, hdr.Uid, hdr.Gid, hdr.Mode, hdr.AccessTime.Unix(), hdr.ModTime.Unix(), hdr.ChangeTime.Unix()); err != nil {
+			if _, err := catalog.Exec("INSERT OR REPLACE INTO files (hash,backupid,name,size,type,linkname,username,groupname,uid,gid,mode,access,modify,change) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)", hash, date, filepath.Clean(hdr.Name), hdr.Size, string(hdr.Typeflag), filepath.Clean(hdr.Linkname), hdr.Uname, hdr.Gname, hdr.Uid, hdr.Gid, hdr.Mode, hdr.AccessTime.Unix(), hdr.ModTime.Unix(), hdr.ChangeTime.Unix()); err != nil {
 				log.Fatal(err)
 			}
 		}
