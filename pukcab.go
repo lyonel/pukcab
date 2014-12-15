@@ -364,6 +364,15 @@ func newbackup() {
 	tx.Commit()
 }
 
+func toascii(s string) (result string) {
+	for i := 0; i < len(s); i++ {
+		if s[i] > ' ' && s[i] < 0x80 {
+			result += string(s[i])
+		}
+	}
+	return
+}
+
 func submitfiles() {
 	flag.Int64Var(&date, "date", date, "Backup set")
 	flag.Int64Var(&date, "d", date, "-date")
@@ -429,7 +438,7 @@ func submitfiles() {
 			if hdr.Typeflag == tar.TypeReg || hdr.Typeflag == tar.TypeRegA {
 				if tmpfile, err := ioutil.TempFile(vault, programName+"-"); err == nil {
 					gz := gzip.NewWriter(tmpfile)
-					gz.Header.Name = name + ":" + hdr.Name
+					gz.Header.Name = toascii(name + ":" + hdr.Name)
 					buf := make([]byte, 1024*1024) // 1MiB
 					for {
 						nr, er := tr.Read(buf)
