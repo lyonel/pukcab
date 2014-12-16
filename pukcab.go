@@ -46,6 +46,7 @@ var name string = "hostname"
 var date int64 = -1
 var schedule string = defaultSchedule
 var age uint = 14
+var full bool = false
 
 var directories map[string]bool
 var backupset map[string]struct{}
@@ -146,6 +147,8 @@ func addfiles(d string) {
 }
 
 func backup() {
+	flag.BoolVar(&full, "full", full, "Full backup")
+	flag.BoolVar(&full, "f", full, "-full")
 	flag.Parse()
 
 	log.Printf("Starting backup: name=%q schedule=%q\n", name, schedule)
@@ -261,6 +264,8 @@ END;
 }
 
 func newbackup() {
+	flag.BoolVar(&full, "full", full, "Full backup")
+	flag.BoolVar(&full, "f", full, "-full")
 	flag.Parse()
 
 	if sshclient := strings.Split(os.Getenv("SSH_CLIENT"), " "); sshclient[0] != "" {
