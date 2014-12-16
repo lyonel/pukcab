@@ -441,7 +441,7 @@ func submitfiles() {
 			if hdr.Typeflag == tar.TypeReg || hdr.Typeflag == tar.TypeRegA {
 				if tmpfile, err := ioutil.TempFile(vault, programName+"-"); err == nil {
 					gz := gzip.NewWriter(tmpfile)
-					gz.Header.Name = toascii(name + ":" + hdr.Name)
+					gz.Header.Name = toascii(filepath.Base(hdr.Name))
 					buf := make([]byte, 1024*1024) // 1MiB
 					for {
 						nr, er := tr.Read(buf)
