@@ -285,75 +285,13 @@ func newbackup() {
 		date = time.Now().Unix()
 	}
 
+	//if err != nil {
+	//fmt.Println(0)
+	//fmt.Println(err)
+	//log.Fatal(err)
+	//}
+
 	log.Printf("Creating backup set: date=%d name=%q schedule=%q\n", date, name, schedule)
-
-	tw := tar.NewWriter(os.Stdout)
-	defer tw.Close()
-
-	var previous SQLInt
-	if err := catalog.QueryRow("SELECT MAX(date) AS previous FROM backups WHERE finished AND name=?", name).Scan(&previous); err == nil {
-		globaldata := paxHeaders(map[string]interface{}{
-			".name":     name,
-			".schedule": schedule,
-			".previous": int64(previous),
-			".version":  fmt.Sprintf("%d.%d", versionMajor, versionMinor),
-		})
-		globalhdr := &tar.Header{
-			Name:     name,
-			Size:     int64(len(globaldata)),
-			Linkname: schedule,
-			ModTime:  time.Unix(date, 0),
-			Typeflag: tar.TypeXGlobalHeader,
-		}
-		tw.WriteHeader(globalhdr)
-		tw.Write(globaldata)
-
-		if files, err := catalog.Query("SELECT name,hash,size,access,modify,change,mode,uid,gid,username,groupname FROM files WHERE backupid=? ORDER BY name", int64(previous)); err == nil {
-			defer files.Close()
-			for files.Next() {
-				var hdr tar.Header
-				var size int64
-				var access int64
-				var modify int64
-				var change int64
-
-				if err := files.Scan(&hdr.Name,
-					&hdr.Linkname,
-					&size,
-					&access,
-					&modify,
-					&change,
-					&hdr.Mode,
-					&hdr.Uid,
-					&hdr.Gid,
-					&hdr.Uname,
-					&hdr.Gname,
-				); err == nil {
-					hdr.ModTime = time.Unix(modify, 0)
-					hdr.AccessTime = time.Unix(access, 0)
-					hdr.ChangeTime = time.Unix(change, 0)
-					if hdr.Linkname == "" {
-						hdr.Typeflag = tar.TypeDir
-					} else {
-						hdr.Typeflag = tar.TypeSymlink
-					}
-					tw.WriteHeader(&hdr)
-				} else {
-					log.Println(err)
-				}
-			}
-		} else {
-			log.Println(err)
-		}
-	} else {
-		globalhdr := &tar.Header{
-			Name:     fmt.Sprintf("%v", err),
-			ModTime:  time.Now(),
-			Typeflag: 'E',
-		}
-		tw.WriteHeader(globalhdr)
-		log.Println(err)
-	}
 
 	// Now, get ready to receive file list
 	tx, _ := catalog.Begin()
@@ -366,6 +304,85 @@ func newbackup() {
 		}
 	}
 	tx.Commit()
+
+	fmt.Println(date)
+	var previous SQLInt
+	if err := catalog.QueryRow("SELECT MAX(date) AS previous FROM backups WHERE finished AND name=?", name).Scan(&previous); err == nil {
+		fmt.Println(int64(previous))
+	} else {
+		fmt.Println(0) // no previous backup
+	}
+}
+
+func backupinfo() {
+	flag.Int64Var(&date, "date", date, "Backup set")
+	flag.Int64Var(&date, "d", date, "-date")
+	flag.Parse()
+
+	if err := opencatalog(); err != nil {
+		log.Fatal(err)
+	}
+
+	tw := tar.NewWriter(os.Stdout)
+	defer tw.Close()
+
+	globaldata := paxHeaders(map[string]interface{}{
+		".name":     name,
+		".schedule": schedule,
+		".version":  fmt.Sprintf("%d.%d", versionMajor, versionMinor),
+	})
+	globalhdr := &tar.Header{
+		Name:     name,
+		Size:     int64(len(globaldata)),
+		Linkname: schedule,
+		ModTime:  time.Unix(date, 0),
+		Typeflag: tar.TypeXGlobalHeader,
+	}
+	tw.WriteHeader(globalhdr)
+	tw.Write(globaldata)
+
+	if files, err := catalog.Query("SELECT name,type,hash,linkname,size,access,modify,change,mode,uid,gid,username,groupname FROM files WHERE backupid=? ORDER BY name", int64(date)); err == nil {
+		defer files.Close()
+		for files.Next() {
+			var hdr tar.Header
+			var size int64
+			var access int64
+			var modify int64
+			var change int64
+			var hash string
+
+
+			if err := files.Scan(&hdr.Name,
+				&hdr.Typeflag,
+				&hash,
+				&hdr.Linkname,
+				&size,
+				&access,
+				&modify,
+				&change,
+				&hdr.Mode,
+				&hdr.Uid,
+				&hdr.Gid,
+				&hdr.Uname,
+				&hdr.Gname,
+			); err == nil {
+				hdr.ModTime = time.Unix(modify, 0)
+				hdr.AccessTime = time.Unix(access, 0)
+				hdr.ChangeTime = time.Unix(change, 0)
+				hdr.Xattrs = make(map[string]string)
+				hdr.Xattrs["backup.type"] = fmt.Sprintf("%d", hdr.Typeflag)
+				if hash != "" {
+					hdr.Xattrs["backup.hash"] = hash
+				}
+				hdr.Typeflag = 'Z'
+				tw.WriteHeader(&hdr)
+			} else {
+				log.Println(err)
+			}
+		}
+	} else {
+		log.Println(err)
+	}
 }
 
 func toascii(s string) (result string) {
@@ -565,6 +582,8 @@ func main() {
 		backup()
 	case "newbackup":
 		newbackup()
+	case "backupinfo":
+		backupinfo()
 	case "submitfiles":
 		submitfiles()
 	case "expire":
