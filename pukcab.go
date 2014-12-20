@@ -126,6 +126,8 @@ func addfiles(d string) {
 }
 
 func backup() {
+	flag.StringVar(&schedule, "schedule", defaultSchedule, "Backup schedule")
+	flag.StringVar(&schedule, "r", defaultSchedule, "-schedule")
 	flag.BoolVar(&full, "full", full, "Full backup")
 	flag.BoolVar(&full, "f", full, "-full")
 	flag.Parse()
@@ -295,9 +297,61 @@ func newbackup() {
 	}
 }
 
+func info() {
+	flag.Int64Var(&date, "date", 0, "Backup set")
+	flag.Int64Var(&date, "d", 0, "-date")
+	flag.Parse()
+
+	var cmd *exec.Cmd
+	if date != 0 {
+		cmd = remotecommand("backupinfo", "-date", fmt.Sprintf("%d", date))
+	} else {
+		cmd = remotecommand("backupinfo", "-name", name)
+	}
+
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err := cmd.Start(); err != nil {
+		log.Fatal(err)
+	}
+
+	tr := tar.NewReader(stdout)
+	size := int64(0)
+	files := int64(0)
+	for {
+		hdr, err := tr.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		switch hdr.Typeflag {
+		case tar.TypeXGlobalHeader:
+			size = 0
+			files = 0
+			fmt.Printf("\nName: %s\nSchedule: %s\nDate: %d (%v)\n", hdr.Name, hdr.Linkname, hdr.ModTime.Unix(), hdr.ModTime)
+		default:
+			files++
+			if s, err := strconv.ParseInt(hdr.Xattrs["backup.size"], 0, 0); err == nil {
+				size += s
+			}
+		}
+	}
+	fmt.Printf("Files: %d\nSize: %d\n", files, size)
+
+	if err := cmd.Wait(); err != nil {
+		log.Fatal(err)
+	}
+}
+
 func backupinfo() {
-	flag.Int64Var(&date, "date", date, "Backup set")
-	flag.Int64Var(&date, "d", date, "-date")
+	flag.Int64Var(&date, "date", 0, "Backup set")
+	flag.Int64Var(&date, "d", 0, "-date")
 	flag.Parse()
 
 	if err := opencatalog(); err != nil {
@@ -354,6 +408,9 @@ func backupinfo() {
 				hdr.Xattrs["backup.type"] = filetype
 				if hash != "" {
 					hdr.Xattrs["backup.hash"] = hash
+				}
+				if size != 0 {
+					hdr.Xattrs["backup.size"] = fmt.Sprintf("%d", size)
 				}
 				hdr.Typeflag = 'Z'
 				tw.WriteHeader(&hdr)
@@ -525,8 +582,6 @@ func main() {
 	name, _ = os.Hostname()
 	flag.StringVar(&name, "name", name, "Backup name")
 	flag.StringVar(&name, "n", name, "-name")
-	flag.StringVar(&schedule, "schedule", defaultSchedule, "Backup schedule")
-	flag.StringVar(&schedule, "r", defaultSchedule, "-schedule")
 	flag.Usage = usage
 
 	loadconfig()
@@ -551,6 +606,8 @@ func main() {
 		backup()
 	case "newbackup":
 		newbackup()
+	case "info":
+		info()
 	case "backupinfo":
 		backupinfo()
 	case "submitfiles":
@@ -562,7 +619,7 @@ func main() {
 	case "-help", "--help", "-h":
 		fmt.Fprintln(os.Stderr, "Usage: %s COMMAND [options]\n\nCommands:", programName)
 		fmt.Fprintln(os.Stderr, "  backup")
-		fmt.Fprintln(os.Stderr, "  newbackup")
+		fmt.Fprintln(os.Stderr, "  info")
 		fmt.Fprintln(os.Stderr, "  expire")
 		fmt.Fprintln(os.Stderr, "  help")
 	default:
