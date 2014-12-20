@@ -23,13 +23,6 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-const programName = "pukcab"
-const versionMajor = 1
-const versionMinor = 0
-const defaultCommand = "help"
-const defaultSchedule = "daily"
-const defaultConfig = "/etc/pukcab.conf"
-
 type Config struct {
 	Server  string
 	User    string
@@ -53,7 +46,6 @@ var backupset map[string]struct{}
 
 var catalog *sql.DB
 
-var vault string = "/var/" + programName + "/vault"
 
 func remotecommand(arg ...string) *exec.Cmd {
 	os.Setenv("SSH_CLIENT", "")
@@ -462,7 +454,7 @@ func submitfiles() {
 			}
 
 			if hdr.Typeflag == tar.TypeReg || hdr.Typeflag == tar.TypeRegA {
-				if tmpfile, err := ioutil.TempFile(vault, programName+"-"); err == nil {
+				if tmpfile, err := ioutil.TempFile(cfg.Vault, programName+"-"); err == nil {
 					gz := gzip.NewWriter(tmpfile)
 					gz.Header.Name = toascii(filepath.Base(hdr.Name))
 					buf := make([]byte, 1024*1024) // 1MiB
@@ -497,7 +489,7 @@ func submitfiles() {
 
 					hash = fmt.Sprintf("%x", checksum.Sum(nil))
 
-					os.Rename(tmpfile.Name(), filepath.Join(vault, hash))
+					os.Rename(tmpfile.Name(), filepath.Join(cfg.Vault, hash))
 				}
 
 			}
@@ -545,6 +537,9 @@ func loadconfig() {
 	}
 	if len(cfg.Exclude) < 1 {
 		cfg.Exclude = []string{"/proc", "/sys", "/selinux", "tmpfs"}
+	}
+	if len(cfg.Vault) < 1 {
+		cfg.Vault = defaultVault
 	}
 }
 
