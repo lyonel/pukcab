@@ -443,6 +443,8 @@ func submitfiles() {
 				if tmpfile, err := ioutil.TempFile(cfg.Vault, programName+"-"); err == nil {
 					gz := gzip.NewWriter(tmpfile)
 					gz.Header.Name = toascii(filepath.Base(hdr.Name))
+					gz.Header.ModTime = hdr.ModTime
+					gz.Header.OS = gzipOS
 					buf := make([]byte, 1024*1024) // 1MiB
 					for {
 						nr, er := tr.Read(buf)
