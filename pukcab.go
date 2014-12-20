@@ -18,22 +18,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/BurntSushi/toml"
 	"github.com/antage/mntent"
 	_ "github.com/mattn/go-sqlite3"
 )
-
-type Config struct {
-	Server  string
-	User    string
-	Include []string
-	Exclude []string
-
-	Vault   string
-	Catalog string
-}
-
-var cfg Config
 
 var name string = "hostname"
 var date int64 = -1
@@ -45,7 +32,6 @@ var directories map[string]bool
 var backupset map[string]struct{}
 
 var catalog *sql.DB
-
 
 func remotecommand(arg ...string) *exec.Cmd {
 	os.Setenv("SSH_CLIENT", "")
@@ -524,23 +510,6 @@ func usage() {
 		}
 	})
 	os.Exit(1)
-}
-
-func loadconfig() {
-	if _, err := toml.DecodeFile(defaultConfig, &cfg); err != nil {
-		fmt.Fprintln(os.Stderr, "Failed to parse configuration: ", err)
-		log.Fatal("Failed to parse configuration: ", err)
-	}
-
-	if len(cfg.Include) < 1 {
-		cfg.Include = []string{"ext2", "ext3", "ext4", "btrfs", "xfs", "jfs", "vfat"}
-	}
-	if len(cfg.Exclude) < 1 {
-		cfg.Exclude = []string{"/proc", "/sys", "/selinux", "tmpfs"}
-	}
-	if len(cfg.Vault) < 1 {
-		cfg.Vault = defaultVault
-	}
 }
 
 func main() {

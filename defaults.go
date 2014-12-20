@@ -7,4 +7,3 @@ const defaultCommand = "help"
 const defaultSchedule = "daily"
 const defaultConfig = "/etc/pukcab.conf"
 const defaultVault = "/var/" + programName + "/vault"
-
