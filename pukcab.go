@@ -15,6 +15,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -170,26 +171,28 @@ func backup() {
 	}
 	stdin.Close()
 
-	tr := tar.NewReader(stdout)
-
-	for {
-		hdr, err := tr.Next()
-		if err == io.EOF {
-			break
+	date = 0
+	var previous int64 = 0
+	scanner := bufio.NewScanner(stdout)
+	if scanner.Scan() {
+		if date, err = strconv.ParseInt(scanner.Text(), 10, 0); err != nil {
+			fmt.Println("Protocol error")
+			log.Fatal("Protocol error")
 		}
-		if err != nil {
-			log.Fatal(err)
-		}
+	}
 
-		if hdr.Typeflag == 'E' {
-			fmt.Println("Server error:", hdr.Name)
-			log.Fatal("Server error:", hdr.Name)
-		}
-
-		fmt.Printf("%v\n", hdr.Name)
-		if hdr.Typeflag == tar.TypeXGlobalHeader {
-			date = hdr.ModTime.Unix()
-			log.Printf("New backup: date=%d files=%d\n", date, len(backupset))
+	if date == 0 {
+		scanner.Scan()
+		errmsg := scanner.Text()
+		fmt.Println("Server error:", errmsg)
+		log.Fatal("Server error:", errmsg)
+	} else {
+		log.Printf("New backup: date=%d files=%d\n", date, len(backupset))
+		if scanner.Scan() {
+			previous, _ = strconv.ParseInt(scanner.Text(), 10, 0)
+			if previous > 0 {
+				log.Printf("Previous backup: date=%d\n", previous)
+			}
 		}
 	}
 
@@ -329,7 +332,6 @@ func backupinfo() {
 			var change int64
 			var hash string
 			var filetype string
-
 
 			if err := files.Scan(&hdr.Name,
 				&filetype,
