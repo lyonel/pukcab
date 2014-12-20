@@ -351,8 +351,8 @@ func info() {
 	}
 	fmt.Printf("Files: %d\nSize: %d\n", files, size)
 	fmt.Printf("Complete: ")
-	if missing > 0 {
-		fmt.Printf("no (%d files missing)\n", missing)
+	if files > 0 && missing > 0 {
+		fmt.Printf("%.1f%% (%d files missing)\n", 100*float64(files-missing)/float64(files), missing)
 	} else {
 		fmt.Println("yes")
 	}
