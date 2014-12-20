@@ -350,10 +350,11 @@ func backupinfo() {
 			var modify int64
 			var change int64
 			var hash string
+			var filetype string
 
 
 			if err := files.Scan(&hdr.Name,
-				&hdr.Typeflag,
+				&filetype,
 				&hash,
 				&hdr.Linkname,
 				&size,
@@ -370,7 +371,7 @@ func backupinfo() {
 				hdr.AccessTime = time.Unix(access, 0)
 				hdr.ChangeTime = time.Unix(change, 0)
 				hdr.Xattrs = make(map[string]string)
-				hdr.Xattrs["backup.type"] = fmt.Sprintf("%d", hdr.Typeflag)
+				hdr.Xattrs["backup.type"] = filetype
 				if hash != "" {
 					hdr.Xattrs["backup.hash"] = hash
 				}
