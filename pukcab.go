@@ -7,6 +7,7 @@ import (
 	"crypto/sha512"
 	"database/sql"
 	"flag"
+	"math"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -299,6 +300,30 @@ func newbackup() {
 	}
 }
 
+func logn(n, b float64) float64 {
+	return math.Log(n) / math.Log(b)
+}
+
+func humanateBytes(s uint64, base float64, sizes []string) string {
+	if s < 10 {
+		return fmt.Sprintf("%dB", s)
+	}
+	e := math.Floor(logn(float64(s), base))
+	suffix := sizes[int(e)]
+	val := math.Floor(float64(s)/math.Pow(base, e)*10+0.5) / 10
+	f := "%.0f%s"
+	if val < 10 {
+		f = "%.1f%s"
+	}
+	return fmt.Sprintf(f, val, suffix)
+}
+
+// Bytes produces a human readable representation of an byte size.
+func Bytes(s uint64) string {
+	sizes := []string{"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"}
+	return humanateBytes(s, 1024, sizes)
+}
+
 func info() {
 	flag.Int64Var(&date, "date", 0, "Backup set")
 	flag.Int64Var(&date, "d", 0, "-date")
@@ -349,7 +374,7 @@ func info() {
 			}
 		}
 	}
-	fmt.Printf("Files: %d\nSize: %d\n", files, size)
+	fmt.Printf("Files: %d\nSize: %s\n", files, Bytes(uint64(size)))
 	fmt.Printf("Complete: ")
 	if files > 0 && missing > 0 {
 		fmt.Printf("%.1f%% (%d files missing)\n", 100*float64(files-missing)/float64(files), missing)
