@@ -247,6 +247,8 @@ END;
 }
 
 func newbackup() {
+	flag.StringVar(&schedule, "schedule", defaultSchedule, "Backup schedule")
+	flag.StringVar(&schedule, "r", defaultSchedule, "-schedule")
 	flag.BoolVar(&full, "full", full, "Full backup")
 	flag.BoolVar(&full, "f", full, "-full")
 	flag.Parse()
@@ -321,6 +323,7 @@ func info() {
 	tr := tar.NewReader(stdout)
 	size := int64(0)
 	files := int64(0)
+	missing := int64(0)
 	for {
 		hdr, err := tr.Next()
 		if err == io.EOF {
@@ -334,15 +337,25 @@ func info() {
 		case tar.TypeXGlobalHeader:
 			size = 0
 			files = 0
+			missing = 0
 			fmt.Printf("\nName: %s\nSchedule: %s\nDate: %d (%v)\n", hdr.Name, hdr.Linkname, hdr.ModTime.Unix(), hdr.ModTime)
 		default:
 			files++
 			if s, err := strconv.ParseInt(hdr.Xattrs["backup.size"], 0, 0); err == nil {
 				size += s
 			}
+			if hdr.Xattrs["backup.type"] == "?" {
+				missing++
+			}
 		}
 	}
 	fmt.Printf("Files: %d\nSize: %d\n", files, size)
+	fmt.Printf("Complete: ")
+	if missing > 0 {
+		fmt.Printf("no (%d files missing)\n", missing)
+	} else {
+		fmt.Println("yes")
+	}
 
 	if err := cmd.Wait(); err != nil {
 		log.Fatal(err)
@@ -409,7 +422,7 @@ func backupinfo() {
 				if hash != "" {
 					hdr.Xattrs["backup.hash"] = hash
 				}
-				if size != 0 {
+				if size > 0 {
 					hdr.Xattrs["backup.size"] = fmt.Sprintf("%d", size)
 				}
 				hdr.Typeflag = 'Z'
