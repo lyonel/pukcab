@@ -626,6 +626,8 @@ func main() {
 	name, _ = os.Hostname()
 	flag.StringVar(&name, "name", name, "Backup name")
 	flag.StringVar(&name, "n", name, "-name")
+	flag.StringVar(&configFile, "config", defaultConfig, "Configuration file")
+	flag.StringVar(&configFile, "c", defaultConfig, "-config")
 	flag.Usage = usage
 
 	loadconfig()

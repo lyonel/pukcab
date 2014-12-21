@@ -19,9 +19,10 @@ type Config struct {
 }
 
 var cfg Config
+var configFile string = defaultConfig
 
 func loadconfig() {
-	if _, err := toml.DecodeFile(defaultConfig, &cfg); err != nil {
+	if _, err := toml.DecodeFile(configFile, &cfg); err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to parse configuration: ", err)
 		log.Fatal("Failed to parse configuration: ", err)
 	}
