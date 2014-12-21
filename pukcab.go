@@ -7,12 +7,12 @@ import (
 	"crypto/sha512"
 	"database/sql"
 	"flag"
-	"math"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"log/syslog"
+	"math"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -146,6 +146,12 @@ func backup() {
 			if !devices[mtab[i].Name] && includeorexclude(mtab[i]) {
 				devices[mtab[i].Name] = true
 			}
+		}
+	}
+
+	for i := range cfg.Include {
+		if filepath.IsAbs(cfg.Include[i]) {
+			directories[cfg.Include[i]] = true
 		}
 	}
 
