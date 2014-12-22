@@ -65,6 +65,8 @@ END;
 }
 
 func newbackup() {
+	flag.StringVar(&name, "name", "", "Backup name")
+	flag.StringVar(&name, "n", "", "-name")
 	flag.StringVar(&schedule, "schedule", defaultSchedule, "Backup schedule")
 	flag.StringVar(&schedule, "r", defaultSchedule, "-schedule")
 	flag.BoolVar(&full, "full", full, "Full backup")
@@ -75,7 +77,21 @@ func newbackup() {
 		log.Printf("Remote client: ip=%q\n", sshclient[0])
 	}
 
+	if name == "" {
+		fmt.Println(0)
+		fmt.Println("Missing backup name")
+		log.Fatal("Client did not provide a backup name")
+	}
+
+	if schedule == "" {
+		fmt.Println(0)
+		fmt.Println("Missing backup schedule")
+		log.Fatal("Client did not provide a backup schedule")
+	}
+
 	if err := opencatalog(); err != nil {
+		fmt.Println(0)
+		fmt.Println(err)
 		log.Fatal(err)
 	}
 
@@ -118,6 +134,8 @@ func newbackup() {
 }
 
 func backupinfo() {
+	flag.StringVar(&name, "name", "", "Backup name")
+	flag.StringVar(&name, "n", "", "-name")
 	flag.Int64Var(&date, "date", 0, "Backup set")
 	flag.Int64Var(&date, "d", 0, "-date")
 	flag.Parse()
@@ -201,12 +219,19 @@ func toascii(s string) (result string) {
 }
 
 func submitfiles() {
+	flag.StringVar(&name, "name", "", "Backup name")
+	flag.StringVar(&name, "n", "", "-name")
 	flag.Int64Var(&date, "date", date, "Backup set")
 	flag.Int64Var(&date, "d", date, "-date")
 	flag.Parse()
 
 	if sshclient := strings.Split(os.Getenv("SSH_CLIENT"), " "); sshclient[0] != "" {
 		log.Printf("Remote client: ip=%q\n", sshclient[0])
+	}
+
+	if name == "" {
+		fmt.Println("Missing backup name")
+		log.Fatal("Client did not provide a backup name")
 	}
 
 	if err := opencatalog(); err != nil {

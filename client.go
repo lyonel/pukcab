@@ -90,6 +90,8 @@ func addfiles(d string) {
 }
 
 func backup() {
+	flag.StringVar(&name, "name", defaultName, "Backup name")
+	flag.StringVar(&name, "n", defaultName, "-name")
 	flag.StringVar(&schedule, "schedule", defaultSchedule, "Backup schedule")
 	flag.StringVar(&schedule, "r", defaultSchedule, "-schedule")
 	flag.BoolVar(&full, "full", full, "Full backup")
@@ -198,6 +200,8 @@ func Bytes(s uint64) string {
 }
 
 func info() {
+	flag.StringVar(&name, "name", "", "Backup name")
+	flag.StringVar(&name, "n", "", "-name")
 	flag.Int64Var(&date, "date", 0, "Backup set")
 	flag.Int64Var(&date, "d", 0, "-date")
 	flag.Parse()

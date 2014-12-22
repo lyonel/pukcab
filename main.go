@@ -10,9 +10,9 @@ import (
 	"strings"
 )
 
-var name string = "hostname"
+var name string = ""
 var date int64 = -1
-var schedule string = defaultSchedule
+var schedule string = ""
 var age uint = 14
 var full bool = false
 
@@ -34,9 +34,8 @@ func main() {
 		log.SetFlags(0) // no need to add timestamp, syslog will do it for us
 	}
 
-	name, _ = os.Hostname()
-	flag.StringVar(&name, "name", name, "Backup name")
-	flag.StringVar(&name, "n", name, "-name")
+	setDefaults()
+
 	flag.StringVar(&configFile, "config", defaultConfig, "Configuration file")
 	flag.StringVar(&configFile, "c", defaultConfig, "-config")
 	flag.Usage = usage
