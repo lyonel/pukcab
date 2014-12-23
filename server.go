@@ -234,6 +234,11 @@ func submitfiles() {
 		log.Fatal("Client did not provide a backup name")
 	}
 
+	if IsATTY(os.Stdout) {
+		fmt.Println("Should not be called directly")
+		log.Fatal("Should not be called directly")
+	}
+
 	if err := opencatalog(); err != nil {
 		log.Fatal(err)
 	}
