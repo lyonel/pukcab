@@ -10,5 +10,5 @@ import (
 import "C"
 
 func IsATTY(f *os.File) bool {
-	return bool(C.isatty(C.int(f.Fd())) != 0)
+	return C.isatty(C.int(f.Fd())) != 0
 }
