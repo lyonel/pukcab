@@ -209,7 +209,7 @@ func backup() {
 
 	for f := range backupset {
 		if fi, err := os.Lstat(f); err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		} else {
 			if hdr, err := tar.FileInfoHeader(fi, ""); err == nil {
 				hdr.Uname = Username(hdr.Uid)
@@ -218,8 +218,41 @@ func backup() {
 				if fi.Mode()&os.ModeSymlink != 0 {
 					hdr.Linkname, _ = os.Readlink(f)
 				}
-				hdr.Size = 0
+				if !fi.Mode().IsRegular() {
+					hdr.Size = 0
+				}
 				tw.WriteHeader(hdr)
+				if fi.Mode().IsRegular() {
+					if file, err := os.Open(f); err != nil {
+						log.Println(err)
+					} else {
+						var written int64 = 0
+						buf := make([]byte, 1024*1024) // 1MiB
+
+						for {
+							nr, er := file.Read(buf)
+							if er == io.EOF {
+								break
+							}
+							if er != nil {
+								log.Fatal("Could not read ", f, ": ", er)
+							}
+							if nr > 0 {
+								nw, ew := tw.Write(buf[0:nr])
+								if ew != nil {
+									log.Fatal("Could not send ", f, ": ", ew)
+								} else {
+									written += int64(nw)
+								}
+							}
+						}
+						file.Close()
+
+						if written != hdr.Size {
+							log.Fatal("Could not backup ", f, ":", hdr.Size, " bytes expected but ", written, " bytes written")
+						}
+					}
+				}
 			} else {
 				log.Printf("Couldn't backup %s: %s\n", f, err)
 			}
