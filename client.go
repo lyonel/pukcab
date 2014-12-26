@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/antage/mntent"
 )
@@ -169,6 +170,63 @@ func backup() {
 			}
 		}
 	}
+
+	if err := cmd.Wait(); err != nil {
+		log.Fatal(err)
+	}
+
+	cmd = remotecommand("submitfiles", "-name", name, "-date", fmt.Sprintf("%d", date))
+	stdout, err = cmd.StdoutPipe()
+	if err != nil {
+		log.Fatal(err)
+	}
+	stdin, err = cmd.StdinPipe()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err := cmd.Start(); err != nil {
+		log.Fatal(err)
+	}
+
+	tw := tar.NewWriter(stdin)
+	defer tw.Close()
+
+	globaldata := paxHeaders(map[string]interface{}{
+		".name":     name,
+		".schedule": schedule,
+		".version":  fmt.Sprintf("%d.%d", versionMajor, versionMinor),
+	})
+	globalhdr := &tar.Header{
+		Name:     name,
+		Size:     int64(len(globaldata)),
+		Linkname: schedule,
+		ModTime:  time.Unix(date, 0),
+		Typeflag: tar.TypeXGlobalHeader,
+	}
+	tw.WriteHeader(globalhdr)
+	tw.Write(globaldata)
+
+	for f := range backupset {
+		if fi, err := os.Lstat(f); err != nil {
+			log.Fatal(err)
+		} else {
+			if hdr, err := tar.FileInfoHeader(fi, ""); err == nil {
+				hdr.Uname = Username(hdr.Uid)
+				hdr.Gname = Groupname(hdr.Gid)
+				hdr.Name = f
+				if fi.Mode()&os.ModeSymlink != 0 {
+					hdr.Linkname, _ = os.Readlink(f)
+				}
+				hdr.Size = 0
+				tw.WriteHeader(hdr)
+			} else {
+				log.Printf("Couldn't backup %s: %s\n", f, err)
+			}
+		}
+	}
+
+	stdin.Close()
 
 	if err := cmd.Wait(); err != nil {
 		log.Fatal(err)
