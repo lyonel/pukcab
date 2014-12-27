@@ -218,6 +218,9 @@ func backup() {
 				if fi.Mode()&os.ModeSymlink != 0 {
 					hdr.Linkname, _ = os.Readlink(f)
 				}
+				if fi.Mode()&os.ModeDevice != 0 {
+					hdr.Devmajor, hdr.Devminor = DevMajorMinor(f)
+				}
 				if !fi.Mode().IsRegular() {
 					hdr.Size = 0
 				}

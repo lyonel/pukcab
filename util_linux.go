@@ -49,3 +49,13 @@ func Attribute(file string, name string) (result []byte) {
 
 	return
 }
+
+func DevMajorMinor(file string) (major int64, minor int64) {
+	var st syscall.Stat_t
+
+	syscall.Stat(file, &st)
+
+	major = (int64(st.Rdev>>8) & 0xfff) | (int64(st.Rdev>>32) & ^0xfff)
+	minor = int64(st.Rdev&0xff) | (int64(st.Rdev>>12) & ^0xff)
+	return
+}

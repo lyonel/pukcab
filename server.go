@@ -47,6 +47,8 @@ CREATE TABLE IF NOT EXISTS files(backupid INTEGER NOT NULL,
 			gid INTEGER NOT NULL DEFAULT 0,
 			username TEXT NOT NULL DEFAULT '',
 			groupname TEXT NOT NULL DEFAULT '',
+			devmajor INTEGER NOT NULL DEFAULT 0,
+			devminor INTEGER NOT NULL DEFAULT 0,
 			UNIQUE (backupid, name));
 CREATE TABLE IF NOT EXISTS vault(hash TEXT COLLATE NOCASE PRIMARY KEY,
 			size INTEGER NOT NULL DEFAULT -1);
@@ -162,7 +164,7 @@ func backupinfo() {
 	tw.WriteHeader(globalhdr)
 	tw.Write(globaldata)
 
-	if files, err := catalog.Query("SELECT name,type,hash,linkname,size,access,modify,change,mode,uid,gid,username,groupname FROM files WHERE backupid=? ORDER BY name", int64(date)); err == nil {
+	if files, err := catalog.Query("SELECT name,type,hash,linkname,size,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor FROM files WHERE backupid=? ORDER BY name", int64(date)); err == nil {
 		defer files.Close()
 		for files.Next() {
 			var hdr tar.Header
@@ -172,6 +174,8 @@ func backupinfo() {
 			var change int64
 			var hash string
 			var filetype string
+			var devmajor int64
+			var devminor int64
 
 			if err := files.Scan(&hdr.Name,
 				&filetype,
@@ -186,8 +190,12 @@ func backupinfo() {
 				&hdr.Gid,
 				&hdr.Uname,
 				&hdr.Gname,
+				&devmajor,
+				&devminor,
 			); err == nil {
 				hdr.ModTime = time.Unix(modify, 0)
+				hdr.Devmajor = devmajor
+				hdr.Devminor = devminor
 				hdr.AccessTime = time.Unix(access, 0)
 				hdr.ChangeTime = time.Unix(change, 0)
 				hdr.Xattrs = make(map[string]string)
@@ -338,7 +346,7 @@ func submitfiles() {
 				}
 
 			}
-			if _, err := catalog.Exec("INSERT OR REPLACE INTO files (hash,backupid,name,size,type,linkname,username,groupname,uid,gid,mode,access,modify,change) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)", hash, date, filepath.Clean(hdr.Name), hdr.Size, string(hdr.Typeflag), filepath.Clean(hdr.Linkname), hdr.Uname, hdr.Gname, hdr.Uid, hdr.Gid, hdr.Mode, hdr.AccessTime.Unix(), hdr.ModTime.Unix(), hdr.ChangeTime.Unix()); err != nil {
+			if _, err := catalog.Exec("INSERT OR REPLACE INTO files (hash,backupid,name,size,type,linkname,username,groupname,uid,gid,mode,access,modify,change,devmajor,devminor) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", hash, date, filepath.Clean(hdr.Name), hdr.Size, string(hdr.Typeflag), filepath.Clean(hdr.Linkname), hdr.Uname, hdr.Gname, hdr.Uid, hdr.Gid, hdr.Mode, hdr.AccessTime.Unix(), hdr.ModTime.Unix(), hdr.ChangeTime.Unix(), hdr.Devmajor, hdr.Devminor); err != nil {
 				log.Fatal(err)
 			}
 		}
