@@ -332,7 +332,7 @@ func submitfiles() {
 						log.Fatal(err)
 					}
 
-					hash = fmt.Sprintf("%x", checksum.Sum(nil))
+					hash = EncodeHash(checksum.Sum(nil))
 
 					os.Rename(tmpfile.Name(), filepath.Join(cfg.Vault, hash))
 				}
