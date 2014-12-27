@@ -221,6 +221,13 @@ func backup() {
 				if !fi.Mode().IsRegular() {
 					hdr.Size = 0
 				}
+				attributes := Attributes(f)
+				if len(attributes) > 0 {
+					hdr.Xattrs = make(map[string]string)
+					for a := range attributes {
+						hdr.Xattrs[attributes[a]] = string(Attribute(f, attributes[a]))
+					}
+				}
 				tw.WriteHeader(hdr)
 				if fi.Mode().IsRegular() {
 					if file, err := os.Open(f); err != nil {
