@@ -228,7 +228,6 @@ func backup() {
 						hdr.Xattrs[attributes[a]] = string(Attribute(f, attributes[a]))
 					}
 				}
-				tw.WriteHeader(hdr)
 				if fi.Mode().IsRegular() {
 					if file, err := os.Open(f); err != nil {
 						log.Println(err)
@@ -236,6 +235,7 @@ func backup() {
 						var written int64 = 0
 						buf := make([]byte, 1024*1024) // 1MiB
 
+						tw.WriteHeader(hdr)
 						for {
 							nr, er := file.Read(buf)
 							if er == io.EOF {
@@ -247,6 +247,9 @@ func backup() {
 							if nr > 0 {
 								nw, ew := tw.Write(buf[0:nr])
 								if ew != nil {
+									if ew == tar.ErrWriteTooLong {
+										break
+									}
 									log.Fatal("Could not send ", f, ": ", ew)
 								} else {
 									written += int64(nw)
@@ -256,9 +259,11 @@ func backup() {
 						file.Close()
 
 						if written != hdr.Size {
-							log.Fatal("Could not backup ", f, ":", hdr.Size, " bytes expected but ", written, " bytes written")
+							log.Println("Could not backup ", f, ":", hdr.Size, " bytes expected but ", written, " bytes written")
 						}
 					}
+				} else {
+					tw.WriteHeader(hdr)
 				}
 			} else {
 				log.Printf("Couldn't backup %s: %s\n", f, err)
