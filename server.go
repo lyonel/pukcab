@@ -355,7 +355,7 @@ func submitfiles() {
 				fmt.Println(err)
 				log.Fatal(err)
 			} else {
-				for try := 0; try < 3; try++ {
+				for try := 0; try < cfg.Maxtries; try++ {
 					_, err = stmt.Exec(hash, date, filepath.Clean(hdr.Name), hdr.Size, string(hdr.Typeflag), filepath.Clean(hdr.Linkname), hdr.Uname, hdr.Gname, hdr.Uid, hdr.Gid, hdr.Mode, hdr.AccessTime.Unix(), hdr.ModTime.Unix(), hdr.ChangeTime.Unix(), hdr.Devmajor, hdr.Devminor)
 					if err == nil {
 						break

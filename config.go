@@ -16,6 +16,8 @@ type Config struct {
 
 	Vault   string
 	Catalog string
+
+	Maxtries int
 }
 
 var cfg Config
@@ -38,5 +40,9 @@ func loadconfig() {
 	}
 	if len(cfg.Catalog) < 1 {
 		cfg.Catalog = defaultCatalog
+	}
+
+	if cfg.Maxtries < 1 {
+		cfg.Maxtries = defaultMaxtries
 	}
 }

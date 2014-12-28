@@ -11,6 +11,7 @@ const versionMinor = 0
 const defaultCommand = "help"
 const defaultCatalog = "catalog.db"
 const defaultVault = "vault"
+const defaultMaxtries = 10
 
 var defaultName string = "backup"
 var defaultSchedule string = "daily"
