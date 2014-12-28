@@ -11,6 +11,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"strings"
@@ -350,8 +351,23 @@ func submitfiles() {
 				}
 
 			}
-			if _, err := catalog.Exec("INSERT OR REPLACE INTO files (hash,backupid,name,size,type,linkname,username,groupname,uid,gid,mode,access,modify,change,devmajor,devminor) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", hash, date, filepath.Clean(hdr.Name), hdr.Size, string(hdr.Typeflag), filepath.Clean(hdr.Linkname), hdr.Uname, hdr.Gname, hdr.Uid, hdr.Gid, hdr.Mode, hdr.AccessTime.Unix(), hdr.ModTime.Unix(), hdr.ChangeTime.Unix(), hdr.Devmajor, hdr.Devminor); err != nil {
+			if stmt, err := catalog.Prepare("INSERT OR REPLACE INTO files (hash,backupid,name,size,type,linkname,username,groupname,uid,gid,mode,access,modify,change,devmajor,devminor) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"); err != nil {
+				fmt.Println(err)
 				log.Fatal(err)
+			} else {
+				for try := 0; try < 3; try++ {
+					_, err = stmt.Exec(hash, date, filepath.Clean(hdr.Name), hdr.Size, string(hdr.Typeflag), filepath.Clean(hdr.Linkname), hdr.Uname, hdr.Gname, hdr.Uid, hdr.Gid, hdr.Mode, hdr.AccessTime.Unix(), hdr.ModTime.Unix(), hdr.ChangeTime.Unix(), hdr.Devmajor, hdr.Devminor)
+					if err == nil {
+						break
+					} else {
+						log.Println(err, "- retrying", try+1)
+						time.Sleep(time.Duration(1+rand.Intn(10)) * time.Second)
+					}
+				}
+				if err != nil {
+					fmt.Println(err)
+					log.Fatal(err)
+				}
 			}
 		}
 	}
@@ -367,6 +383,7 @@ func submitfiles() {
 			fmt.Printf("Received %d files for backup %d (%d files to go)\n", files-missing, date, missing)
 		}
 	} else {
+		fmt.Println(err)
 		log.Fatal(err)
 	}
 }
