@@ -22,7 +22,11 @@ import (
 var catalog *sql.DB
 
 func opencatalog() error {
-	if db, err := sql.Open("sqlite3", filepath.Join(cfg.Catalog, "catalog.db")); err == nil {
+	if err := os.MkdirAll(cfg.Vault, 0700); err != nil {
+		return err
+	}
+
+	if db, err := sql.Open("sqlite3", cfg.Catalog); err == nil {
 		catalog = db
 
 		catalog.Exec("PRAGMA synchronous = OFF")

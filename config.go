@@ -36,4 +36,7 @@ func loadconfig() {
 	if len(cfg.Vault) < 1 {
 		cfg.Vault = defaultVault
 	}
+	if len(cfg.Catalog) < 1 {
+		cfg.Catalog = defaultCatalog
+	}
 }

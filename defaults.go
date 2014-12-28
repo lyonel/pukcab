@@ -9,6 +9,8 @@ const programName = "pukcab"
 const versionMajor = 1
 const versionMinor = 0
 const defaultCommand = "help"
+const defaultCatalog = "catalog.db"
+const defaultVault = "vault"
 
 var defaultName string = "backup"
 var defaultSchedule string = "daily"
