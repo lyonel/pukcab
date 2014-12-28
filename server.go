@@ -17,7 +17,7 @@ import (
 	"strings"
 	"time"
 
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/mattn/go-sqlite3"
 )
 
 var catalog *sql.DB
@@ -357,11 +357,14 @@ func submitfiles() {
 			} else {
 				for try := 0; try < cfg.Maxtries; try++ {
 					_, err = stmt.Exec(hash, date, filepath.Clean(hdr.Name), hdr.Size, string(hdr.Typeflag), filepath.Clean(hdr.Linkname), hdr.Uname, hdr.Gname, hdr.Uid, hdr.Gid, hdr.Mode, hdr.AccessTime.Unix(), hdr.ModTime.Unix(), hdr.ChangeTime.Unix(), hdr.Devmajor, hdr.Devminor)
-					if err == nil {
-						break
-					} else {
+					if e, retry := err.(sqlite3.Error); retry {
+						if e.Code != sqlite3.ErrBusy {
+							break
+						}
 						log.Println(err, "- retrying", try+1)
 						time.Sleep(time.Duration(1+rand.Intn(10)) * time.Second)
+					} else {
+						break
 					}
 				}
 				if err != nil {
