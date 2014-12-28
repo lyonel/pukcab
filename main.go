@@ -7,6 +7,7 @@ import (
 	"log/syslog"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 )
 
@@ -78,6 +79,8 @@ func main() {
 		fmt.Fprintln(os.Stderr, "  info")
 		fmt.Fprintln(os.Stderr, "  expire")
 		fmt.Fprintln(os.Stderr, "  help")
+	case "version":
+		fmt.Printf("%s version %d.%d %s/%s\n", programName, versionMajor, versionMinor, runtime.GOOS, runtime.GOARCH)
 	default:
 		fmt.Fprintf(os.Stderr, "Unknown command '%s'\nTry '--help' for more information.\n", os.Args[0])
 		os.Exit(1)
