@@ -76,7 +76,14 @@ func DevMajorMinor(file string) (major int64, minor int64) {
 	return
 }
 
-func IsNodump(file string) bool {
+func IsNodump(fi os.FileInfo, file string) bool {
+	if fi.Mode()&os.ModeTemporary == os.ModeTemporary {
+		return true
+	}
+	if !(fi.Mode().IsDir() || fi.Mode().IsRegular()) {
+		return false
+	}
+
 	if f, err := os.Open(file); err != nil {
 		return true
 	} else {
