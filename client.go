@@ -80,7 +80,7 @@ func addfiles(d string) {
 	for _, f := range files {
 		file := filepath.Join(d, f.Name())
 
-		if f.Mode()&os.ModeTemporary != os.ModeTemporary {
+		if f.Mode()&os.ModeTemporary != os.ModeTemporary && !IsNodump(file) {
 			backupset[file] = struct{}{}
 
 			if f.IsDir() && !excluded(file) {
