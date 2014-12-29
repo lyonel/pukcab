@@ -285,7 +285,7 @@ func logn(n, b float64) float64 {
 	return math.Log(n) / math.Log(b)
 }
 
-func humanateBytes(s uint64, base float64, sizes []string) string {
+func human(s uint64, base float64, sizes []string) string {
 	if s < 10 {
 		return fmt.Sprintf("%dB", s)
 	}
@@ -301,8 +301,8 @@ func humanateBytes(s uint64, base float64, sizes []string) string {
 
 // Bytes produces a human readable representation of an byte size.
 func Bytes(s uint64) string {
-	sizes := []string{"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"}
-	return humanateBytes(s, 1024, sizes)
+	sizes := []string{"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"}
+	return human(s, 1024, sizes)
 }
 
 func info() {
