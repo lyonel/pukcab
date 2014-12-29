@@ -363,8 +363,8 @@ func info() {
 			}
 			if verbose {
 				fmt.Printf("%s %8s %-8s", hdr.FileInfo().Mode(), hdr.Uname, hdr.Gname)
-				if s, err := strconv.ParseInt(hdr.Xattrs["backup.size"], 0, 0); err == nil {
-					fmt.Printf("%10s", Bytes(uint64(s)))
+				if s, err := strconv.ParseUint(hdr.Xattrs["backup.size"], 0, 0); err == nil {
+					fmt.Printf("%10s", Bytes(s))
 				} else {
 					fmt.Printf("%10s", "")
 				}
