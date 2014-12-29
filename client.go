@@ -108,16 +108,16 @@ func backup() {
 	if mtab, err := mntent.Parse("/etc/mtab"); err != nil {
 		log.Println("Failed to parse /etc/mtab: ", err)
 	} else {
-		for i := range mtab {
-			if !devices[mtab[i].Name] && includeorexclude(mtab[i]) {
-				devices[mtab[i].Name] = true
+		for _, m := range mtab {
+			if !devices[m.Name] && includeorexclude(m) {
+				devices[m.Name] = true
 			}
 		}
 	}
 
-	for i := range cfg.Include {
-		if filepath.IsAbs(cfg.Include[i]) {
-			directories[cfg.Include[i]] = true
+	for _, i := range cfg.Include {
+		if filepath.IsAbs(i) {
+			directories[i] = true
 		}
 	}
 
@@ -227,8 +227,8 @@ func backup() {
 				attributes := Attributes(f)
 				if len(attributes) > 0 {
 					hdr.Xattrs = make(map[string]string)
-					for a := range attributes {
-						hdr.Xattrs[attributes[a]] = string(Attribute(f, attributes[a]))
+					for _, a := range attributes {
+						hdr.Xattrs[a] = string(Attribute(f, a))
 					}
 				}
 				if fi.Mode().IsRegular() {
