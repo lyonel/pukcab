@@ -230,20 +230,24 @@ func backupinfo() {
 							&devmajor,
 							&devminor,
 						); err == nil {
+							hdr.Typeflag = '?'
 							hdr.ModTime = time.Unix(modify, 0)
 							hdr.Devmajor = devmajor
 							hdr.Devminor = devminor
 							hdr.AccessTime = time.Unix(access, 0)
 							hdr.ChangeTime = time.Unix(change, 0)
-							hdr.Xattrs = make(map[string]string)
-							hdr.Xattrs["backup.type"] = filetype
-							if hash != "" {
-								hdr.Xattrs["backup.hash"] = hash
-							}
-							if size > 0 {
+							if filetype == string(tar.TypeReg) || filetype == string(tar.TypeRegA) {
+								hdr.Typeflag = tar.TypeReg
+								hdr.Xattrs = make(map[string]string)
 								hdr.Xattrs["backup.size"] = fmt.Sprintf("%d", size)
+								if hash != "" {
+									hdr.Xattrs["backup.hash"] = hash
+								}
+							} else {
+								if len(filetype) > 0 {
+									hdr.Typeflag = filetype[0]
+								}
 							}
-							hdr.Typeflag = 'Z'
 							tw.WriteHeader(&hdr)
 						} else {
 							log.Println(err)
