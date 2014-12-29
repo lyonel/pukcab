@@ -316,7 +316,11 @@ func info() {
 	if date != 0 {
 		cmd = remotecommand("backupinfo", "-date", fmt.Sprintf("%d", date))
 	} else {
-		cmd = remotecommand("backupinfo", "-name", name)
+		if name != "" {
+			cmd = remotecommand("backupinfo", "-name", name)
+		} else {
+			cmd = remotecommand("backupinfo")
+		}
 	}
 
 	stdout, err := cmd.StdoutPipe()
@@ -357,12 +361,14 @@ func info() {
 			}
 		}
 	}
-	fmt.Printf("Files: %d\nSize: %s\n", files, Bytes(uint64(size)))
-	fmt.Printf("Complete: ")
-	if files > 0 && missing > 0 {
-		fmt.Printf("%.1f%% (%d files missing)\n", 100*float64(files-missing)/float64(files), missing)
-	} else {
-		fmt.Println("yes")
+	if files > 0 {
+		fmt.Printf("Files: %d\nSize: %s\n", files, Bytes(uint64(size)))
+		fmt.Printf("Complete: ")
+		if files > 0 && missing > 0 {
+			fmt.Printf("%.1f%% (%d files missing)\n", 100*float64(files-missing)/float64(files), missing)
+		} else {
+			fmt.Println("yes")
+		}
 	}
 
 	if err := cmd.Wait(); err != nil {

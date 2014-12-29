@@ -141,6 +141,8 @@ func newbackup() {
 }
 
 func backupinfo() {
+	details := false
+
 	flag.StringVar(&name, "name", "", "Backup name")
 	flag.StringVar(&name, "n", "", "-name")
 	flag.Int64Var(&date, "date", 0, "Backup set")
@@ -154,71 +156,104 @@ func backupinfo() {
 	tw := tar.NewWriter(os.Stdout)
 	defer tw.Close()
 
-	globaldata := paxHeaders(map[string]interface{}{
-		".name":     name,
-		".schedule": schedule,
-		".version":  fmt.Sprintf("%d.%d", versionMajor, versionMinor),
-	})
-	globalhdr := &tar.Header{
-		Name:     name,
-		Size:     int64(len(globaldata)),
-		Linkname: schedule,
-		ModTime:  time.Unix(date, 0),
-		Typeflag: tar.TypeXGlobalHeader,
+	var stmt *sql.Stmt
+	var err error
+	if date != 0 {
+		stmt, err = catalog.Prepare("SELECT date, name, schedule, finished FROM backups WHERE date=? AND ? NOT NULL ORDER BY date")
+		details = true
+	} else {
+		if name != "" {
+			stmt, err = catalog.Prepare("SELECT date, name, schedule, finished FROM backups WHERE ? NOT NULL AND name=? ORDER BY date")
+		} else {
+			stmt, err = catalog.Prepare("SELECT date, name, schedule, finished FROM backups WHERE ? NOT NULL AND ? NOT NULL ORDER BY date")
+		}
 	}
-	tw.WriteHeader(globalhdr)
-	tw.Write(globaldata)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	if files, err := catalog.Query("SELECT name,type,hash,linkname,size,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor FROM files WHERE backupid=? ORDER BY name", int64(date)); err == nil {
-		defer files.Close()
-		for files.Next() {
-			var hdr tar.Header
-			var size int64
-			var access int64
-			var modify int64
-			var change int64
-			var hash string
-			var filetype string
-			var devmajor int64
-			var devminor int64
+	if backups, err := stmt.Query(date, name); err == nil {
+		defer backups.Close()
+		for backups.Next() {
+			var finished SQLInt
 
-			if err := files.Scan(&hdr.Name,
-				&filetype,
-				&hash,
-				&hdr.Linkname,
-				&size,
-				&access,
-				&modify,
-				&change,
-				&hdr.Mode,
-				&hdr.Uid,
-				&hdr.Gid,
-				&hdr.Uname,
-				&hdr.Gname,
-				&devmajor,
-				&devminor,
-			); err == nil {
-				hdr.ModTime = time.Unix(modify, 0)
-				hdr.Devmajor = devmajor
-				hdr.Devminor = devminor
-				hdr.AccessTime = time.Unix(access, 0)
-				hdr.ChangeTime = time.Unix(change, 0)
-				hdr.Xattrs = make(map[string]string)
-				hdr.Xattrs["backup.type"] = filetype
-				if hash != "" {
-					hdr.Xattrs["backup.hash"] = hash
+			if err := backups.Scan(&date,
+				&name,
+				&schedule,
+				&finished,
+			); err != nil {
+				log.Fatal(err)
+			}
+
+			globaldata := paxHeaders(map[string]interface{}{
+				".name":     name,
+				".schedule": schedule,
+				".version":  fmt.Sprintf("%d.%d", versionMajor, versionMinor),
+			})
+			globalhdr := &tar.Header{
+				Name:     name,
+				Size:     int64(len(globaldata)),
+				Linkname: schedule,
+				ModTime:  time.Unix(date, 0),
+				Typeflag: tar.TypeXGlobalHeader,
+			}
+			tw.WriteHeader(globalhdr)
+			tw.Write(globaldata)
+
+			if details {
+				if files, err := catalog.Query("SELECT name,type,hash,linkname,size,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor FROM files WHERE backupid=? ORDER BY name", int64(date)); err == nil {
+					defer files.Close()
+					for files.Next() {
+						var hdr tar.Header
+						var size int64
+						var access int64
+						var modify int64
+						var change int64
+						var hash string
+						var filetype string
+						var devmajor int64
+						var devminor int64
+
+						if err := files.Scan(&hdr.Name,
+							&filetype,
+							&hash,
+							&hdr.Linkname,
+							&size,
+							&access,
+							&modify,
+							&change,
+							&hdr.Mode,
+							&hdr.Uid,
+							&hdr.Gid,
+							&hdr.Uname,
+							&hdr.Gname,
+							&devmajor,
+							&devminor,
+						); err == nil {
+							hdr.ModTime = time.Unix(modify, 0)
+							hdr.Devmajor = devmajor
+							hdr.Devminor = devminor
+							hdr.AccessTime = time.Unix(access, 0)
+							hdr.ChangeTime = time.Unix(change, 0)
+							hdr.Xattrs = make(map[string]string)
+							hdr.Xattrs["backup.type"] = filetype
+							if hash != "" {
+								hdr.Xattrs["backup.hash"] = hash
+							}
+							if size > 0 {
+								hdr.Xattrs["backup.size"] = fmt.Sprintf("%d", size)
+							}
+							hdr.Typeflag = 'Z'
+							tw.WriteHeader(&hdr)
+						} else {
+							log.Println(err)
+						}
+					}
+				} else {
+					log.Println(err)
 				}
-				if size > 0 {
-					hdr.Xattrs["backup.size"] = fmt.Sprintf("%d", size)
-				}
-				hdr.Typeflag = 'Z'
-				tw.WriteHeader(&hdr)
-			} else {
-				log.Println(err)
 			}
 		}
-	} else {
-		log.Println(err)
 	}
 }
 
