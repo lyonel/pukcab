@@ -185,20 +185,13 @@ func backupinfo() {
 				log.Fatal(err)
 			}
 
-			globaldata := paxHeaders(map[string]interface{}{
-				".name":     name,
-				".schedule": schedule,
-				".version":  fmt.Sprintf("%d.%d", versionMajor, versionMinor),
-			})
 			globalhdr := &tar.Header{
 				Name:     name,
-				Size:     int64(len(globaldata)),
 				Linkname: schedule,
 				ModTime:  time.Unix(date, 0),
 				Typeflag: tar.TypeXGlobalHeader,
 			}
 			tw.WriteHeader(globalhdr)
-			tw.Write(globaldata)
 
 			if details {
 				if files, err := catalog.Query("SELECT name,type,hash,linkname,size,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor FROM files WHERE backupid=? ORDER BY name", int64(date)); err == nil {
