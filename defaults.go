@@ -16,6 +16,8 @@ const defaultMaxtries = 10
 var defaultName string = "backup"
 var defaultSchedule string = "daily"
 
+var verbose bool = false
+
 func setDefaults() {
 	defaultName, _ = os.Hostname()
 

@@ -306,6 +306,8 @@ func Bytes(s uint64) string {
 }
 
 func info() {
+	flag.BoolVar(&verbose, "verbose", verbose, "Be more verbose")
+	flag.BoolVar(&verbose, "v", verbose, "-verbose")
 	flag.StringVar(&name, "name", "", "Backup name")
 	flag.StringVar(&name, "n", "", "-name")
 	flag.Int64Var(&date, "date", 0, "Backup set")
@@ -358,6 +360,20 @@ func info() {
 			}
 			if hdr.Xattrs["backup.type"] == "?" {
 				missing++
+			}
+			if verbose {
+				fmt.Printf("%s %8s %-8s", hdr.FileInfo().Mode(), hdr.Uname, hdr.Gname)
+				if s, err := strconv.ParseInt(hdr.Xattrs["backup.size"], 0, 0); err == nil {
+					fmt.Printf("%10s", Bytes(uint64(s)))
+				} else {
+					fmt.Printf("%10s", "")
+				}
+				fmt.Printf(" %s", hdr.Name)
+				if hdr.Linkname != "." {
+					fmt.Printf(" ➙ %s\n", hdr.Linkname)
+				} else {
+					fmt.Println()
+				}
 			}
 		}
 	}
