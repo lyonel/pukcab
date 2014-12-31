@@ -136,7 +136,7 @@ func backup() {
 		fmt.Print("Sending file list... ")
 	}
 
-	cmd := remotecommand("newbackup", "-name", name, "-schedule", schedule)
+	cmd := remotecommand("newbackup", "-name", name, "-schedule", schedule, "-full", strconv.FormatBool(full))
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		log.Fatal(err)
