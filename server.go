@@ -134,7 +134,14 @@ func newbackup() {
 	fmt.Println(date)
 	var previous SQLInt
 	if err := catalog.QueryRow("SELECT MAX(date) AS previous FROM backups WHERE finished AND name=?", name).Scan(&previous); err == nil {
-		fmt.Println(int64(previous))
+		if !full {
+			_, err = catalog.Exec("WITH previous AS (SELECT * FROM files WHERE backupid=? AND name IN (SELECT name FROM files WHERE backupid=?)) INSERT OR REPLACE INTO files (backupid,hash,type,name,linkname,size,birth,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor) SELECT ?,hash,type,name,linkname,size,birth,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor FROM previous", previous, date, date)
+		}
+		if err == nil {
+			fmt.Println(int64(previous))
+		} else {
+			fmt.Println(0) // no previous backup
+		}
 	} else {
 		fmt.Println(0) // no previous backup
 	}
