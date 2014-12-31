@@ -91,6 +91,8 @@ func addfiles(d string) {
 }
 
 func backup() {
+	flag.BoolVar(&verbose, "verbose", verbose, "Be more verbose")
+	flag.BoolVar(&verbose, "v", verbose, "-verbose")
 	flag.StringVar(&name, "name", defaultName, "Backup name")
 	flag.StringVar(&name, "n", defaultName, "-name")
 	flag.StringVar(&schedule, "schedule", defaultSchedule, "Backup schedule")
@@ -100,6 +102,9 @@ func backup() {
 	flag.Parse()
 
 	log.Printf("Starting backup: name=%q schedule=%q\n", name, schedule)
+	if verbose {
+		fmt.Printf("Starting backup: name=%q schedule=%q\n", name, schedule)
+	}
 
 	directories = make(map[string]bool)
 	backupset = make(map[string]struct{})
@@ -127,6 +132,10 @@ func backup() {
 		}
 	}
 
+	if verbose {
+		fmt.Print("Sending file list... ")
+	}
+
 	cmd := remotecommand("newbackup", "-name", name, "-schedule", schedule)
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
@@ -146,6 +155,10 @@ func backup() {
 	}
 	stdin.Close()
 
+	if verbose {
+		fmt.Println("done.")
+	}
+
 	date = 0
 	var previous int64 = 0
 	scanner := bufio.NewScanner(stdout)
@@ -162,10 +175,16 @@ func backup() {
 		fmt.Println("Server error:", errmsg)
 		log.Fatal("Server error:", errmsg)
 	} else {
+		if verbose {
+			fmt.Printf("New backup: date=%d files=%d\n", date, len(backupset))
+		}
 		log.Printf("New backup: date=%d files=%d\n", date, len(backupset))
 		if scanner.Scan() {
 			previous, _ = strconv.ParseInt(scanner.Text(), 10, 0)
 			if previous > 0 {
+				if verbose {
+					fmt.Printf("Previous backup: date=%d\n", previous)
+				}
 				log.Printf("Previous backup: date=%d\n", previous)
 			}
 		}
@@ -173,6 +192,10 @@ func backup() {
 
 	if err := cmd.Wait(); err != nil {
 		log.Fatal(err)
+	}
+
+	if verbose {
+		fmt.Print("Sending files... ")
 	}
 
 	cmd = remotecommand("submitfiles", "-name", name, "-date", fmt.Sprintf("%d", date))
@@ -279,6 +302,11 @@ func backup() {
 	if err := cmd.Wait(); err != nil {
 		log.Fatal(err)
 	}
+
+	if verbose {
+		fmt.Println("done.")
+	}
+
 }
 
 func logn(n, b float64) float64 {
