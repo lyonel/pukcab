@@ -328,8 +328,8 @@ func submitfiles() {
 			log.Fatal(err)
 		}
 
-		// skip usually fake entries used only for extended attributes
-		if hdr.Name != hdr.Linkname {
+		// skip fake entries used only for extended attributes and various metadata
+		if hdr.Name != hdr.Linkname && hdr.Typeflag != tar.TypeXHeader && hdr.Typeflag != tar.TypeXGlobalHeader {
 			var zero time.Time
 			var hash string
 			checksum := sha512.New()
