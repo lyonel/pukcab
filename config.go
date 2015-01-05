@@ -25,12 +25,12 @@ var cfg Config
 var configFile string = defaultConfig
 
 func loadconfig() {
-	if _, err := toml.DecodeFile(configFile, &cfg); err != nil && err != os.ErrNotExist {
+	if _, err := toml.DecodeFile(configFile, &cfg); err != nil && !os.IsNotExist(err) {
 		fmt.Fprintln(os.Stderr, "Failed to parse configuration: ", err)
 		log.Fatal("Failed to parse configuration: ", err)
 	}
 
-	if _, err := toml.DecodeFile(filepath.Join(os.Getenv("HOME"), defaultUserConfig), &cfg); err != nil && err != os.ErrNotExist {
+	if _, err := toml.DecodeFile(filepath.Join(os.Getenv("HOME"), defaultUserConfig), &cfg); err != nil && !os.IsNotExist(err) {
 		fmt.Fprintln(os.Stderr, "Failed to parse configuration: ", err)
 		log.Fatal("Failed to parse configuration:", err)
 	}
