@@ -1,7 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"os"
+	"syscall"
+	"unsafe"
 )
 
 /*
@@ -9,8 +12,9 @@ import (
 #include <sys/types.h>
 #include <pwd.h>
 #include <grp.h>
+#include <stdlib.h>
 
-static char *getusername(int uid)
+static char *getusername(uid_t uid)
 {
   struct passwd *pw = getpwuid(uid);
 
@@ -20,7 +24,7 @@ static char *getusername(int uid)
 	return pw->pw_name;
 }
 
-static char *getgroupname(int gid)
+static char *getgroupname(gid_t gid)
 {
   struct group *gr = getgrgid(gid);
 
@@ -37,9 +41,43 @@ func IsATTY(f *os.File) bool {
 }
 
 func Username(uid int) (username string) {
-	return C.GoString(C.getusername(C.int(uid)))
+	return C.GoString(C.getusername(C.uid_t(uid)))
 }
 
 func Groupname(gid int) (groupname string) {
-	return C.GoString(C.getgroupname(C.int(gid)))
+	return C.GoString(C.getgroupname(C.gid_t(gid)))
+}
+
+type Passwd struct {
+	Uid   int
+	Gid   int
+	Dir   string
+	Shell string
+}
+
+func Getpwnam(name string) (pw *Passwd, err error) {
+	cname := C.CString(name)
+	defer C.free(unsafe.Pointer(cname))
+
+	if cpw := C.getpwnam(cname); cpw != nil {
+		pw = &Passwd{
+			Uid:   int(cpw.pw_uid),
+			Gid:   int(cpw.pw_gid),
+			Dir:   C.GoString(cpw.pw_dir),
+			Shell: C.GoString(cpw.pw_shell)}
+	} else {
+		err = fmt.Errorf("Unknown user %s", name)
+	}
+
+	return
+}
+
+func Impersonate(name string) error {
+	if pw, err := Getpwnam(name); err != nil {
+		return err
+	} else {
+		os.Chdir(pw.Dir)
+		syscall.Setgid(pw.Gid)
+		return syscall.Setuid(pw.Uid)
+	}
 }

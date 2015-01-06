@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"strconv"
@@ -23,11 +25,18 @@ func remotecommand(arg ...string) *exec.Cmd {
 		cmd = append(cmd, arg...)
 		return exec.Command("ssh", cmd...)
 	} else {
-
-		if exe, err := os.Readlink("/proc/self/exe"); err == nil {
-			return exec.Command(exe, arg...)
-		} else {
-			return exec.Command(programName, arg...)
+		exe, err := os.Readlink("/proc/self/exe")
+		if err != nil {
+			exe = programName
 		}
+
+		if cfg.User != "" {
+			if err := Impersonate(cfg.User); err != nil {
+				fmt.Fprintln(os.Stderr, "Switch to user", cfg.User, ":", err)
+				log.Fatal("Switch to user ", cfg.User, ": ", err)
+			}
+		}
+
+		return exec.Command(exe, arg...)
 	}
 }
