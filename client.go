@@ -431,3 +431,41 @@ func info() {
 		log.Fatal(cmd.Args, err)
 	}
 }
+
+func ping() {
+	flag.BoolVar(&verbose, "verbose", verbose, "Be more verbose")
+	flag.BoolVar(&verbose, "v", verbose, "-verbose")
+	flag.Parse()
+
+	if verbose {
+		if len(cfg.Server) > 0 {
+			fmt.Println("Server:", cfg.Server)
+		}
+		if len(cfg.User) > 0 {
+			fmt.Println("User:", cfg.User)
+		}
+	}
+
+	cmd := remotecommand("version", "-verbose", strconv.FormatBool(verbose))
+
+	if verbose {
+		fmt.Println("Backend:", cmd.Path)
+	}
+
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if verbose {
+		fmt.Println()
+	}
+
+	if err := cmd.Start(); err != nil {
+		fmt.Println("Backend error:", cmd.Args, err)
+		log.Fatal(cmd.Args, err)
+	}
+
+	if err := cmd.Wait(); err != nil {
+		fmt.Println("Backend error:", cmd.Args, err)
+		log.Fatal(cmd.Args, err)
+	}
+}

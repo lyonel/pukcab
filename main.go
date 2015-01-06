@@ -69,6 +69,8 @@ func main() {
 		backupinfo()
 	case "submitfiles":
 		submitfiles()
+	case "ping":
+		ping()
 	case "expire":
 		expire()
 	case "help":
@@ -77,6 +79,7 @@ func main() {
 		fmt.Fprintln(os.Stderr, "Usage: %s COMMAND [options]\n\nCommands:", programName)
 		fmt.Fprintln(os.Stderr, "  backup")
 		fmt.Fprintln(os.Stderr, "  info")
+		fmt.Fprintln(os.Stderr, "  ping")
 		fmt.Fprintln(os.Stderr, "  expire")
 		fmt.Fprintln(os.Stderr, "  help")
 	case "version":
