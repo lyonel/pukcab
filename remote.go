@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"os/exec"
+	"strconv"
 )
 
 func remotecommand(arg ...string) *exec.Cmd {
@@ -13,6 +14,9 @@ func remotecommand(arg ...string) *exec.Cmd {
 		cmd := []string{"-q", "-C", "-oBatchMode=yes", "-oStrictHostKeyChecking=no", "-oUserKnownHostsFile=/dev/null"}
 		if cfg.User != "" {
 			cmd = append(cmd, "-l", cfg.User)
+		}
+		if cfg.Port > 0 {
+			cmd = append(cmd, "-p", strconv.Itoa(cfg.Port))
 		}
 		cmd = append(cmd, cfg.Server)
 		cmd = append(cmd, programName)

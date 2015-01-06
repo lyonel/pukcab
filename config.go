@@ -12,6 +12,7 @@ import (
 type Config struct {
 	Server  string
 	User    string
+	Port    int
 	Include []string
 	Exclude []string
 

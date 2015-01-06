@@ -441,6 +441,9 @@ func ping() {
 		if len(cfg.Server) > 0 {
 			fmt.Println("Server:", cfg.Server)
 		}
+		if cfg.Port > 0 {
+			fmt.Println("Port:", cfg.Port)
+		}
 		if len(cfg.User) > 0 {
 			fmt.Println("User:", cfg.User)
 		}
