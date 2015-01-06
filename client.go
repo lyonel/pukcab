@@ -139,15 +139,18 @@ func backup() {
 	cmd := remotecommand("newbackup", "-name", name, "-schedule", schedule, "-full", strconv.FormatBool(full))
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("Backend error:", err)
+		log.Fatal(cmd.Args, err)
 	}
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("Backend error:", err)
+		log.Fatal(cmd.Args, err)
 	}
 
 	if err := cmd.Start(); err != nil {
-		log.Fatal(err)
+		fmt.Println("Backend error:", err)
+		log.Fatal(cmd.Args, err)
 	}
 
 	for f := range backupset {
@@ -191,7 +194,8 @@ func backup() {
 	}
 
 	if err := cmd.Wait(); err != nil {
-		log.Fatal(err)
+		fmt.Println("Backend error:", err)
+		log.Fatal(cmd.Args, err)
 	}
 
 	if verbose {
@@ -201,15 +205,18 @@ func backup() {
 	cmd = remotecommand("submitfiles", "-name", name, "-date", fmt.Sprintf("%d", date))
 	stdout, err = cmd.StdoutPipe()
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("Backend error:", err)
+		log.Fatal(cmd.Args, err)
 	}
 	stdin, err = cmd.StdinPipe()
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("Backend error:", err)
+		log.Fatal(cmd.Args, err)
 	}
 
 	if err := cmd.Start(); err != nil {
-		log.Fatal(err)
+		fmt.Println("Backend error:", err)
+		log.Fatal(cmd.Args, err)
 	}
 
 	tw := tar.NewWriter(stdin)
@@ -300,7 +307,8 @@ func backup() {
 	stdin.Close()
 
 	if err := cmd.Wait(); err != nil {
-		log.Fatal(err)
+		fmt.Println("Backend error:", err)
+		log.Fatal(cmd.Args, err)
 	}
 
 	if verbose {
@@ -355,11 +363,13 @@ func info() {
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("Backend error:", err)
+		log.Fatal(cmd.Args, err)
 	}
 
 	if err := cmd.Start(); err != nil {
-		log.Fatal(err)
+		fmt.Println("Backend error:", err)
+		log.Fatal(cmd.Args, err)
 	}
 
 	tr := tar.NewReader(stdout)
@@ -372,6 +382,7 @@ func info() {
 			break
 		}
 		if err != nil {
+			fmt.Println("Backend error:", err)
 			log.Fatal(err)
 		}
 
@@ -416,6 +427,7 @@ func info() {
 	}
 
 	if err := cmd.Wait(); err != nil {
-		log.Fatal(err)
+		fmt.Println("Backend error:", err)
+		log.Fatal(cmd.Args, err)
 	}
 }
