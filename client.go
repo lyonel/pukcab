@@ -46,7 +46,7 @@ func contains(set []string, e string) bool {
 				return true
 			}
 		} else {
-			if matched, _ := filepath.Match(a, filepath.Base(e)); matched {
+			if matched, _ := filepath.Match(a, filepath.Base(e)); matched && strings.ContainsAny(a, "*?[") {
 				return true
 			}
 
@@ -76,6 +76,11 @@ func excluded(f string) bool {
 
 func addfiles(d string) {
 	backupset[d] = struct{}{}
+
+	if contains(cfg.Exclude, d) {
+		return
+	}
+
 	files, _ := ioutil.ReadDir(d)
 	for _, f := range files {
 		file := filepath.Join(d, f.Name())
