@@ -80,6 +80,8 @@ func newbackup() {
 	flag.BoolVar(&full, "f", full, "-full")
 	flag.Parse()
 
+	switchuser()
+
 	if sshclient := strings.Split(os.Getenv("SSH_CLIENT"), " "); sshclient[0] != "" {
 		log.Printf("Remote client: ip=%q\n", sshclient[0])
 	}
@@ -155,6 +157,8 @@ func backupinfo() {
 	flag.Int64Var(&date, "date", 0, "Backup set")
 	flag.Int64Var(&date, "d", 0, "-date")
 	flag.Parse()
+
+	switchuser()
 
 	if err := opencatalog(); err != nil {
 		log.Fatal(err)
@@ -276,6 +280,8 @@ func submitfiles() {
 	flag.Int64Var(&date, "date", date, "Backup set")
 	flag.Int64Var(&date, "d", date, "-date")
 	flag.Parse()
+
+	switchuser()
 
 	if sshclient := strings.Split(os.Getenv("SSH_CLIENT"), " "); sshclient[0] != "" {
 		log.Printf("Remote client: ip=%q\n", sshclient[0])

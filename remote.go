@@ -30,13 +30,15 @@ func remotecommand(arg ...string) *exec.Cmd {
 			exe = programName
 		}
 
-		if cfg.User != "" {
-			if err := Impersonate(cfg.User); err != nil {
-				fmt.Fprintln(os.Stderr, "Switch to user", cfg.User, ":", err)
-				log.Fatal("Switch to user ", cfg.User, ": ", err)
-			}
-		}
-
 		return exec.Command(exe, arg...)
+	}
+}
+
+func switchuser() {
+	if cfg.Server == "" && cfg.User != "" {
+		if err := Impersonate(cfg.User); err != nil {
+			fmt.Fprintln(os.Stderr, "Switch to user", cfg.User, ":", err)
+			log.Fatal("Switch to user ", cfg.User, ": ", err)
+		}
 	}
 }
