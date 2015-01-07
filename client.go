@@ -378,9 +378,9 @@ func info() {
 	}
 
 	tr := tar.NewReader(stdout)
-	size := int64(0)
-	files := int64(0)
-	missing := int64(0)
+	var size int64 = 0
+	var files int64 = 0
+	var missing int64 = 0
 	for {
 		hdr, err := tr.Next()
 		if err == io.EOF {
@@ -408,9 +408,9 @@ func info() {
 			if verbose {
 				fmt.Printf("%s %8s %-8s", hdr.FileInfo().Mode(), hdr.Uname, hdr.Gname)
 				if s, err := strconv.ParseUint(hdr.Xattrs["backup.size"], 0, 0); err == nil {
-					fmt.Printf("%10s", Bytes(s))
+					fmt.Printf("%8s", Bytes(s))
 				} else {
-					fmt.Printf("%10s", "")
+					fmt.Printf("%8s", "")
 				}
 				fmt.Printf(" %s", hdr.Name)
 				if hdr.Linkname != "." {
