@@ -49,6 +49,7 @@ func Groupname(gid int) (groupname string) {
 }
 
 type Passwd struct {
+	Name  string
 	Uid   int
 	Gid   int
 	Dir   string
@@ -61,6 +62,7 @@ func Getpwnam(name string) (pw *Passwd, err error) {
 
 	if cpw := C.getpwnam(cname); cpw != nil {
 		pw = &Passwd{
+			Name:  C.GoString(cpw.pw_name),
 			Uid:   int(cpw.pw_uid),
 			Gid:   int(cpw.pw_gid),
 			Dir:   C.GoString(cpw.pw_dir),
@@ -76,8 +78,14 @@ func Impersonate(name string) error {
 	if pw, err := Getpwnam(name); err != nil {
 		return err
 	} else {
-		os.Chdir(pw.Dir)
 		syscall.Setgid(pw.Gid)
-		return syscall.Setuid(pw.Uid)
+		if err = syscall.Setuid(pw.Uid); err == nil {
+			os.Setenv("USER", pw.Name)
+			os.Setenv("LOGNAME", name)
+			if os.Chdir(pw.Dir) == nil {
+				os.Setenv("HOME", pw.Dir)
+			}
+		}
+		return err
 	}
 }
