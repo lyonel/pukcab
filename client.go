@@ -141,7 +141,7 @@ func backup() {
 		fmt.Print("Sending file list... ")
 	}
 
-	cmd := remotecommand("newbackup", "-name", name, "-schedule", schedule, "-full", strconv.FormatBool(full))
+	cmd := remotecommand("newbackup", "-name", name, "-schedule", schedule, "-full="+strconv.FormatBool(full))
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		fmt.Println("Backend error:", err)
@@ -454,7 +454,7 @@ func ping() {
 		}
 	}
 
-	cmd := remotecommand("version", "-verbose", strconv.FormatBool(verbose))
+	cmd := remotecommand("version")
 
 	if verbose {
 		fmt.Println("Backend:", cmd.Path)
