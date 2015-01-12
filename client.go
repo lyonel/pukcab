@@ -10,7 +10,6 @@ import (
 	"log"
 	"math"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -355,16 +354,16 @@ func info() {
 	flag.Int64Var(&date, "d", 0, "-date")
 	flag.Parse()
 
-	var cmd *exec.Cmd
+	args := []string{"backupinfo"}
 	if date != 0 {
-		cmd = remotecommand("backupinfo", "-date", fmt.Sprintf("%d", date))
+		args = append(args, "-date", fmt.Sprintf("%d", date))
 	} else {
 		if name != "" {
-			cmd = remotecommand("backupinfo", "-name", name)
-		} else {
-			cmd = remotecommand("backupinfo")
+			args = append(args, "-name", name)
 		}
 	}
+	args = append(args, flag.Args()...)
+	cmd := remotecommand(args...)
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
