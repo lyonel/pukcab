@@ -170,13 +170,7 @@ func backupinfo() {
 		filter = append(filter, "*")
 	}
 	for i, f := range filter {
-		f = ConvertGlob(strings.TrimRight(f, string(filepath.Separator)))
-		if len(f) > 0 && f[0] == filepath.Separator {
-			f = "^" + f
-		} else {
-			f = string(filepath.Separator) + f
-		}
-		filter[i] = f + "(" + string(filepath.Separator) + ".*)?$"
+		filter[i] = ConvertGlob(f)
 	}
 
 	tw := tar.NewWriter(os.Stdout)
