@@ -14,6 +14,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -164,6 +165,18 @@ func backupinfo() {
 		log.Fatal(err)
 	}
 
+	filter := flag.Args()
+	if len(filter) == 0 {
+		filter = append(filter, "*")
+	}
+	for i, f := range filter {
+		f = ConvertGlob(strings.TrimRight(f, string(filepath.Separator)))
+		if len(f) > 0 && f[0] == filepath.Separator {
+			f = "^" + f
+		}
+		filter[i] = f + "(" + string(filepath.Separator) + ".*)?$"
+	}
+
 	tw := tar.NewWriter(os.Stdout)
 	defer tw.Close()
 
@@ -252,7 +265,11 @@ func backupinfo() {
 									hdr.Typeflag = filetype[0]
 								}
 							}
-							tw.WriteHeader(&hdr)
+							for _, f := range filter {
+								if matched, err := regexp.MatchString(f, hdr.Name); err == nil && matched {
+									tw.WriteHeader(&hdr)
+								}
+							}
 						} else {
 							log.Println(err)
 						}
