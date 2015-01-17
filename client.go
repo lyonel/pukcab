@@ -22,8 +22,8 @@ var directories map[string]bool
 var backupset map[string]struct{}
 
 func expire() {
-	flag.Int64Var(&date, "date", date, "Backup set")
-	flag.Int64Var(&date, "d", date, "-date")
+	flag.Var(&date, "date", "Backup set")
+	flag.Var(&date, "d", "-date")
 	flag.UintVar(&age, "age", age, "Age")
 	flag.UintVar(&age, "a", age, "-age")
 	flag.Parse()
@@ -170,9 +170,11 @@ func backup() {
 	var previous int64 = 0
 	scanner := bufio.NewScanner(stdout)
 	if scanner.Scan() {
-		if date, err = strconv.ParseInt(scanner.Text(), 10, 0); err != nil {
+		if d, err := strconv.ParseInt(scanner.Text(), 10, 0); err != nil {
 			fmt.Println("Protocol error")
 			log.Fatal("Protocol error")
+		} else {
+			date = BackupID(d)
 		}
 	}
 
@@ -235,7 +237,7 @@ func backup() {
 		Name:     name,
 		Size:     int64(len(globaldata)),
 		Linkname: schedule,
-		ModTime:  time.Unix(date, 0),
+		ModTime:  time.Unix(int64(date), 0),
 		Typeflag: tar.TypeXGlobalHeader,
 	}
 	tw.WriteHeader(globalhdr)
@@ -346,12 +348,14 @@ func Bytes(s uint64) string {
 }
 
 func info() {
+	date = 0
+
 	flag.BoolVar(&verbose, "verbose", verbose, "Be more verbose")
 	flag.BoolVar(&verbose, "v", verbose, "-verbose")
 	flag.StringVar(&name, "name", "", "Backup name")
 	flag.StringVar(&name, "n", "", "-name")
-	flag.Int64Var(&date, "date", 0, "Backup set")
-	flag.Int64Var(&date, "d", 0, "-date")
+	flag.Var(&date, "date", "Backup set")
+	flag.Var(&date, "d", "-date")
 	flag.Parse()
 
 	args := []string{"backupinfo"}

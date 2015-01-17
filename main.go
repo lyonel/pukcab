@@ -12,7 +12,7 @@ import (
 )
 
 var name string = ""
-var date int64 = -1
+var date BackupID = -1
 var schedule string = ""
 var age uint = 14
 var full bool = false

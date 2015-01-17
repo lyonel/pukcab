@@ -105,13 +105,13 @@ func newbackup() {
 		log.Fatal(err)
 	}
 
-	date = time.Now().Unix()
+	date = BackupID(time.Now().Unix())
 	for try := 0; try < 3; try++ {
 		if _, err := catalog.Exec("INSERT INTO backups (date,name,schedule) VALUES(?,?,?)", date, name, schedule); err == nil {
 			break
 		}
 		time.Sleep(1 * time.Second)
-		date = time.Now().Unix()
+		date = BackupID(time.Now().Unix())
 	}
 
 	//if err != nil {
@@ -152,11 +152,12 @@ func newbackup() {
 
 func backupinfo() {
 	details := false
+	date = 0
 
 	flag.StringVar(&name, "name", "", "Backup name")
 	flag.StringVar(&name, "n", "", "-name")
-	flag.Int64Var(&date, "date", 0, "Backup set")
-	flag.Int64Var(&date, "d", 0, "-date")
+	flag.Var(&date, "date", "Backup set")
+	flag.Var(&date, "d", "-date")
 	flag.Parse()
 
 	switchuser()
@@ -196,8 +197,9 @@ func backupinfo() {
 		defer backups.Close()
 		for backups.Next() {
 			var finished SQLInt
+			var d SQLInt
 
-			if err := backups.Scan(&date,
+			if err := backups.Scan(&d,
 				&name,
 				&schedule,
 				&finished,
@@ -205,10 +207,12 @@ func backupinfo() {
 				log.Fatal(err)
 			}
 
+			date = BackupID(d)
+
 			globalhdr := &tar.Header{
 				Name:     name,
 				Linkname: schedule,
-				ModTime:  time.Unix(date, 0),
+				ModTime:  time.Unix(int64(date), 0),
 				Typeflag: tar.TypeXGlobalHeader,
 			}
 			tw.WriteHeader(globalhdr)
@@ -290,8 +294,8 @@ func toascii(s string) (result string) {
 func submitfiles() {
 	flag.StringVar(&name, "name", "", "Backup name")
 	flag.StringVar(&name, "n", "", "-name")
-	flag.Int64Var(&date, "date", date, "Backup set")
-	flag.Int64Var(&date, "d", date, "-date")
+	flag.Var(&date, "date", "Backup set")
+	flag.Var(&date, "d", "-date")
 	flag.Parse()
 
 	switchuser()
@@ -320,7 +324,7 @@ func submitfiles() {
 	if files == 0 {
 		var lastdate SQLInt
 		catalog.QueryRow("SELECT MAX(date) FROM backups WHERE name=? AND schedule=?", name, schedule).Scan(&lastdate)
-		date = int64(lastdate)
+		date = BackupID(lastdate)
 	}
 
 	files = 0
