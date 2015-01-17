@@ -180,7 +180,7 @@ func backupinfo() {
 	var stmt *sql.Stmt
 	var err error
 	if date != 0 {
-		stmt, err = catalog.Prepare("SELECT date, name, schedule, finished FROM backups WHERE date>=? AND ? NOT NULL ORDER BY date LIMIT 1")
+		stmt, err = catalog.Prepare("SELECT date, name, schedule, finished FROM backups WHERE date<=? AND ? NOT NULL ORDER BY date DESC LIMIT 1")
 		details = true
 	} else {
 		if name != "" {
