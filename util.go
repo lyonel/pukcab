@@ -18,6 +18,13 @@ func (id *BackupID) String() string {
 }
 
 func (id *BackupID) Set(s string) error {
+	// number (positive or negative) suffixed with 'd': go back by n days
+	if matched, err := regexp.MatchString("^-?[0-9]+d$", s); err == nil && matched {
+		s = s[:len(s)-1]
+	}
+
+	// "small" number (positive or negative): go back by n days
+	// "big" number (positive): interpret as a UNIX epoch-based time (i.e. a backup id)
 	if i, err := strconv.ParseInt(s, 10, 0); err == nil {
 		if i > 36524 {
 			*id = BackupID(i)
@@ -31,11 +38,13 @@ func (id *BackupID) Set(s string) error {
 		return nil
 	}
 
+	// go back by a given duration (for example 48h or 120m)
 	if duration, err := time.ParseDuration(s); err == nil {
 		*id = BackupID(time.Now().Unix() - int64(math.Abs(duration.Seconds())))
 		return nil
 	}
 
+	// go back to a given date
 	if date, err := time.ParseInLocation("2006-01-02", s, time.Local); err == nil {
 		*id = BackupID(date.Unix())
 		return nil
