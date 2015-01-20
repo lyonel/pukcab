@@ -150,7 +150,7 @@ func newbackup() {
 	}
 }
 
-func backupinfo() {
+func extractinfo(includedata bool) {
 	details := false
 	date = 0
 
@@ -255,10 +255,14 @@ func backupinfo() {
 							hdr.ChangeTime = time.Unix(change, 0)
 							if filetype == string(tar.TypeReg) || filetype == string(tar.TypeRegA) {
 								hdr.Typeflag = tar.TypeReg
-								hdr.Xattrs = make(map[string]string)
-								hdr.Xattrs["backup.size"] = fmt.Sprintf("%d", size)
-								if hash != "" {
-									hdr.Xattrs["backup.hash"] = hash
+								if includedata {
+									hdr.Linkname = hash
+								} else {
+									hdr.Xattrs = make(map[string]string)
+									hdr.Xattrs["backup.size"] = fmt.Sprintf("%d", size)
+									if hash != "" {
+										hdr.Xattrs["backup.hash"] = hash
+									}
 								}
 							} else {
 								if len(filetype) > 0 {
@@ -267,7 +271,20 @@ func backupinfo() {
 							}
 							for _, f := range filter {
 								if matched, err := regexp.MatchString(f, hdr.Name); err == nil && matched {
+									if includedata && hdr.Typeflag == tar.TypeReg {
+										hdr.Size = size
+									}
 									tw.WriteHeader(&hdr)
+
+									if includedata && size > 0 && hash != "" {
+										if zdata, err := os.Open(filepath.Join(cfg.Vault, hash)); err == nil {
+											gz, _ := gzip.NewReader(zdata)
+											io.Copy(tw, gz)
+											zdata.Close()
+										} else {
+											log.Println(err)
+										}
+									}
 								}
 							}
 						} else {
@@ -280,6 +297,14 @@ func backupinfo() {
 			}
 		}
 	}
+}
+
+func backupinfo() {
+	extractinfo(false)
+}
+
+func backupdata() {
+	extractinfo(true)
 }
 
 func toascii(s string) (result string) {

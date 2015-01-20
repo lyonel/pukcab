@@ -71,6 +71,8 @@ func main() {
 		info()
 	case "backupinfo":
 		backupinfo()
+	case "backupdata":
+		backupdata()
 	case "submitfiles":
 		submitfiles()
 	case "ping":
