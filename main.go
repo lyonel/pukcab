@@ -69,10 +69,10 @@ func main() {
 		newbackup()
 	case "info":
 		info()
-	case "backupinfo":
-		backupinfo()
-	case "backupdata":
-		backupdata()
+	case "metadata":
+		metadata()
+	case "data":
+		data()
 	case "submitfiles":
 		submitfiles()
 	case "ping":

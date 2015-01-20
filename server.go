@@ -150,7 +150,7 @@ func newbackup() {
 	}
 }
 
-func extractinfo(includedata bool) {
+func dumpcatalog(includedata bool) {
 	details := false
 	date = 0
 
@@ -299,12 +299,12 @@ func extractinfo(includedata bool) {
 	}
 }
 
-func backupinfo() {
-	extractinfo(false)
+func metadata() {
+	dumpcatalog(false)
 }
 
-func backupdata() {
-	extractinfo(true)
+func data() {
+	dumpcatalog(true)
 }
 
 func toascii(s string) (result string) {

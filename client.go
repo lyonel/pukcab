@@ -358,7 +358,7 @@ func info() {
 	flag.Var(&date, "d", "-date")
 	flag.Parse()
 
-	args := []string{"backupinfo"}
+	args := []string{"metadata"}
 	if date != 0 {
 		args = append(args, "-date", fmt.Sprintf("%d", date))
 	} else {
@@ -381,6 +381,7 @@ func info() {
 	}
 
 	tr := tar.NewReader(stdout)
+	first := true
 	var size int64 = 0
 	var files int64 = 0
 	var missing int64 = 0
@@ -396,10 +397,14 @@ func info() {
 
 		switch hdr.Typeflag {
 		case tar.TypeXGlobalHeader:
+			if !first {
+				fmt.Println()
+			}
+			first = false
 			size = 0
 			files = 0
 			missing = 0
-			fmt.Printf("\nName: %s\nSchedule: %s\nDate: %d (%v)\n", hdr.Name, hdr.Linkname, hdr.ModTime.Unix(), hdr.ModTime)
+			fmt.Printf("Name: %s\nSchedule: %s\nDate: %d (%v)\n", hdr.Name, hdr.Linkname, hdr.ModTime.Unix(), hdr.ModTime)
 		default:
 			files++
 			if s, err := strconv.ParseInt(hdr.Xattrs["backup.size"], 0, 0); err == nil {
