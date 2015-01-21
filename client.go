@@ -404,7 +404,9 @@ func info() {
 			size = 0
 			files = 0
 			missing = 0
-			fmt.Printf("Name: %s\nSchedule: %s\nDate: %d (%v)\n", hdr.Name, hdr.Linkname, hdr.ModTime.Unix(), hdr.ModTime)
+			fmt.Println("Name:    ", hdr.Name)
+			fmt.Println("Schedule:", hdr.Linkname)
+			fmt.Println("Date     ", hdr.ModTime.Unix(), "(", hdr.ModTime, ")")
 		default:
 			files++
 			if s, err := strconv.ParseInt(hdr.Xattrs["backup.size"], 0, 0); err == nil {
@@ -430,8 +432,9 @@ func info() {
 		}
 	}
 	if files > 0 {
-		fmt.Printf("Files: %d\nSize: %s\n", files, Bytes(uint64(size)))
-		fmt.Printf("Complete: ")
+		fmt.Println("Size:    ", Bytes(uint64(size)))
+		fmt.Println("Files:   ", files)
+		fmt.Print("Complete: ")
 		if files > 0 && missing > 0 {
 			fmt.Printf("%.1f%% (%d files missing)\n", 100*float64(files-missing)/float64(files), missing)
 		} else {
