@@ -372,10 +372,9 @@ func info() {
 	args := []string{"metadata"}
 	if date != 0 {
 		args = append(args, "-date", fmt.Sprintf("%d", date))
-	} else {
-		if name != "" {
-			args = append(args, "-name", name)
-		}
+	}
+	if name != "" {
+		args = append(args, "-name", name)
 	}
 	args = append(args, flag.Args()...)
 	cmd := remotecommand(args...)
@@ -551,8 +550,8 @@ func verify() {
 
 	flag.BoolVar(&verbose, "verbose", verbose, "Be more verbose")
 	flag.BoolVar(&verbose, "v", verbose, "-verbose")
-	flag.StringVar(&name, "name", "", "Backup name")
-	flag.StringVar(&name, "n", "", "-name")
+	flag.StringVar(&name, "name", name, "Backup name")
+	flag.StringVar(&name, "n", name, "-name")
 	flag.Var(&date, "date", "Backup set")
 	flag.Var(&date, "d", "-date")
 	flag.Parse()
