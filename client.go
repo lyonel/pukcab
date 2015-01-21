@@ -499,7 +499,7 @@ func ping() {
 	}
 }
 
-func check(hdr tar.Header) (result Status) {
+func check(hdr tar.Header, quick bool) (result Status) {
 	result = Unknown
 
 	if hdr.Typeflag == '?' {
@@ -535,6 +535,14 @@ func check(hdr tar.Header) (result Status) {
 			result = Modified
 			return
 		}
+
+		if quick {
+			return
+		}
+
+		if hdr.Xattrs["backup.hash"] != Hash(hdr.Name) {
+			result = Modified
+		}
 	} else {
 		if os.IsNotExist(err) {
 			result = Deleted
@@ -550,8 +558,8 @@ func verify() {
 
 	flag.BoolVar(&verbose, "verbose", verbose, "Be more verbose")
 	flag.BoolVar(&verbose, "v", verbose, "-verbose")
-	flag.StringVar(&name, "name", name, "Backup name")
-	flag.StringVar(&name, "n", name, "-name")
+	flag.StringVar(&name, "name", defaultName, "Backup name")
+	flag.StringVar(&name, "n", defaultName, "-name")
 	flag.Var(&date, "date", "Backup set")
 	flag.Var(&date, "d", "-date")
 	flag.Parse()
@@ -619,7 +627,7 @@ func verify() {
 
 			size += hdr.Size
 
-			switch check(*hdr) {
+			switch check(*hdr, false) {
 			case OK:
 				status = ""
 			case Modified:

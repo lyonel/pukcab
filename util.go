@@ -1,9 +1,12 @@
 package main
 
 import (
+	"crypto/sha512"
 	"encoding/base64"
 	"fmt"
+	"io"
 	"math"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -60,6 +63,18 @@ func EncodeHash(h []byte) (hash string) {
 	hash = strings.Trim(hash, "=")
 
 	return hash
+}
+
+func Hash(filename string) (hash string) {
+	if file, err := os.Open(filename); err == nil {
+		checksum := sha512.New()
+		if _, err = io.Copy(checksum, file); err == nil {
+			hash = EncodeHash(checksum.Sum(nil))
+		}
+		file.Close()
+	}
+
+	return
 }
 
 func ConvertGlob(filter string) (regex string) {
