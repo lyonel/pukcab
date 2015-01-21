@@ -77,6 +77,8 @@ func main() {
 		submitfiles()
 	case "ping":
 		ping()
+	case "verify":
+		verify()
 	case "expire":
 		expire()
 	case "help":

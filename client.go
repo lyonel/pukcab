@@ -21,6 +21,17 @@ import (
 var directories map[string]bool
 var backupset map[string]struct{}
 
+type Status int
+
+const (
+	OK = iota
+	Modified
+	MetaModified
+	Deleted
+	Missing
+	Unknown
+)
+
 func expire() {
 	flag.Var(&date, "date", "Backup set")
 	flag.Var(&date, "d", "-date")
@@ -485,6 +496,165 @@ func ping() {
 
 	if err := cmd.Wait(); err != nil {
 		fmt.Println("Backend error:", cmd.Args, err)
+		log.Fatal(cmd.Args, err)
+	}
+}
+
+func check(hdr tar.Header) (result Status) {
+	result = Unknown
+
+	if hdr.Typeflag == '?' {
+		result = Missing
+		return
+	}
+
+	if fi, err := os.Lstat(hdr.Name); err == nil {
+		fhdr, err := tar.FileInfoHeader(fi, hdr.Linkname)
+		if err != nil {
+			return
+		} else {
+			fhdr.Uname = Username(fhdr.Uid)
+			fhdr.Gname = Groupname(fhdr.Gid)
+		}
+		result = OK
+		if fhdr.Mode != hdr.Mode ||
+			fhdr.Uid != hdr.Uid ||
+			fhdr.Gid != hdr.Gid ||
+			fhdr.Uname != hdr.Uname ||
+			fhdr.Gname != hdr.Gname ||
+			!fhdr.ModTime.IsZero() && !hdr.ModTime.IsZero() && fhdr.ModTime.Unix() != hdr.ModTime.Unix() ||
+			!fhdr.AccessTime.IsZero() && !hdr.AccessTime.IsZero() && fhdr.AccessTime.Unix() != hdr.AccessTime.Unix() ||
+			!fhdr.ChangeTime.IsZero() && !hdr.ChangeTime.IsZero() && fhdr.ChangeTime.Unix() != hdr.ChangeTime.Unix() ||
+			fhdr.Typeflag != hdr.Typeflag ||
+			fhdr.Typeflag == tar.TypeSymlink && fhdr.Linkname != hdr.Linkname {
+			result = MetaModified
+		}
+		if hdr.Typeflag != tar.TypeReg && hdr.Typeflag != tar.TypeRegA {
+			return
+		}
+		if hdr.Size != fhdr.Size {
+			result = Modified
+			return
+		}
+	} else {
+		if os.IsNotExist(err) {
+			result = Deleted
+		}
+		return
+	}
+
+	return
+}
+
+func verify() {
+	date = 0
+
+	flag.BoolVar(&verbose, "verbose", verbose, "Be more verbose")
+	flag.BoolVar(&verbose, "v", verbose, "-verbose")
+	flag.StringVar(&name, "name", "", "Backup name")
+	flag.StringVar(&name, "n", "", "-name")
+	flag.Var(&date, "date", "Backup set")
+	flag.Var(&date, "d", "-date")
+	flag.Parse()
+
+	args := []string{"metadata"}
+	args = append(args, "-date", fmt.Sprintf("%d", date))
+	if name != "" {
+		args = append(args, "-name", name)
+	}
+	args = append(args, flag.Args()...)
+	cmd := remotecommand(args...)
+
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		fmt.Println("Backend error:", err)
+		log.Fatal(cmd.Args, err)
+	}
+
+	if err := cmd.Start(); err != nil {
+		fmt.Println("Backend error:", err)
+		log.Fatal(cmd.Args, err)
+	}
+
+	tr := tar.NewReader(stdout)
+	first := true
+	var size int64 = 0
+	var files int64 = 0
+	var missing int64 = 0
+	var modified int64 = 0
+	var deleted int64 = 0
+	var errors int64 = 0
+	for {
+		hdr, err := tr.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			fmt.Println("Backend error:", err)
+			log.Fatal(err)
+		}
+
+		switch hdr.Typeflag {
+		case tar.TypeXGlobalHeader:
+			if !first {
+				fmt.Println()
+			}
+			first = false
+			size = 0
+			files = 0
+			missing = 0
+			modified = 0
+			deleted = 0
+			fmt.Println("Name:    ", hdr.Name)
+			fmt.Println("Schedule:", hdr.Linkname)
+			fmt.Println("Date:    ", hdr.ModTime.Unix(), "(", hdr.ModTime, ")")
+		default:
+			status := "?"
+			files++
+			if len(hdr.Xattrs["backup.type"]) > 0 {
+				hdr.Typeflag = hdr.Xattrs["backup.type"][0]
+			}
+			if s, err := strconv.ParseInt(hdr.Xattrs["backup.size"], 0, 0); err == nil {
+				hdr.Size = s
+			}
+
+			size += hdr.Size
+
+			switch check(*hdr) {
+			case OK:
+				status = ""
+			case Modified:
+				status = "M"
+				modified++
+			case Missing:
+				status = "+"
+				missing++
+			case MetaModified:
+				status = "m"
+				modified++
+			case Deleted:
+				status = "-"
+				deleted++
+			case Unknown:
+				status = "!"
+				errors++
+			}
+
+			if verbose && status != "" {
+				fmt.Printf("%s %s\n", status, hdr.Name)
+			}
+		}
+	}
+	if files > 0 {
+		fmt.Println("Size:    ", Bytes(uint64(size)))
+		fmt.Println("Files:   ", files)
+		fmt.Println("Modified:", modified)
+		fmt.Println("Deleted: ", deleted)
+		fmt.Println("Missing: ", missing)
+	}
+
+	if err := cmd.Wait(); err != nil {
+		fmt.Println("Backend error:", err)
 		log.Fatal(cmd.Args, err)
 	}
 }
