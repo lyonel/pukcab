@@ -78,8 +78,10 @@ func Impersonate(name string) error {
 	if pw, err := Getpwnam(name); err != nil {
 		return err
 	} else {
-		syscall.Setgid(pw.Gid)
 		if err = syscall.Setuid(pw.Uid); err == nil {
+			syscall.Setfsuid(pw.Uid)
+			syscall.Setgid(pw.Gid)
+			syscall.Setfsgid(pw.Gid)
 			os.Setenv("USER", pw.Name)
 			os.Setenv("LOGNAME", name)
 			if os.Chdir(pw.Dir) == nil {
