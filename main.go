@@ -74,6 +74,8 @@ func main() {
 	switch os.Args[0] {
 	case "backup":
 		backup()
+	case "resume":
+		resume()
 	case "newbackup":
 		newbackup()
 	case "info":

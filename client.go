@@ -273,17 +273,89 @@ func backup() {
 		log.Printf("Incremental backup: date=%d files=%d\n", date, len(backupset))
 	}
 
+	dumpfiles()
+}
+
+func resume() {
+	flag.BoolVar(&verbose, "verbose", verbose, "Be more verbose")
+	flag.BoolVar(&verbose, "v", verbose, "-verbose")
+	flag.Var(&date, "date", "Backup set")
+	flag.Var(&date, "d", "-date")
+	flag.Parse()
+
+	log.Printf("Resuming backup: date=%d\n", date)
 	if verbose {
-		fmt.Print("Sending files... ")
+		fmt.Printf("Resuming backup: date=%d\n", date)
 	}
 
-	cmd = remotecommand("submitfiles", "-name", name, "-date", fmt.Sprintf("%d", date))
-	stdout, err = cmd.StdoutPipe()
+	backupset = make(map[string]struct{})
+
+	cmd := remotecommand("metadata", "-date", fmt.Sprintf("%d", date))
+
+	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		fmt.Println("Backend error:", err)
 		log.Fatal(cmd.Args, err)
 	}
-	stdin, err = cmd.StdinPipe()
+
+	if err := cmd.Start(); err != nil {
+		fmt.Println("Backend error:", err)
+		log.Fatal(cmd.Args, err)
+	}
+
+	tr := tar.NewReader(stdout)
+	for {
+		hdr, err := tr.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			fmt.Println("Backend error:", err)
+			log.Fatal(err)
+		}
+
+		switch hdr.Typeflag {
+		case tar.TypeXGlobalHeader:
+			name = hdr.Name
+			schedule = hdr.Linkname
+			if verbose {
+				fmt.Print("Determining files to backup... ")
+			}
+		default:
+			if len(hdr.Xattrs["backup.type"]) > 0 {
+				hdr.Typeflag = hdr.Xattrs["backup.type"][0]
+			}
+			if s, err := strconv.ParseInt(hdr.Xattrs["backup.size"], 0, 0); err == nil {
+				hdr.Size = s
+			}
+
+			if check(*hdr, true) != OK {
+				backupset[hdr.Name] = struct{}{}
+			}
+
+		}
+	}
+
+	if err := cmd.Wait(); err != nil {
+		fmt.Println("Backend error:", err)
+		log.Fatal(cmd.Args, err)
+	}
+
+	if verbose {
+		fmt.Println("done.")
+		fmt.Printf("Incremental backup: date=%d files=%d\n", date, len(backupset))
+	}
+	log.Printf("Incremental backup: date=%d files=%d\n", date, len(backupset))
+	dumpfiles()
+}
+
+func dumpfiles() {
+	if verbose {
+		fmt.Print("Sending files... ")
+	}
+
+	cmd := remotecommand("submitfiles", "-name", name, "-date", fmt.Sprintf("%d", date))
+	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		fmt.Println("Backend error:", err)
 		log.Fatal(cmd.Args, err)

@@ -360,10 +360,10 @@ func submitfiles() {
 	var finished SQLInt
 	catalog.QueryRow("SELECT name,schedule,finished FROM backups WHERE date=?", date).Scan(&name, &schedule, &finished)
 
-	log.Printf("Receiving files for backup set: date=%d name=%q schedule=%q files=%d missing=%d\n", date, name, schedule, files, missing)
 	if finished != 0 {
-		log.Printf("Warning: backup set date=%d is already complete\n", date)
+		log.Fatalf("Error: backup set date=%d is already complete\n", date)
 	}
+	log.Printf("Receiving files for backup set: date=%d name=%q schedule=%q files=%d missing=%d\n", date, name, schedule, files, missing)
 
 	tr := tar.NewReader(os.Stdin)
 
