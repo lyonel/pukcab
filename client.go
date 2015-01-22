@@ -215,6 +215,64 @@ func backup() {
 		log.Fatal(cmd.Args, err)
 	}
 
+	if !full {
+		cmd = remotecommand("metadata", "-name", name, "-date", fmt.Sprintf("%d", date))
+
+		stdout, err := cmd.StdoutPipe()
+		if err != nil {
+			fmt.Println("Backend error:", err)
+			log.Fatal(cmd.Args, err)
+		}
+
+		if err := cmd.Start(); err != nil {
+			fmt.Println("Backend error:", err)
+			log.Fatal(cmd.Args, err)
+		}
+
+		tr := tar.NewReader(stdout)
+		for {
+			hdr, err := tr.Next()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				fmt.Println("Backend error:", err)
+				log.Fatal(err)
+			}
+
+			switch hdr.Typeflag {
+			case tar.TypeXGlobalHeader:
+				if verbose {
+					fmt.Print("Determining files to backup... ")
+				}
+			default:
+				if len(hdr.Xattrs["backup.type"]) > 0 {
+					hdr.Typeflag = hdr.Xattrs["backup.type"][0]
+				}
+				if s, err := strconv.ParseInt(hdr.Xattrs["backup.size"], 0, 0); err == nil {
+					hdr.Size = s
+				}
+
+				switch check(*hdr, false) {
+				case OK:
+					delete(backupset, hdr.Name)
+				}
+
+			}
+		}
+
+		if err := cmd.Wait(); err != nil {
+			fmt.Println("Backend error:", err)
+			log.Fatal(cmd.Args, err)
+		}
+
+		if verbose {
+			fmt.Println("done.")
+			fmt.Printf("Incremental backup: date=%d files=%d\n", date, len(backupset))
+		}
+		log.Printf("Incremental backup: date=%d files=%d\n", date, len(backupset))
+	}
+
 	if verbose {
 		fmt.Print("Sending files... ")
 	}
@@ -536,7 +594,7 @@ func check(hdr tar.Header, quick bool) (result Status) {
 			return
 		}
 
-		if quick {
+		if quick && result != OK {
 			return
 		}
 
@@ -627,7 +685,7 @@ func verify() {
 
 			size += hdr.Size
 
-			switch check(*hdr, false) {
+			switch check(*hdr, true) {
 			case OK:
 				status = ""
 			case Modified:
