@@ -77,7 +77,7 @@ func DevMajorMinor(file string) (major int64, minor int64) {
 }
 
 func IsNodump(fi os.FileInfo, file string) bool {
-	if fi.Mode()&os.ModeTemporary == os.ModeTemporary {
+	if fi.Mode()&(os.ModeTemporary|os.ModeSocket) != 0 {
 		return true
 	}
 	if !(fi.Mode().IsDir() || fi.Mode().IsRegular()) {
