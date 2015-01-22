@@ -17,13 +17,22 @@ var schedule string = ""
 var age uint = 14
 var full bool = false
 
+type boolFlag interface {
+	flag.Value
+	IsBoolFlag() bool
+}
+
 func usage() {
 	fmt.Fprintf(os.Stderr, "Usage: %s %s [options]\n\nOptions:\n", programName, os.Args[0])
 	flag.VisitAll(func(f *flag.Flag) {
 		if f.Usage[0] == '-' {
 			fmt.Fprintf(os.Stderr, "  -%s\n   alias for -%s\n\n", f.Name, f.Usage)
 		} else {
-			fmt.Fprintf(os.Stderr, "  --%s=%s\n   %s\n", f.Name, strings.ToUpper(f.Name), f.Usage)
+			if fv, ok := f.Value.(boolFlag); ok && fv.IsBoolFlag() {
+				fmt.Fprintf(os.Stderr, "  --%s[=true] or --%s=false\n   %s\n", f.Name, f.Name, f.Usage)
+			} else {
+				fmt.Fprintf(os.Stderr, "  --%s=%s\n   %s\n", f.Name, strings.ToUpper(f.Name), f.Usage)
+			}
 			if f.DefValue != "" {
 				fmt.Fprintf(os.Stderr, "   default: %s\n", f.DefValue)
 			}
@@ -84,10 +93,11 @@ func main() {
 	case "help":
 		fmt.Fprintf(os.Stderr, "Usage: %s help [command]", programName)
 	case "-help", "--help", "-h":
-		fmt.Fprintln(os.Stderr, "Usage: %s COMMAND [options]\n\nCommands:", programName)
+		fmt.Fprintf(os.Stderr, "Usage: %s COMMAND [options]\n\nCommands:\n", programName)
 		fmt.Fprintln(os.Stderr, "  backup")
 		fmt.Fprintln(os.Stderr, "  info")
 		fmt.Fprintln(os.Stderr, "  ping")
+		fmt.Fprintln(os.Stderr, "  verify")
 		fmt.Fprintln(os.Stderr, "  expire")
 		fmt.Fprintln(os.Stderr, "  help")
 	case "version":
