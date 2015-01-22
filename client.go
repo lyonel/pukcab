@@ -253,7 +253,7 @@ func backup() {
 					hdr.Size = s
 				}
 
-				switch check(*hdr, false) {
+				switch check(*hdr, true) {
 				case OK:
 					delete(backupset, hdr.Name)
 				}
@@ -685,7 +685,7 @@ func verify() {
 
 			size += hdr.Size
 
-			switch check(*hdr, true) {
+			switch check(*hdr, false) {
 			case OK:
 				status = ""
 			case Modified:
