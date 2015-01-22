@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"syscall"
 	"unsafe"
 )
 
@@ -33,6 +32,13 @@ static char *getgroupname(gid_t gid)
   else
 	return gr->gr_name;
 }
+
+static int setugid(uid_t uid, gid_t gid)
+{
+  setgid(gid);
+  return setuid(uid);
+}
+
 */
 import "C"
 
@@ -74,20 +80,32 @@ func Getpwnam(name string) (pw *Passwd, err error) {
 	return
 }
 
+func Uid(username string) int {
+	if pw, err := Getpwnam(name); err != nil {
+		return -1
+	} else {
+		return pw.Uid
+	}
+}
+
+func Gid(username string) int {
+	if pw, err := Getpwnam(name); err != nil {
+		return -1
+	} else {
+		return pw.Gid
+	}
+}
+
 func Impersonate(name string) error {
 	if pw, err := Getpwnam(name); err != nil {
 		return err
 	} else {
-		if err = syscall.Setuid(pw.Uid); err == nil {
-			syscall.Setfsuid(pw.Uid)
-			syscall.Setgid(pw.Gid)
-			syscall.Setfsgid(pw.Gid)
-			os.Setenv("USER", pw.Name)
-			os.Setenv("LOGNAME", name)
-			if os.Chdir(pw.Dir) == nil {
-				os.Setenv("HOME", pw.Dir)
-			}
-		}
+		os.Setenv("USER", pw.Name)
+		os.Setenv("LOGNAME", name)
+		os.Chdir(pw.Dir)
+
+		os.Setenv("HOME", pw.Dir)
+		C.setugid(C.uid_t(pw.Uid), C.gid_t(pw.Gid))
 		return err
 	}
 }
