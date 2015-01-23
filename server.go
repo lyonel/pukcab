@@ -213,7 +213,7 @@ func dumpcatalog(includedata bool) {
 				Name:     name,
 				Linkname: schedule,
 				ModTime:  time.Unix(int64(date), 0),
-				Uid:     int(finished),
+				Uid:      int(finished),
 				Typeflag: tar.TypeXGlobalHeader,
 			}
 			tw.WriteHeader(globalhdr)

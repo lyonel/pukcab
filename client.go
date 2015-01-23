@@ -277,6 +277,7 @@ func backup() {
 }
 
 func resume() {
+	date = 0
 	flag.BoolVar(&verbose, "verbose", verbose, "Be more verbose")
 	flag.BoolVar(&verbose, "v", verbose, "-verbose")
 	flag.Var(&date, "date", "Backup set")
@@ -318,6 +319,7 @@ func resume() {
 		case tar.TypeXGlobalHeader:
 			name = hdr.Name
 			schedule = hdr.Linkname
+			date = BackupID(hdr.ModTime.Unix())
 			hdr.ChangeTime = time.Unix(int64(hdr.Uid), 0)
 			if hdr.ChangeTime.Unix() != 0 {
 				fmt.Printf("Error: backup set date=%d is already complete\n", date)
