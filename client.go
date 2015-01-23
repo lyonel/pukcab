@@ -318,6 +318,11 @@ func resume() {
 		case tar.TypeXGlobalHeader:
 			name = hdr.Name
 			schedule = hdr.Linkname
+			hdr.ChangeTime = time.Unix(int64(hdr.Uid), 0)
+			if hdr.ChangeTime.Unix() != 0 {
+				fmt.Printf("Error: backup set date=%d is already complete\n", date)
+				log.Fatalf("Error: backup set date=%d is already complete\n", date)
+			}
 			if verbose {
 				fmt.Print("Determining files to backup... ")
 			}
@@ -544,9 +549,13 @@ func info() {
 			size = 0
 			files = 0
 			missing = 0
+			hdr.ChangeTime = time.Unix(int64(hdr.Uid), 0)
 			fmt.Println("Name:    ", hdr.Name)
 			fmt.Println("Schedule:", hdr.Linkname)
-			fmt.Println("Date     ", hdr.ModTime.Unix(), "(", hdr.ModTime, ")")
+			fmt.Println("Date:    ", hdr.ModTime.Unix(), "(", hdr.ModTime, ")")
+			if hdr.ChangeTime.Unix() != 0 {
+				fmt.Println("Finished:", hdr.ChangeTime.Unix(), "(", hdr.ChangeTime, ")")
+			}
 		default:
 			files++
 			if s, err := strconv.ParseInt(hdr.Xattrs["backup.size"], 0, 0); err == nil {
