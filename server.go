@@ -435,7 +435,11 @@ func submitfiles() {
 
 					hash = EncodeHash(checksum.Sum(nil))
 
-					os.Rename(tmpfile.Name(), filepath.Join(cfg.Vault, hash))
+					if _, err := os.Stat(filepath.Join(cfg.Vault, hash)); os.IsNotExist(err) {
+						os.Rename(tmpfile.Name(), filepath.Join(cfg.Vault, hash))
+					} else {
+						os.Remove(tmpfile.Name())
+					}
 				}
 
 			}
