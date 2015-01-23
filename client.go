@@ -558,7 +558,8 @@ func info() {
 			fmt.Println("Schedule:", hdr.Linkname)
 			fmt.Println("Date:    ", hdr.ModTime.Unix(), "(", hdr.ModTime, ")")
 			if hdr.ChangeTime.Unix() != 0 {
-				fmt.Println("Finished:", hdr.ChangeTime.Unix(), "(", hdr.ChangeTime, ")")
+				fmt.Println("Finished:", hdr.ChangeTime)
+				fmt.Println("Duration:", hdr.ChangeTime.Sub(hdr.ModTime))
 			}
 		default:
 			files++
