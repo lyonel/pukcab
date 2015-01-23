@@ -280,6 +280,8 @@ func resume() {
 	date = 0
 	flag.BoolVar(&verbose, "verbose", verbose, "Be more verbose")
 	flag.BoolVar(&verbose, "v", verbose, "-verbose")
+	flag.StringVar(&name, "name", defaultName, "Backup name")
+	flag.StringVar(&name, "n", defaultName, "-name")
 	flag.Var(&date, "date", "Backup set")
 	flag.Var(&date, "d", "-date")
 	flag.Parse()
@@ -291,7 +293,7 @@ func resume() {
 
 	backupset = make(map[string]struct{})
 
-	cmd := remotecommand("metadata", "-date", fmt.Sprintf("%d", date))
+	cmd := remotecommand("metadata", "-name", name, "-date", fmt.Sprintf("%d", date))
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
