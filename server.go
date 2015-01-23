@@ -517,4 +517,47 @@ func purgebackup() {
 		}
 	}
 	tx.Commit()
+
+	vacuum()
+}
+
+func vacuum() {
+	log.Println("Vacuum...")
+
+	if tx, err := catalog.Begin(); err == nil {
+		defer tx.Rollback()
+
+		unused := make(map[string]struct{})
+		if vaultfiles, err := ioutil.ReadDir(cfg.Vault); err == nil {
+			for _, f := range vaultfiles {
+				unused[f.Name()] = struct{}{}
+			}
+		} else {
+			log.Fatal(err)
+		}
+
+		if datafiles, err := catalog.Query("SELECT DISTINCT hash FROM files"); err == nil {
+			defer datafiles.Close()
+			for datafiles.Next() {
+				var f string
+				if err := datafiles.Scan(&f); err == nil {
+					delete(unused, f)
+				} else {
+					log.Fatal(err)
+				}
+			}
+		} else {
+			log.Fatal(err)
+		}
+
+		for f := range unused {
+			if err := os.Remove(filepath.Join(cfg.Vault, f)); err != nil {
+				log.Fatal(err)
+			}
+		}
+
+		log.Printf("Vacuum: removed %d files\n", len(unused))
+	} else {
+		log.Fatal(err)
+	}
 }
