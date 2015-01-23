@@ -72,17 +72,17 @@ func main() {
 	}
 
 	switch os.Args[0] {
-	case "backup":
+	case "backup","save":
 		backup()
-	case "resume":
+	case "resume","continue":
 		resume()
 	case "newbackup":
 		newbackup()
-	case "purge":
+	case "purge", "delete":
 		purge()
 	case "purgebackup":
 		purgebackup()
-	case "info":
+	case "info","list":
 		info()
 	case "metadata":
 		metadata()
@@ -90,9 +90,9 @@ func main() {
 		data()
 	case "submitfiles":
 		submitfiles()
-	case "ping":
+	case "ping","test":
 		ping()
-	case "verify":
+	case "verify","check":
 		verify()
 	case "expire":
 		expire()
