@@ -72,6 +72,12 @@ END;
 	}
 }
 
+func logclient() {
+	if sshclient := strings.Split(os.Getenv("SSH_CLIENT"), " "); sshclient[0] != "" {
+		log.Printf("Remote client: ip=%q\n", sshclient[0])
+	}
+}
+
 func newbackup() {
 	flag.StringVar(&name, "name", "", "Backup name")
 	flag.StringVar(&name, "n", "", "-name")
@@ -82,10 +88,7 @@ func newbackup() {
 	flag.Parse()
 
 	switchuser()
-
-	if sshclient := strings.Split(os.Getenv("SSH_CLIENT"), " "); sshclient[0] != "" {
-		log.Printf("Remote client: ip=%q\n", sshclient[0])
-	}
+	logclient()
 
 	if name == "" {
 		fmt.Println(0)
@@ -325,10 +328,7 @@ func submitfiles() {
 	flag.Parse()
 
 	switchuser()
-
-	if sshclient := strings.Split(os.Getenv("SSH_CLIENT"), " "); sshclient[0] != "" {
-		log.Printf("Remote client: ip=%q\n", sshclient[0])
-	}
+	logclient()
 
 	if name == "" {
 		fmt.Println("Missing backup name")
@@ -488,6 +488,7 @@ func purgebackup() {
 	flag.Parse()
 
 	switchuser()
+	logclient()
 
 	if name == "" {
 		fmt.Println("Missing backup name")
