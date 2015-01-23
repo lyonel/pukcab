@@ -478,3 +478,42 @@ func submitfiles() {
 		log.Fatal(err)
 	}
 }
+
+func purgebackup() {
+	date = 0
+	flag.StringVar(&name, "name", "", "Backup name")
+	flag.StringVar(&name, "n", "", "-name")
+	flag.Var(&date, "date", "Backup set")
+	flag.Var(&date, "d", "-date")
+	flag.Parse()
+
+	switchuser()
+
+	if name == "" {
+		fmt.Println("Missing backup name")
+		log.Fatal("Client did not provide a backup name")
+	}
+
+	if date == 0 {
+		fmt.Println("Missing backup date")
+		log.Fatal("Client did not provide a backup date")
+	}
+
+	if err := opencatalog(); err != nil {
+		fmt.Println(err)
+		log.Fatal(err)
+	}
+
+	tx, _ := catalog.Begin()
+	if r, err := tx.Exec("DELETE FROM backups WHERE date=? AND name=?", date, name); err != nil {
+		tx.Rollback()
+		log.Fatal(err)
+	} else {
+		if n, _ := r.RowsAffected(); n < 1 {
+			fmt.Println("Backup not found.")
+		} else {
+			log.Printf("Deleted backup: date=%d name=%q\n", date, name)
+		}
+	}
+	tx.Commit()
+}

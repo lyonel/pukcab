@@ -78,6 +78,10 @@ func main() {
 		resume()
 	case "newbackup":
 		newbackup()
+	case "purge":
+		purge()
+	case "purgebackup":
+		purgebackup()
 	case "info":
 		info()
 	case "metadata":

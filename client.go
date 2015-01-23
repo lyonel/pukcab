@@ -809,3 +809,36 @@ func verify() {
 		log.Fatal(cmd.Args, err)
 	}
 }
+
+func purge() {
+	date = 0
+
+	flag.StringVar(&name, "name", defaultName, "Backup name")
+	flag.StringVar(&name, "n", defaultName, "-name")
+	flag.Var(&date, "date", "Backup set")
+	flag.Var(&date, "d", "-date")
+	flag.Parse()
+
+	args := []string{"purgebackup"}
+	if date != 0 {
+		args = append(args, "-date", fmt.Sprintf("%d", date))
+	}
+	if name != "" {
+		args = append(args, "-name", name)
+	}
+	args = append(args, flag.Args()...)
+	cmd := remotecommand(args...)
+
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Start(); err != nil {
+		fmt.Println("Backend error:", err)
+		log.Fatal(cmd.Args, err)
+	}
+
+	if err := cmd.Wait(); err != nil {
+		fmt.Println("Backend error:", err)
+		log.Fatal(cmd.Args, err)
+	}
+}
