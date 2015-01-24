@@ -3,6 +3,7 @@ package main
 import (
 	"archive/tar"
 	"bufio"
+	"compress/gzip"
 	"flag"
 	"fmt"
 	"io"
@@ -844,6 +845,7 @@ func purge() {
 }
 
 func archive() {
+	gz := false
 	var output string
 	date = BackupID(time.Now().Unix())
 
@@ -856,6 +858,8 @@ func archive() {
 	flag.StringVar(&output, "file", "", "Output file")
 	flag.StringVar(&output, "o", "", "-file")
 	flag.StringVar(&output, "f", "", "-file")
+	flag.BoolVar(&gz, "gzip", gz, "Compress archive using gzip")
+	flag.BoolVar(&gz, "z", gz, "-gzip")
 	flag.Parse()
 
 	if output == "" {
@@ -881,6 +885,12 @@ func archive() {
 		cmd.Stdout = out
 	}
 	cmd.Stderr = os.Stderr
+
+	if gz {
+		gzw := gzip.NewWriter(cmd.Stdout)
+		defer gzw.Close()
+		cmd.Stdout = gzw
+	}
 
 	if err := cmd.Start(); err != nil {
 		fmt.Println("Backend error:", err)
