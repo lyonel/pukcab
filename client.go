@@ -842,3 +842,53 @@ func purge() {
 		log.Fatal(cmd.Args, err)
 	}
 }
+
+func archive() {
+	var output string
+	date = BackupID(time.Now().Unix())
+
+	flag.BoolVar(&verbose, "verbose", verbose, "Be more verbose")
+	flag.BoolVar(&verbose, "v", verbose, "-verbose")
+	flag.StringVar(&name, "name", defaultName, "Backup name")
+	flag.StringVar(&name, "n", defaultName, "-name")
+	flag.Var(&date, "date", "Backup set")
+	flag.Var(&date, "d", "-date")
+	flag.StringVar(&output, "file", "", "Output file")
+	flag.StringVar(&output, "o", "", "-file")
+	flag.StringVar(&output, "f", "", "-file")
+	flag.Parse()
+
+	if output == "" {
+		fmt.Println("Missing output file")
+		os.Exit(1)
+	}
+
+	args := []string{"data"}
+	args = append(args, "-date", fmt.Sprintf("%d", date))
+	args = append(args, "-name", name)
+	args = append(args, flag.Args()...)
+	cmd := remotecommand(args...)
+
+	if output == "-" {
+		cmd.Stdout = os.Stdout
+	} else {
+		out, err := os.Create(output)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			log.Fatal(err)
+		}
+
+		cmd.Stdout = out
+	}
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Start(); err != nil {
+		fmt.Println("Backend error:", err)
+		log.Fatal(cmd.Args, err)
+	}
+
+	if err := cmd.Wait(); err != nil {
+		fmt.Println("Backend error:", err)
+		log.Fatal(cmd.Args, err)
+	}
+}
