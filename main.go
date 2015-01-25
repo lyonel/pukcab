@@ -14,7 +14,6 @@ import (
 var name string = ""
 var date BackupID = -1
 var schedule string = ""
-var age uint = 14
 var full bool = false
 
 type boolFlag interface {
@@ -82,6 +81,8 @@ func main() {
 		purge()
 	case "purgebackup":
 		purgebackup()
+	case "expirebackup":
+		expirebackup()
 	case "info", "list":
 		info()
 	case "archive", "tar":

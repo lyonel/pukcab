@@ -33,19 +33,6 @@ const (
 	Unknown
 )
 
-func expire() {
-	flag.Var(&date, "date", "Backup set")
-	flag.Var(&date, "d", "-date")
-	flag.UintVar(&age, "age", age, "Age")
-	flag.UintVar(&age, "a", age, "-age")
-	flag.Parse()
-
-	log.Println("name: ", name)
-	log.Println("date: ", date)
-	log.Println("schedule: ", schedule)
-	log.Println("age: ", age)
-}
-
 func contains(set []string, e string) bool {
 	for _, a := range set {
 		if a == e {
@@ -891,6 +878,45 @@ func archive() {
 		defer gzw.Close()
 		cmd.Stdout = gzw
 	}
+
+	if err := cmd.Start(); err != nil {
+		fmt.Println("Backend error:", err)
+		log.Fatal(cmd.Args, err)
+	}
+
+	if err := cmd.Wait(); err != nil {
+		fmt.Println("Backend error:", err)
+		log.Fatal(cmd.Args, err)
+	}
+}
+
+func expire() {
+	flag.BoolVar(&verbose, "verbose", verbose, "Be more verbose")
+	flag.BoolVar(&verbose, "v", verbose, "-verbose")
+	flag.StringVar(&name, "name", defaultName, "Backup name")
+	flag.StringVar(&name, "n", defaultName, "-name")
+	flag.StringVar(&schedule, "schedule", defaultSchedule, "Backup schedule")
+	flag.StringVar(&schedule, "r", defaultSchedule, "-schedule")
+	flag.Var(&date, "age", "Maximum age/date")
+	flag.Var(&date, "a", "-age")
+	flag.Var(&date, "date", "-age")
+	flag.Var(&date, "d", "-age")
+	flag.Parse()
+
+	if verbose {
+		fmt.Printf("Expiring backups for %q, schedule %q\n", name, schedule)
+	}
+
+	args := []string{"expirebackup"}
+	if date > 0 {
+		args = append(args, "-date", fmt.Sprintf("%d", date))
+	}
+	args = append(args, "-name", name)
+	args = append(args, "-schedule", schedule)
+	cmd := remotecommand(args...)
+
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 
 	if err := cmd.Start(); err != nil {
 		fmt.Println("Backend error:", err)

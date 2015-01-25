@@ -565,3 +565,55 @@ func vacuum() {
 		log.Fatal(err)
 	}
 }
+
+func expirebackup() {
+	flag.StringVar(&name, "name", "", "Backup name")
+	flag.StringVar(&name, "n", "", "-name")
+	flag.StringVar(&schedule, "schedule", defaultSchedule, "Backup schedule")
+	flag.StringVar(&schedule, "r", defaultSchedule, "-schedule")
+	flag.Var(&date, "age", "Maximum age/date")
+	flag.Var(&date, "a", "-age")
+	flag.Var(&date, "date", "-age")
+	flag.Var(&date, "d", "-age")
+	flag.Parse()
+
+	switchuser()
+	logclient()
+
+	if schedule == "" {
+		fmt.Println("Missing backup schedule")
+		log.Fatal("Client did not provide a backup schedule")
+	}
+
+	if date == -1 {
+		switch schedule {
+		case "daily":
+			date = BackupID(time.Now().Unix() - 14*24*60*60) // 2 weeks
+		case "weekly":
+			date = BackupID(time.Now().Unix() - 42*24*60*60) // 6 weeks
+		case "monthly":
+			date = BackupID(time.Now().Unix() - 365*24*60*60) // 1 year
+		case "yearly":
+			date = BackupID(time.Now().Unix() - 10*365*24*60*60) // 10 years
+		default:
+			fmt.Println("Missing expiration")
+			log.Fatal("Client did not provide an expiration")
+		}
+	}
+
+	if err := opencatalog(); err != nil {
+		fmt.Println(err)
+		log.Fatal(err)
+	}
+
+	log.Printf("Expiring backups: name=%q schedule=%q date=%d (%v)\n", name, schedule, date, time.Unix(int64(date), 0))
+
+	tx, _ := catalog.Begin()
+	if _, err := tx.Exec("DELETE FROM backups WHERE date<? AND ? IN (name,'') AND schedule=?", date, name, schedule); err != nil {
+		tx.Rollback()
+		log.Fatal(err)
+	}
+	tx.Commit()
+
+	vacuum()
+}
