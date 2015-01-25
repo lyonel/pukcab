@@ -1,7 +1,7 @@
 package main
 
 import (
-	"archive/tar"
+	"ezix.org/tar"
 	"bufio"
 	"compress/gzip"
 	"crypto/sha512"
