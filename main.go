@@ -84,6 +84,8 @@ func main() {
 		ping()
 	case "purge", "delete":
 		purge()
+	case "restore":
+		restore()
 	case "resume", "continue":
 		resume()
 	case "verify", "check":

@@ -1,11 +1,11 @@
 package main
 
 import (
-	"ezix.org/tar"
 	"bufio"
 	"compress/gzip"
 	"crypto/sha512"
 	"database/sql"
+	"ezix.org/tar"
 	"flag"
 	"fmt"
 	"io"

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"ezix.org/tar"
 	"bufio"
 	"compress/gzip"
+	"ezix.org/tar"
 	"flag"
 	"fmt"
 	"io"
@@ -11,6 +11,7 @@ import (
 	"log"
 	"math"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -926,5 +927,48 @@ func expire() {
 	if err := cmd.Wait(); err != nil {
 		fmt.Println("Backend error:", err)
 		log.Fatal(cmd.Args, err)
+	}
+}
+
+func restore() {
+	date = BackupID(time.Now().Unix())
+
+	flag.BoolVar(&verbose, "verbose", verbose, "Be more verbose")
+	flag.BoolVar(&verbose, "v", verbose, "-verbose")
+	flag.StringVar(&name, "name", defaultName, "Backup name")
+	flag.StringVar(&name, "n", defaultName, "-name")
+	flag.Var(&date, "date", "Backup set")
+	flag.Var(&date, "d", "-date")
+	flag.Parse()
+
+	args := []string{"data"}
+	args = append(args, "-date", fmt.Sprintf("%d", date))
+	args = append(args, "-name", name)
+	args = append(args, flag.Args()...)
+	getdata := remotecommand(args...)
+	getdata.Stderr = os.Stderr
+
+	args = []string{}
+	args = append(args, "-x", "-p", "-f", "-")
+	if verbose {
+		args = append(args, "-v")
+	}
+	tar := exec.Command("tar", args...)
+	tar.Stderr = os.Stderr
+	tar.Stdout = os.Stdout
+
+	tar.Stdin, _ = getdata.StdoutPipe()
+
+	if err := tar.Start(); err != nil {
+		fmt.Println("Backend error:", err)
+		log.Fatal(tar.Args, err)
+	}
+	if err := getdata.Run(); err != nil {
+		fmt.Println("Backend error:", err)
+		log.Fatal(getdata.Args, err)
+	}
+	if err := tar.Wait(); err != nil {
+		fmt.Println("Backend error:", err)
+		log.Fatal(tar.Args, err)
 	}
 }
