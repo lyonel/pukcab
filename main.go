@@ -71,43 +71,48 @@ func main() {
 	}
 
 	switch os.Args[0] {
-	case "backup", "save":
-		backup()
-	case "resume", "continue":
-		resume()
-	case "newbackup":
-		newbackup()
-	case "purge", "delete":
-		purge()
-	case "purgebackup":
-		purgebackup()
-	case "expirebackup":
-		expirebackup()
-	case "info", "list":
-		info()
+	// client commands
 	case "archive", "tar":
 		archive()
-	case "metadata":
-		metadata()
-	case "data":
-		data()
-	case "submitfiles":
-		submitfiles()
-	case "ping", "test":
-		ping()
-	case "verify", "check":
-		verify()
+	case "backup", "save":
+		backup()
 	case "expire":
 		expire()
+	case "info", "list":
+		info()
+	case "ping", "test":
+		ping()
+	case "purge", "delete":
+		purge()
+	case "resume", "continue":
+		resume()
+	case "verify", "check":
+		verify()
+	// server commands
+	case "data":
+		data()
+	case "expirebackup":
+		expirebackup()
+	case "metadata":
+		metadata()
+	case "newbackup":
+		newbackup()
+	case "purgebackup":
+		purgebackup()
+	case "submitfiles":
+		submitfiles()
+	// shared commands
 	case "help":
 		fmt.Fprintf(os.Stderr, "Usage: %s help [command]", programName)
 	case "-help", "--help", "-h":
 		fmt.Fprintf(os.Stderr, "Usage: %s COMMAND [options]\n\nCommands:\n", programName)
+		fmt.Fprintln(os.Stderr, "  archive")
 		fmt.Fprintln(os.Stderr, "  backup")
+		fmt.Fprintln(os.Stderr, "  expire")
 		fmt.Fprintln(os.Stderr, "  info")
 		fmt.Fprintln(os.Stderr, "  ping")
+		fmt.Fprintln(os.Stderr, "  purge")
 		fmt.Fprintln(os.Stderr, "  verify")
-		fmt.Fprintln(os.Stderr, "  expire")
 		fmt.Fprintln(os.Stderr, "  help")
 	case "version":
 		fmt.Printf("%s version %d.%d %s/%s\n", programName, versionMajor, versionMinor, runtime.GOOS, runtime.GOARCH)
