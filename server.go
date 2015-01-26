@@ -2,9 +2,11 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"compress/gzip"
 	"crypto/sha512"
 	"database/sql"
+	"encoding/gob"
 	"ezix.org/tar"
 	"flag"
 	"fmt"
@@ -210,14 +212,25 @@ func dumpcatalog(includedata bool) {
 
 			date = BackupID(d)
 
+			var header bytes.Buffer
+			enc := gob.NewEncoder(&header)
+			enc.Encode(BackupInfo{
+				Date:     date,
+				Finished: time.Unix(int64(finished), 0),
+				Name:     name,
+				Schedule: schedule,
+			})
+
 			globalhdr := &tar.Header{
 				Name:     name,
 				Linkname: schedule,
 				ModTime:  time.Unix(int64(date), 0),
 				Uid:      int(finished),
 				Typeflag: tar.TypeXGlobalHeader,
+				Size:     int64(header.Len()),
 			}
 			tw.WriteHeader(globalhdr)
+			tw.Write(header.Bytes())
 
 			if details {
 				if files, err := catalog.Query("SELECT name,type,hash,linkname,size,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor FROM files WHERE backupid=? ORDER BY name", int64(date)); err == nil {

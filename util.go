@@ -16,6 +16,13 @@ import (
 
 type BackupID int64
 
+type BackupInfo struct {
+	Date           BackupID
+	Finished       time.Time
+	Name, Schedule string
+	Files, Size    int64
+}
+
 func (id *BackupID) String() string {
 	return fmt.Sprintf("%d", *id)
 }

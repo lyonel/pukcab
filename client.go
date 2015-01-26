@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"compress/gzip"
+	"encoding/gob"
 	"ezix.org/tar"
 	"flag"
 	"fmt"
@@ -542,13 +543,24 @@ func info() {
 			size = 0
 			files = 0
 			missing = 0
-			hdr.ChangeTime = time.Unix(int64(hdr.Uid), 0)
-			fmt.Println("Name:    ", hdr.Name)
-			fmt.Println("Schedule:", hdr.Linkname)
-			fmt.Println("Date:    ", hdr.ModTime.Unix(), "(", hdr.ModTime, ")")
-			if hdr.ChangeTime.Unix() != 0 {
-				fmt.Println("Finished:", hdr.ChangeTime)
-				fmt.Println("Duration:", hdr.ChangeTime.Sub(hdr.ModTime))
+
+			var header BackupInfo
+			dec := gob.NewDecoder(tr)
+			if err := dec.Decode(&header); err != nil {
+				fmt.Println("Protocol error:", err)
+				log.Fatal(err)
+			}
+
+			fmt.Println("Name:    ", header.Name)
+			fmt.Println("Schedule:", header.Schedule)
+			fmt.Println("Date:    ", header.Date, "(", time.Unix(int64(header.Date), 0), ")")
+			if header.Finished.Unix() != 0 {
+				fmt.Println("Finished:", header.Finished)
+				fmt.Println("Duration:", header.Finished.Sub(time.Unix(int64(header.Date), 0)))
+			}
+			if header.Files > 0 {
+				fmt.Println("Size:    ", Bytes(uint64(header.Size)))
+				fmt.Println("Files:   ", header.Files)
 			}
 		default:
 			files++
@@ -575,8 +587,6 @@ func info() {
 		}
 	}
 	if files > 0 {
-		fmt.Println("Size:    ", Bytes(uint64(size)))
-		fmt.Println("Files:   ", files)
 		fmt.Print("Complete: ")
 		if files > 0 && missing > 0 {
 			fmt.Printf("%.1f%% (%d files missing)\n", 100*float64(files-missing)/float64(files), missing)
