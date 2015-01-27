@@ -58,6 +58,7 @@ CREATE TABLE IF NOT EXISTS files(backupid INTEGER NOT NULL,
 			devmajor INTEGER NOT NULL DEFAULT 0,
 			devminor INTEGER NOT NULL DEFAULT 0,
 			UNIQUE (backupid, name));
+CREATE VIEW IF NOT EXISTS stats AS SELECT backups.name,schedule,date,finished,COUNT(*) AS files,SUM(size) AS size FROM backups,files WHERE backupid=backups.date GROUP BY backupid;
 CREATE TRIGGER IF NOT EXISTS cleanup_files AFTER DELETE ON backups FOR EACH ROW
 BEGIN
 			DELETE FROM files WHERE backupid=OLD.date;
@@ -183,13 +184,13 @@ func dumpcatalog(includedata bool) {
 	var stmt *sql.Stmt
 	var err error
 	if date != 0 {
-		stmt, err = catalog.Prepare("SELECT date, name, schedule, finished FROM backups WHERE date<=? AND ? IN ('', name) ORDER BY date DESC LIMIT 1")
+		stmt, err = catalog.Prepare("SELECT date, name, schedule, finished, files, size FROM stats WHERE date<=? AND ? IN ('', name) ORDER BY date DESC LIMIT 1")
 		details = true
 	} else {
 		if name != "" {
-			stmt, err = catalog.Prepare("SELECT date, name, schedule, finished FROM backups WHERE ? NOT NULL AND name=? ORDER BY date")
+			stmt, err = catalog.Prepare("SELECT date, name, schedule, finished, files, size FROM stats WHERE ? NOT NULL AND name=? ORDER BY date")
 		} else {
-			stmt, err = catalog.Prepare("SELECT date, name, schedule, finished FROM backups WHERE ? NOT NULL AND ? NOT NULL ORDER BY date")
+			stmt, err = catalog.Prepare("SELECT date, name, schedule, finished, files, size FROM stats WHERE ? NOT NULL AND ? NOT NULL ORDER BY date")
 		}
 	}
 	if err != nil {
@@ -201,11 +202,15 @@ func dumpcatalog(includedata bool) {
 		for backups.Next() {
 			var finished SQLInt
 			var d SQLInt
+			var f SQLInt
+			var s SQLInt
 
 			if err := backups.Scan(&d,
 				&name,
 				&schedule,
 				&finished,
+				&f,
+				&s,
 			); err != nil {
 				log.Fatal(err)
 			}
@@ -219,6 +224,8 @@ func dumpcatalog(includedata bool) {
 				Finished: time.Unix(int64(finished), 0),
 				Name:     name,
 				Schedule: schedule,
+				Files:    int64(f),
+				Size:     int64(s),
 			})
 
 			globalhdr := &tar.Header{
