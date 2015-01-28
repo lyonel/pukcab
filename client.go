@@ -551,9 +551,10 @@ func info() {
 				log.Fatal(err)
 			}
 
+			fmt.Println("Date:    ", header.Date)
 			fmt.Println("Name:    ", header.Name)
 			fmt.Println("Schedule:", header.Schedule)
-			fmt.Println("Date:    ", header.Date, "(", time.Unix(int64(header.Date), 0), ")")
+			fmt.Println("Started: ", time.Unix(int64(header.Date), 0))
 			if header.Finished.Unix() != 0 {
 				fmt.Println("Finished:", header.Finished)
 				fmt.Println("Duration:", header.Finished.Sub(time.Unix(int64(header.Date), 0)))
