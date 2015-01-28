@@ -39,7 +39,9 @@ func opencatalog() error {
 CREATE TABLE IF NOT EXISTS backups(name TEXT NOT NULL,
 			schedule TEXT NOT NULL,
 			date INTEGER PRIMARY KEY,
-			finished INTEGER);
+			finished INTEGER,
+			files INTEGER,
+			size INTEGER);
 CREATE TABLE IF NOT EXISTS files(backupid INTEGER NOT NULL,
 			hash TEXT COLLATE NOCASE NOT NULL DEFAULT '',
 			type CHAR(1) NOT NULL DEFAULT '?',
@@ -58,7 +60,6 @@ CREATE TABLE IF NOT EXISTS files(backupid INTEGER NOT NULL,
 			devmajor INTEGER NOT NULL DEFAULT 0,
 			devminor INTEGER NOT NULL DEFAULT 0,
 			UNIQUE (backupid, name));
-CREATE VIEW IF NOT EXISTS stats AS SELECT backups.name,schedule,date,finished,COUNT(*) AS files,SUM(size) AS size FROM backups,files WHERE backupid=backups.date GROUP BY backupid;
 CREATE TRIGGER IF NOT EXISTS cleanup_files AFTER DELETE ON backups FOR EACH ROW
 BEGIN
 			DELETE FROM files WHERE backupid=OLD.date;
@@ -184,13 +185,13 @@ func dumpcatalog(includedata bool) {
 	var stmt *sql.Stmt
 	var err error
 	if date != 0 {
-		stmt, err = catalog.Prepare("SELECT date, name, schedule, finished, files, size FROM stats WHERE date<=? AND ? IN ('', name) ORDER BY date DESC LIMIT 1")
+		stmt, err = catalog.Prepare("SELECT date, name, schedule, finished, files, size FROM backups WHERE date<=? AND ? IN ('', name) ORDER BY date DESC LIMIT 1")
 		details = true
 	} else {
 		if name != "" {
-			stmt, err = catalog.Prepare("SELECT date, name, schedule, finished, files, size FROM stats WHERE ? NOT NULL AND name=? ORDER BY date")
+			stmt, err = catalog.Prepare("SELECT date, name, schedule, finished, files, size FROM backups WHERE ? NOT NULL AND name=? ORDER BY date")
 		} else {
-			stmt, err = catalog.Prepare("SELECT date, name, schedule, finished, files, size FROM stats WHERE ? NOT NULL AND ? NOT NULL ORDER BY date")
+			stmt, err = catalog.Prepare("SELECT date, name, schedule, finished, files, size FROM backups WHERE ? NOT NULL AND ? NOT NULL ORDER BY date")
 		}
 	}
 	if err != nil {
@@ -489,6 +490,8 @@ func submitfiles() {
 	if err := catalog.QueryRow("SELECT COUNT(*) FROM files WHERE backupid=? AND type='?'", date).Scan(&missing); err == nil {
 		if missing == 0 {
 			catalog.Exec("UPDATE backups SET finished=? WHERE date=?", time.Now().Unix(), date)
+			catalog.Exec("UPDATE backups SET files=(SELECT COUNT(*) FROM files WHERE backupid=date) WHERE date=?", date)
+			catalog.Exec("UPDATE backups SET size=(SELECT SUM(size) FROM files WHERE backupid=date) WHERE date=?", date)
 			log.Printf("Finished backup: date=%d name=%q schedule=%q files=%d\n", date, name, schedule, files)
 			fmt.Printf("Backup %d complete (%d files)\n", date, files)
 		} else {
