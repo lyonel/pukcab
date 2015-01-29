@@ -1,0 +1,9 @@
+
+Use ssh-copy-id to copy SSH keys
+
+Improve ping command when checking SSH connections:
+ * remote execute /bin/true
+ * remote execute pukcab version
+
+backup expiration
+ * keep at least 3 backups
