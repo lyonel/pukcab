@@ -903,12 +903,16 @@ func archive() {
 }
 
 func expire() {
+	keep := 0
 	flag.BoolVar(&verbose, "verbose", verbose, "Be more verbose")
 	flag.BoolVar(&verbose, "v", verbose, "-verbose")
 	flag.StringVar(&name, "name", defaultName, "Backup name")
 	flag.StringVar(&name, "n", defaultName, "-name")
 	flag.StringVar(&schedule, "schedule", defaultSchedule, "Backup schedule")
 	flag.StringVar(&schedule, "r", defaultSchedule, "-schedule")
+	flag.IntVar(&keep, "keep", keep, "Minimum number of backups to keep")
+	flag.IntVar(&keep, "k", keep, "-keep")
+
 	flag.Var(&date, "age", "Maximum age/date")
 	flag.Var(&date, "a", "-age")
 	flag.Var(&date, "date", "-age")
@@ -924,6 +928,9 @@ func expire() {
 		args = append(args, "-date", fmt.Sprintf("%d", date))
 	}
 	args = append(args, "-name", name)
+	if keep > 0 {
+		args = append(args, "-keep", fmt.Sprintf("%d", keep))
+	}
 	args = append(args, "-schedule", schedule)
 	cmd := remotecommand(args...)
 

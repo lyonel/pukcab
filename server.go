@@ -588,10 +588,13 @@ func vacuum() {
 }
 
 func expirebackup() {
+	keep := 3
 	flag.StringVar(&name, "name", "", "Backup name")
 	flag.StringVar(&name, "n", "", "-name")
 	flag.StringVar(&schedule, "schedule", defaultSchedule, "Backup schedule")
 	flag.StringVar(&schedule, "r", defaultSchedule, "-schedule")
+	flag.IntVar(&keep, "keep", keep, "Minimum number of backups to keep")
+	flag.IntVar(&keep, "k", keep, "-keep")
 	flag.Var(&date, "age", "Maximum age/date")
 	flag.Var(&date, "a", "-age")
 	flag.Var(&date, "date", "-age")
