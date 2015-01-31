@@ -82,6 +82,8 @@ func main() {
 		info()
 	case "ping", "test":
 		ping()
+	case "register":
+		register()
 	case "purge", "delete":
 		purge()
 	case "restore":
@@ -114,6 +116,7 @@ func main() {
 		fmt.Fprintln(os.Stderr, "  info")
 		fmt.Fprintln(os.Stderr, "  ping")
 		fmt.Fprintln(os.Stderr, "  purge")
+		fmt.Fprintln(os.Stderr, "  register")
 		fmt.Fprintln(os.Stderr, "  verify")
 		fmt.Fprintln(os.Stderr, "  help")
 	case "version":

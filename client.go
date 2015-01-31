@@ -639,8 +639,42 @@ func ping() {
 
 	if err := cmd.Wait(); err != nil {
 		fmt.Println("Backend error:", cmd.Args, err)
+		fmt.Println("Backend error:", ExitCode(cmd.ProcessState))
 		log.Fatal(cmd.Args, err)
 	}
+}
+
+func register() {
+	flag.BoolVar(&verbose, "verbose", verbose, "Be more verbose")
+	flag.BoolVar(&verbose, "v", verbose, "-verbose")
+	flag.Parse()
+
+	if len(cfg.Server) < 1 {
+		fmt.Println("Error registering client: no server configured")
+		log.Fatal("Error registering client: no server configured")
+	}
+
+	if verbose {
+		if len(cfg.Server) > 0 {
+			fmt.Println("Server:", cfg.Server)
+		}
+		if cfg.Port > 0 {
+			fmt.Println("Port:", cfg.Port)
+		}
+		if len(cfg.User) > 0 {
+			fmt.Println("User:", cfg.User)
+		}
+	}
+
+	if err := sshcopyid(); err != nil {
+		fmt.Println("Error registering client:", err)
+		log.Fatal("Error registering client:", err)
+	}
+
+	if verbose {
+		fmt.Println("Registered to server:", cfg.Server)
+	}
+	log.Println("Registered to server:", cfg.Server)
 }
 
 func check(hdr tar.Header, quick bool) (result Status) {
