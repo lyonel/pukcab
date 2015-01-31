@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"syscall"
 	"unsafe"
 )
 
@@ -107,5 +108,13 @@ func Impersonate(name string) error {
 		os.Setenv("HOME", pw.Dir)
 		C.setugid(C.uid_t(pw.Uid), C.gid_t(pw.Gid))
 		return err
+	}
+}
+
+func ExitCode(s *os.ProcessState) int {
+	if r, ok := s.Sys().(syscall.WaitStatus); ok {
+		return r.ExitStatus()
+	} else {
+		return -1
 	}
 }
