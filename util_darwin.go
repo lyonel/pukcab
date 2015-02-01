@@ -24,7 +24,7 @@ func DevMajorMinor(file string) (major int64, minor int64) {
 
 	syscall.Stat(file, &st)
 
-	major = int64(st.Rdev>>24) & ^0xff
+	major = int64(st.Rdev>>24) & 0xff
 	minor = int64(st.Rdev&0xffffff)
 	return
 }
