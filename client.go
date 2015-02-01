@@ -115,7 +115,7 @@ func backup() {
 	backupset = make(map[string]struct{})
 	devices := make(map[string]bool)
 
-	if mtab, err := mntent.Parse("/etc/mtab"); err != nil {
+	if mtab, err := loadmtab(); err != nil {
 		log.Println("Failed to parse /etc/mtab: ", err)
 	} else {
 		for _, m := range mtab {
