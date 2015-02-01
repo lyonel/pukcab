@@ -28,6 +28,17 @@ func (id *BackupID) String() string {
 }
 
 func (id *BackupID) Set(s string) error {
+	switch strings.ToLower(s) {
+	case "now", "latest":
+		*id = BackupID(time.Now().Unix())
+		return nil
+
+	case "today":
+		y, m, d := time.Now().Date()
+		*id = BackupID(time.Date(y, m, d, 0, 0, 0, 0, time.Local).Unix())
+		return nil
+	}
+
 	// number (positive or negative) suffixed with 'd': go back by n days
 	if matched, err := regexp.MatchString("^-?[0-9]+d$", s); err == nil && matched {
 		s = s[:len(s)-1]
