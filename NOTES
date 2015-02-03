@@ -1,9 +1,12 @@
 
-Use ssh-copy-id to copy SSH keys
-
 Improve ping command when checking SSH connections:
  * remote execute /bin/true
  * remote execute pukcab version
 
 backup expiration
  * keep at least 3 backups
+
+be careful not to delete the catalog database if it's stored inside the vault
+
+encrypt vault files
+ * store keys in catalog
