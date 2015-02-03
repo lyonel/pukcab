@@ -415,7 +415,8 @@ func submitfiles() {
 				hdr.ChangeTime = time.Unix(0, 0)
 			}
 
-			if hdr.Typeflag == tar.TypeReg || hdr.Typeflag == tar.TypeRegA {
+			switch hdr.Typeflag {
+			case tar.TypeReg, tar.TypeRegA:
 				if tmpfile, err := ioutil.TempFile(cfg.Vault, programName+"-"); err == nil {
 					gz := gzip.NewWriter(tmpfile)
 					gz.Header.Name = toascii(filepath.Base(hdr.Name))
