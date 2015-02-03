@@ -398,7 +398,6 @@ func submitfiles() {
 
 		// skip fake entries used only for extended attributes and various metadata
 		if hdr.Name != hdr.Linkname && hdr.Typeflag != tar.TypeXHeader && hdr.Typeflag != tar.TypeXGlobalHeader {
-			var zero time.Time
 			var hash string
 			checksum := sha512.New()
 
@@ -406,13 +405,13 @@ func submitfiles() {
 				hdr.Name = filepath.Join(string(filepath.Separator), hdr.Name)
 			}
 
-			if hdr.ModTime == zero {
+			if hdr.ModTime.IsZero() {
 				hdr.ModTime = time.Unix(0, 0)
 			}
-			if hdr.AccessTime == zero {
+			if hdr.AccessTime.IsZero() {
 				hdr.AccessTime = time.Unix(0, 0)
 			}
-			if hdr.ChangeTime == zero {
+			if hdr.ChangeTime.IsZero() {
 				hdr.ChangeTime = time.Unix(0, 0)
 			}
 
