@@ -34,6 +34,7 @@ func opencatalog() error {
 		catalog = db
 
 		catalog.Exec("PRAGMA synchronous = OFF")
+		catalog.Exec("PRAGMA busy_timeout = 3600000") // 1 hour timeout
 
 		if _, err = catalog.Exec(`
 CREATE TABLE IF NOT EXISTS backups(name TEXT NOT NULL,
@@ -547,10 +548,9 @@ func purgebackup() {
 }
 
 func vacuum() {
-	log.Println("Vacuum...")
-
 	if tx, err := catalog.Begin(); err == nil {
-		defer tx.Rollback()
+		defer tx.Commit()
+		log.Println("Vacuum...")
 
 		unused := make(map[string]struct{})
 		if vaultfiles, err := ioutil.ReadDir(cfg.Vault); err == nil {
@@ -558,7 +558,8 @@ func vacuum() {
 				unused[f.Name()] = struct{}{}
 			}
 		} else {
-			log.Fatal(err)
+			log.Println(err)
+			return
 		}
 
 		if datafiles, err := catalog.Query("SELECT DISTINCT hash FROM files"); err == nil {
@@ -568,22 +569,26 @@ func vacuum() {
 				if err := datafiles.Scan(&f); err == nil {
 					delete(unused, f)
 				} else {
-					log.Fatal(err)
+					log.Println(err)
+					return
 				}
 			}
 		} else {
-			log.Fatal(err)
+			log.Println(err)
+			return
 		}
 
 		for f := range unused {
 			if err := os.Remove(filepath.Join(cfg.Vault, f)); err != nil {
-				log.Fatal(err)
+				log.Println(err)
+				return
 			}
 		}
 
 		log.Printf("Vacuum: removed %d files\n", len(unused))
 	} else {
-		log.Fatal(err)
+		log.Println(err)
+		return
 	}
 }
 
