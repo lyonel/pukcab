@@ -490,13 +490,13 @@ func submitfiles() {
 	missing = 0
 	if err := catalog.QueryRow("SELECT COUNT(*) FROM files WHERE backupid=? AND type='?'", date).Scan(&missing); err == nil {
 		if missing == 0 {
+			catalog.Exec("DELETE FROM files WHERE backupid=? AND type='X'", date)
 			catalog.Exec("UPDATE backups SET finished=? WHERE date=?", time.Now().Unix(), date)
 			catalog.Exec("UPDATE backups SET files=(SELECT COUNT(*) FROM files WHERE backupid=date) WHERE date=?", date)
 			catalog.Exec("UPDATE backups SET size=(SELECT SUM(size) FROM files WHERE backupid=date) WHERE date=?", date)
 			log.Printf("Finished backup: date=%d name=%q schedule=%q files=%d\n", date, name, schedule, files)
 			fmt.Printf("Backup %d complete (%d files)\n", date, files)
 		} else {
-			catalog.Exec("DELETE FROM files WHERE backupid=? AND type='X'", date)
 			log.Printf("Received files for backup set: date=%d name=%q schedule=%q files=%d missing=%d\n", date, name, schedule, files, missing)
 			fmt.Printf("Received %d files for backup %d (%d files to go)\n", files-missing, date, missing)
 		}
