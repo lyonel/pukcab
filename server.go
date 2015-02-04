@@ -496,6 +496,7 @@ func submitfiles() {
 			log.Printf("Finished backup: date=%d name=%q schedule=%q files=%d\n", date, name, schedule, files)
 			fmt.Printf("Backup %d complete (%d files)\n", date, files)
 		} else {
+			catalog.Exec("DELETE FROM files WHERE backupid=? AND type='X'", date)
 			log.Printf("Received files for backup set: date=%d name=%q schedule=%q files=%d missing=%d\n", date, name, schedule, files, missing)
 			fmt.Printf("Received %d files for backup %d (%d files to go)\n", files-missing, date, missing)
 		}

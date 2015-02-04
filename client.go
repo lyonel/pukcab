@@ -386,6 +386,13 @@ func dumpfiles() {
 	for f := range backupset {
 		if fi, err := os.Lstat(f); err != nil {
 			log.Println(err)
+			if os.IsNotExist(err) {
+				hdr := &tar.Header{
+					Name:     f,
+					Typeflag: 'X',
+				}
+				tw.WriteHeader(hdr)
+			}
 		} else {
 			if hdr, err := tar.FileInfoHeader(fi, ""); err == nil {
 				hdr.Uname = Username(hdr.Uid)
