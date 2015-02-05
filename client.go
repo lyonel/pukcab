@@ -264,6 +264,7 @@ func backup() {
 	}
 
 	dumpfiles()
+	log.Printf("Finished backup: date=%d name=%q schedule=%q files=%d\n", date, name, schedule, len(backupset))
 }
 
 func resume() {
