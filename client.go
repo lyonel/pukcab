@@ -653,6 +653,8 @@ func ping() {
 }
 
 func register() {
+	ClientOnly()
+
 	flag.BoolVar(&verbose, "verbose", verbose, "Be more verbose")
 	flag.BoolVar(&verbose, "v", verbose, "-verbose")
 	flag.Parse()

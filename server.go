@@ -83,6 +83,8 @@ func logclient() {
 }
 
 func newbackup() {
+	ServerOnly()
+
 	flag.StringVar(&name, "name", "", "Backup name")
 	flag.StringVar(&name, "n", "", "-name")
 	flag.StringVar(&schedule, "schedule", defaultSchedule, "Backup schedule")
@@ -325,10 +327,14 @@ func dumpcatalog(includedata bool) {
 }
 
 func metadata() {
+	ServerOnly()
+
 	dumpcatalog(false)
 }
 
 func data() {
+	ServerOnly()
+
 	dumpcatalog(true)
 }
 
@@ -342,6 +348,8 @@ func toascii(s string) (result string) {
 }
 
 func submitfiles() {
+	ServerOnly()
+
 	flag.StringVar(&name, "name", "", "Backup name")
 	flag.StringVar(&name, "n", "", "-name")
 	flag.Var(&date, "date", "Backup set")
@@ -508,6 +516,8 @@ func submitfiles() {
 }
 
 func purgebackup() {
+	ServerOnly()
+
 	date = 0
 	flag.StringVar(&name, "name", "", "Backup name")
 	flag.StringVar(&name, "n", "", "-name")
@@ -595,6 +605,8 @@ func vacuum() {
 }
 
 func expirebackup() {
+	ServerOnly()
+
 	keep := 3
 	flag.StringVar(&name, "name", "", "Backup name")
 	flag.StringVar(&name, "n", "", "-name")

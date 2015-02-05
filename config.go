@@ -53,3 +53,21 @@ func loadconfig() {
 		cfg.Maxtries = defaultMaxtries
 	}
 }
+
+func IsServer() bool {
+	return len(cfg.Server) < 1
+}
+
+func ServerOnly() {
+	if !IsServer() {
+		fmt.Println("This command can only be used on a", programName, "server.")
+		log.Fatal("Server-only command issued on a client.")
+	}
+}
+
+func ClientOnly() {
+	if IsServer() {
+		fmt.Println("This command can only be used on a", programName, "client.")
+		log.Fatal("Client-only command issued on a server.")
+	}
+}
