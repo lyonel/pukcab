@@ -34,6 +34,7 @@ func opencatalog() error {
 		catalog = db
 
 		catalog.Exec("PRAGMA synchronous = OFF")
+		catalog.Exec("PRAGMA journal_mode=WAL")
 		catalog.Exec("PRAGMA busy_timeout = 3600000") // 1 hour timeout
 
 		if _, err = catalog.Exec(`
