@@ -533,18 +533,16 @@ func purgebackup() {
 		log.Fatal(err)
 	}
 
-	tx, _ := catalog.Begin()
-	if r, err := tx.Exec("DELETE FROM backups WHERE date=? AND name=?", date, name); err != nil {
-		tx.Rollback()
+	if r, err := catalog.Exec("DELETE FROM backups WHERE date=? AND name=?", date, name); err != nil {
 		log.Fatal(err)
 	} else {
 		if n, _ := r.RowsAffected(); n < 1 {
 			fmt.Println("Backup not found.")
+			return
 		} else {
 			log.Printf("Deleted backup: date=%d name=%q\n", date, name)
 		}
 	}
-	tx.Commit()
 
 	vacuum()
 }
