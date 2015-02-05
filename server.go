@@ -557,7 +557,9 @@ func vacuum() {
 		unused := make(map[string]struct{})
 		if vaultfiles, err := ioutil.ReadDir(cfg.Vault); err == nil {
 			for _, f := range vaultfiles {
-				unused[f.Name()] = struct{}{}
+				if time.Since(f.ModTime()).Hours() > 24 { // f is older than 24 hours
+					unused[f.Name()] = struct{}{}
+				}
 			}
 		} else {
 			log.Println(err)
