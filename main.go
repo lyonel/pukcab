@@ -118,6 +118,7 @@ func main() {
 		fmt.Fprintln(os.Stderr, "  purge")
 		fmt.Fprintln(os.Stderr, "  register")
 		fmt.Fprintln(os.Stderr, "  verify")
+		fmt.Fprintln(os.Stderr, "  version")
 		fmt.Fprintln(os.Stderr, "  help")
 	case "version":
 		fmt.Printf("%s version %d.%d %s/%s\n", programName, versionMajor, versionMinor, runtime.GOOS, runtime.GOARCH)
