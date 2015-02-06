@@ -506,9 +506,14 @@ func info() {
 	flag.Var(&date, "d", "-date")
 	flag.Parse()
 
+	if name == "*" {
+		name = ""
+	}
+
 	args := []string{"metadata"}
 	if date != 0 {
 		args = append(args, "-date", fmt.Sprintf("%d", date))
+		verbose = true
 	}
 	if name != "" {
 		args = append(args, "-name", name)
@@ -857,8 +862,14 @@ func verify() {
 func purge() {
 	date = 0
 
-	flag.StringVar(&name, "name", defaultName, "Backup name")
-	flag.StringVar(&name, "n", defaultName, "-name")
+	if IsServer() {
+		name = ""
+	} else {
+		name = defaultName
+	}
+
+	flag.StringVar(&name, "name", name, "Backup name")
+	flag.StringVar(&name, "n", name, "-name")
 	flag.Var(&date, "date", "Backup set")
 	flag.Var(&date, "d", "-date")
 	flag.Parse()
@@ -970,6 +981,10 @@ func expire() {
 
 	if verbose {
 		fmt.Printf("Expiring backups for %q, schedule %q\n", name, schedule)
+	}
+
+	if name == "*" {
+		name = ""
 	}
 
 	args := []string{"expirebackup"}
