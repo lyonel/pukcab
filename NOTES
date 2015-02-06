@@ -6,7 +6,7 @@ Improve ping command when checking SSH connections:
 backup expiration
  * keep at least 3 backups
 
-be careful not to delete the catalog database if it's stored inside the vault
-
 encrypt vault files
  * store keys in catalog
+
+store schema metadata (version) in catalog
