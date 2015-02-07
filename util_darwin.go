@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"syscall"
 )
@@ -37,4 +38,23 @@ func IsNodump(fi os.FileInfo, file string) bool {
 		return false
 	}
 	return false
+}
+
+func Fstype(t uint32) string {
+	switch t {
+	case 0x11:
+		return "HFS"
+	case 0x13:
+		return "devfs"
+	case 0x14:
+		return "autofs"
+	case 0x16:
+		return "AFP"
+	case 0x1c:
+		return "FAT"
+	case 0x1d:
+		return "ExFAT"
+	default:
+		return fmt.Sprintf("0x%x", t)
+	}
 }
