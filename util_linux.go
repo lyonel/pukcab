@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"strings"
 	"syscall"
@@ -96,15 +97,29 @@ func Fstype(t int64) string {
 	switch t {
 	case 0xEF53:
 		return "ext4"
+	case 0x4d44:
+		return "FAT"
+	case 0x6969:
+		return "NFS"
+	case 0x517B:
+		return "SMB"
+	case 0x01161970:
+		return "GFS2"
+	case 0x65735546:
+		return "FUSE"
+	case 0x9123683e:
+		return "Btrfs"
 	case 0x52654973:
-		return "reiserfs"
+		return "ReiserFS"
 	case 0x3153464a:
-		return "jfs"
+		return "JFS"
 	case 0x58465342:
-		return "xfs"
+		return "XFS"
+	case 0xa501FCF5:
+		return "VxFS"
 	case 0x01021994:
 		return "tmpfs"
 	default:
-		return "?"
+		return fmt.Sprintf("0x%x", t)
 	}
 }

@@ -43,7 +43,7 @@ func IsNodump(fi os.FileInfo, file string) bool {
 func Fstype(t uint32) string {
 	switch t {
 	case 0x11:
-		return "HFS"
+		return "HFS+"
 	case 0x13:
 		return "devfs"
 	case 0x14:
@@ -53,7 +53,7 @@ func Fstype(t uint32) string {
 	case 0x1c:
 		return "FAT"
 	case 0x1d:
-		return "ExFAT"
+		return "exFAT"
 	default:
 		return fmt.Sprintf("0x%x", t)
 	}
