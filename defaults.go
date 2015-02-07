@@ -13,6 +13,8 @@ const defaultCatalog = "catalog.db"
 const defaultVault = "vault"
 const defaultMaxtries = 10
 
+const schemaVersion = 1
+
 var defaultName string = "backup"
 var defaultSchedule string = "daily"
 

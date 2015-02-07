@@ -7,6 +7,7 @@ import (
 	"crypto/sha512"
 	"database/sql"
 	"encoding/gob"
+	"errors"
 	"ezix.org/tar"
 	"flag"
 	"fmt"
@@ -17,6 +18,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -39,6 +41,9 @@ func opencatalog() error {
 		catalog.Exec("PRAGMA busy_timeout = 3600000") // 1 hour timeout
 
 		if _, err = catalog.Exec(`
+CREATE TABLE IF NOT EXISTS META(name TEXT COLLATE NOCASE PRIMARY KEY, value TEXT);
+INSERT OR IGNORE INTO META VALUES('schema', 1);
+INSERT OR IGNORE INTO META VALUES('application', 'org.ezix.pukcab');
 CREATE TABLE IF NOT EXISTS backups(name TEXT NOT NULL,
 			schedule TEXT NOT NULL,
 			date INTEGER PRIMARY KEY,
@@ -71,6 +76,14 @@ END;
 			return err
 		}
 
+		var schema string
+		if err := catalog.QueryRow("SELECT value FROM META WHERE name='schema'").Scan(&schema); err == nil {
+			if v, err := strconv.Atoi(schema); err != nil || v > schemaVersion {
+				return errors.New("Unsupported catalog version, please upgrade")
+			}
+		} else {
+			return err
+		}
 		return nil
 	} else {
 		return err
