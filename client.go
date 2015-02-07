@@ -96,8 +96,6 @@ func addfiles(d string) {
 }
 
 func backup() {
-	flag.BoolVar(&verbose, "verbose", verbose, "Be more verbose")
-	flag.BoolVar(&verbose, "v", verbose, "-verbose")
 	flag.StringVar(&name, "name", defaultName, "Backup name")
 	flag.StringVar(&name, "n", defaultName, "-name")
 	flag.StringVar(&schedule, "schedule", defaultSchedule, "Backup schedule")
@@ -269,8 +267,6 @@ func backup() {
 
 func resume() {
 	date = 0
-	flag.BoolVar(&verbose, "verbose", verbose, "Be more verbose")
-	flag.BoolVar(&verbose, "v", verbose, "-verbose")
 	flag.StringVar(&name, "name", defaultName, "Backup name")
 	flag.StringVar(&name, "n", defaultName, "-name")
 	flag.Var(&date, "date", "Backup set")
@@ -498,8 +494,6 @@ func Bytes(s uint64) string {
 func info() {
 	date = 0
 
-	flag.BoolVar(&verbose, "verbose", verbose, "Be more verbose")
-	flag.BoolVar(&verbose, "v", verbose, "-verbose")
 	flag.StringVar(&name, "name", "", "Backup name")
 	flag.StringVar(&name, "n", "", "-name")
 	flag.Var(&date, "date", "Backup set")
@@ -616,8 +610,6 @@ func info() {
 }
 
 func ping() {
-	flag.BoolVar(&verbose, "verbose", verbose, "Be more verbose")
-	flag.BoolVar(&verbose, "v", verbose, "-verbose")
 	flag.Parse()
 
 	if verbose {
@@ -660,8 +652,6 @@ func ping() {
 func register() {
 	ClientOnly()
 
-	flag.BoolVar(&verbose, "verbose", verbose, "Be more verbose")
-	flag.BoolVar(&verbose, "v", verbose, "-verbose")
 	flag.Parse()
 
 	if len(cfg.Server) < 1 {
@@ -749,8 +739,6 @@ func check(hdr tar.Header, quick bool) (result Status) {
 func verify() {
 	date = 0
 
-	flag.BoolVar(&verbose, "verbose", verbose, "Be more verbose")
-	flag.BoolVar(&verbose, "v", verbose, "-verbose")
 	flag.StringVar(&name, "name", defaultName, "Backup name")
 	flag.StringVar(&name, "n", defaultName, "-name")
 	flag.Var(&date, "date", "Backup set")
@@ -903,8 +891,6 @@ func archive() {
 	var output string
 	date = BackupID(time.Now().Unix())
 
-	flag.BoolVar(&verbose, "verbose", verbose, "Be more verbose")
-	flag.BoolVar(&verbose, "v", verbose, "-verbose")
 	flag.StringVar(&name, "name", defaultName, "Backup name")
 	flag.StringVar(&name, "n", defaultName, "-name")
 	flag.Var(&date, "date", "Backup set")
@@ -964,8 +950,6 @@ func expire() {
 	} else {
 		name = defaultName
 	}
-	flag.BoolVar(&verbose, "verbose", verbose, "Be more verbose")
-	flag.BoolVar(&verbose, "v", verbose, "-verbose")
 	flag.StringVar(&name, "name", name, "Backup name")
 	flag.StringVar(&name, "n", name, "-name")
 	flag.StringVar(&schedule, "schedule", defaultSchedule, "Backup schedule")
@@ -1017,8 +1001,6 @@ func expire() {
 func restore() {
 	date = BackupID(time.Now().Unix())
 
-	flag.BoolVar(&verbose, "verbose", verbose, "Be more verbose")
-	flag.BoolVar(&verbose, "v", verbose, "-verbose")
 	flag.StringVar(&name, "name", defaultName, "Backup name")
 	flag.StringVar(&name, "n", defaultName, "-name")
 	flag.Var(&date, "date", "Backup set")

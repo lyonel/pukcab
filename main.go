@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/mattn/go-sqlite3"
 	"log"
 	"log/syslog"
 	"os"
@@ -51,6 +52,8 @@ func main() {
 
 	flag.StringVar(&configFile, "config", defaultConfig, "Configuration file")
 	flag.StringVar(&configFile, "c", defaultConfig, "-config")
+	flag.BoolVar(&verbose, "verbose", verbose, "Be more verbose")
+	flag.BoolVar(&verbose, "v", verbose, "-verbose")
 	flag.Usage = usage
 
 	loadconfig()
@@ -121,7 +124,14 @@ func main() {
 		fmt.Fprintln(os.Stderr, "  version")
 		fmt.Fprintln(os.Stderr, "  help")
 	case "version":
+		flag.Parse()
 		fmt.Printf("%s version %d.%d %s/%s\n", programName, versionMajor, versionMinor, runtime.GOOS, runtime.GOARCH)
+		if verbose {
+			fmt.Println()
+			fmt.Println("Go version", runtime.Version())
+			sqliteversion, _, _ := sqlite3.Version()
+			fmt.Println("SQLite version", sqliteversion)
+		}
 	default:
 		fmt.Fprintf(os.Stderr, "Unknown command '%s'\nTry '--help' for more information.\n", os.Args[0])
 		os.Exit(1)
