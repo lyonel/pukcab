@@ -4,6 +4,7 @@ export GOPATH=${PWD}
 
 pukcab:
 	go build -o $@
+	strip $@
 
 clean:
 	go clean
