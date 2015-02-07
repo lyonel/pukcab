@@ -18,6 +18,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/mattn/go-sqlite3"
@@ -659,4 +660,48 @@ func expirebackup() {
 	tx.Commit()
 
 	vacuum()
+}
+
+func printstats(name string, stat *syscall.Statfs_t) {
+	fmt.Printf("%-10s\t%s\t%s\t%s\t%.0f%%\t%s\n", Fstype(stat.Type), Bytes(uint64(stat.Bsize)*stat.Blocks), Bytes(uint64(stat.Bsize)*(stat.Blocks-stat.Bavail)), Bytes(uint64(stat.Bsize)*stat.Bavail), 100-100*float64(stat.Bavail)/float64(stat.Blocks), name)
+}
+
+func df() {
+	ServerOnly()
+
+	flag.Parse()
+
+	switchuser()
+	logclient()
+
+	if err := opencatalog(); err != nil {
+		fmt.Println(err)
+		log.Fatal(err)
+	}
+
+	var cstat, vstat syscall.Statfs_t
+	if err := syscall.Statfs(cfg.Catalog, &cstat); err != nil {
+		log.Fatal(err)
+	}
+	if err := syscall.Statfs(cfg.Vault, &vstat); err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Filesystem\tSize\tUsed\tAvail\tUse%\tMounted on")
+	if cstat.Fsid == vstat.Fsid {
+		printstats("catalog,vault", &cstat)
+	} else {
+		printstats("catalog", &cstat)
+		printstats("vault", &vstat)
+	}
+
+	var backups, names, schedules, files, size SQLInt
+	if err := catalog.QueryRow("SELECT COUNT(*),COUNT(DISTINCT name),COUNT(DISTINCT schedule),SUM(files),SUM(size) FROM backups").Scan(&backups, &names, &schedules, &files, &size); err == nil {
+		fmt.Println()
+		fmt.Println("Backup names:", names)
+		fmt.Println("Retention schedules:", schedules)
+		fmt.Println("Backup sets:", backups)
+		fmt.Printf("Data in vault: %s (%d files)\n", Bytes(uint64(size)), files)
+		fmt.Printf("Compression factor: %.1f\n", float64(size)/(float64(vstat.Bsize)*float64(vstat.Blocks-vstat.Bavail)))
+	}
 }

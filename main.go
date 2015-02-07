@@ -98,6 +98,8 @@ func main() {
 	// server commands
 	case "data":
 		data()
+	case "df":
+		df()
 	case "expirebackup":
 		expirebackup()
 	case "metadata":

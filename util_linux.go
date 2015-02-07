@@ -91,3 +91,20 @@ func IsNodump(fi os.FileInfo, file string) bool {
 		return C.isnodump(C.int(f.Fd())) != 0
 	}
 }
+
+func Fstype(t int64) string {
+	switch t {
+	case 0xEF53:
+		return "ext4"
+	case 0x52654973:
+		return "reiserfs"
+	case 0x3153464a:
+		return "jfs"
+	case 0x58465342:
+		return "xfs"
+	case 0x01021994:
+		return "tmpfs"
+	default:
+		return "?"
+	}
+}
