@@ -1,5 +1,5 @@
 OS:=$(shell uname -s)
-ARCH:=$(shell uname -p)
+ARCH:=$(shell uname -m)
 VERSION:=$(shell git describe)
 
 export GOPATH=${PWD}
