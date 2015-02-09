@@ -40,7 +40,7 @@ func IsNodump(fi os.FileInfo, file string) bool {
 	return false
 }
 
-func Fstype(t uint32) string {
+func Fstype(t uint64) string {
 	switch t {
 	case 0x11:
 		return "HFS+"

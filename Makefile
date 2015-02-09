@@ -1,10 +1,17 @@
+OS:=$(shell uname -s)
+ARCH:=$(shell uname -m)
+VERSION:=$(shell git describe)
+
 export GOPATH=${PWD}
 
-.PHONY: pukcab clean update
+.PHONY: pukcab clean update release
 
 pukcab:
 	go build -o $@
 	strip $@
+
+release: pukcab README.md
+	zip pukcab-${VERSION}-${OS}-${ARCH}.zip $^
 
 clean:
 	go clean
