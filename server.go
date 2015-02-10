@@ -237,15 +237,17 @@ func dumpcatalog(includedata bool) {
 			date = BackupID(d)
 
 			var header bytes.Buffer
-			enc := gob.NewEncoder(&header)
-			enc.Encode(BackupInfo{
-				Date:     date,
-				Finished: time.Unix(int64(finished), 0),
-				Name:     name,
-				Schedule: schedule,
-				Files:    int64(f),
-				Size:     int64(s),
-			})
+			if !includedata {
+				enc := gob.NewEncoder(&header)
+				enc.Encode(BackupInfo{
+					Date:     date,
+					Finished: time.Unix(int64(finished), 0),
+					Name:     name,
+					Schedule: schedule,
+					Files:    int64(f),
+					Size:     int64(s),
+				})
+			}
 
 			globalhdr := &tar.Header{
 				Name:     name,
