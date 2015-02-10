@@ -202,6 +202,8 @@ func backup() {
 		log.Fatal(cmd.Args, err)
 	}
 
+	files := len(backupset)
+
 	if !full {
 		cmd = remotecommand("metadata", "-name", name, "-date", fmt.Sprintf("%d", date))
 
@@ -253,11 +255,15 @@ func backup() {
 			log.Fatal(cmd.Args, err)
 		}
 
+		backuptype := "incremental"
+		if files == len(backupset) {
+			backuptype = "full"
+		}
 		if verbose {
 			fmt.Println("done.")
-			fmt.Printf("Incremental backup: date=%d files=%d\n", date, len(backupset))
+			fmt.Printf("Backup: date=%d files=%d type=%q\n", date, len(backupset), backuptype)
 		}
-		log.Printf("Incremental backup: date=%d files=%d\n", date, len(backupset))
+		log.Printf("Backup: date=%d files=%d type=%q\n", date, len(backupset), backuptype)
 	}
 
 	dumpfiles()
@@ -338,9 +344,9 @@ func resume() {
 
 	if verbose {
 		fmt.Println("done.")
-		fmt.Printf("Incremental backup: date=%d files=%d\n", date, len(backupset))
+		fmt.Printf("Resuming backup: date=%d files=%d\n", date, len(backupset))
 	}
-	log.Printf("Incremental backup: date=%d files=%d\n", date, len(backupset))
+	log.Printf("Resuming backup: date=%d files=%d\n", date, len(backupset))
 	dumpfiles()
 }
 
