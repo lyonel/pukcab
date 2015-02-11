@@ -247,18 +247,18 @@ func dumpcatalog(includedata bool) {
 					Files:    int64(f),
 					Size:     int64(s),
 				})
-			}
 
-			globalhdr := &tar.Header{
-				Name:     name,
-				Linkname: schedule,
-				ModTime:  time.Unix(int64(date), 0),
-				Uid:      int(finished),
-				Typeflag: tar.TypeXGlobalHeader,
-				Size:     int64(header.Len()),
+				globalhdr := &tar.Header{
+					Name:     name,
+					Linkname: schedule,
+					ModTime:  time.Unix(int64(date), 0),
+					Uid:      int(finished),
+					Typeflag: tar.TypeXGlobalHeader,
+					Size:     int64(header.Len()),
+				}
+				tw.WriteHeader(globalhdr)
+				tw.Write(header.Bytes())
 			}
-			tw.WriteHeader(globalhdr)
-			tw.Write(header.Bytes())
 
 			if details {
 				if files, err := catalog.Query("SELECT name,type,hash,linkname,size,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor FROM files WHERE backupid=? ORDER BY name", int64(date)); err == nil {
