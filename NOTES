@@ -10,3 +10,7 @@ encrypt vault files
  * store keys in catalog
 
 store schema metadata (version) in catalog
+
+new commands:
+ * auto: connect to server and wait for orders
+ * config: display configuration details (in `cfg`)
