@@ -122,6 +122,7 @@ func main() {
 		fmt.Fprintln(os.Stderr, "  ping")
 		fmt.Fprintln(os.Stderr, "  purge")
 		fmt.Fprintln(os.Stderr, "  register")
+		fmt.Fprintln(os.Stderr, "  restore")
 		fmt.Fprintln(os.Stderr, "  verify")
 		fmt.Fprintln(os.Stderr, "  version")
 		fmt.Fprintln(os.Stderr, "  help")
