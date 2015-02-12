@@ -42,6 +42,53 @@ func usage() {
 	os.Exit(1)
 }
 
+func printlist(l []string) {
+	fmt.Print("[ ")
+	for i, item := range l {
+		if i != 0 {
+			fmt.Print(", ")
+		}
+		fmt.Printf("%q", item)
+	}
+	fmt.Println(" ]")
+}
+
+func config() {
+	flag.Parse()
+
+	fmt.Println("# global configuration")
+	if cfg.Server != "" {
+		fmt.Printf("server = %q\n", cfg.Server)
+	}
+	if cfg.Port != 0 {
+		fmt.Printf("port = %d\n", cfg.Port)
+	}
+	if cfg.User != "" {
+		fmt.Printf("user = %q\n", cfg.User)
+	}
+	if IsServer() {
+		fmt.Println("# server-side configuration")
+		if cfg.Catalog != "" {
+			fmt.Printf("catalog = %q\n", cfg.Catalog)
+		}
+		if cfg.Vault != "" {
+			fmt.Printf("vault = %q\n", cfg.Vault)
+		}
+		if cfg.Maxtries != 0 {
+			fmt.Printf("maxtries = %d\n", cfg.Maxtries)
+		}
+	}
+
+	if len(cfg.Include) > 0 {
+		fmt.Print("include = ")
+		printlist(cfg.Include)
+	}
+	if len(cfg.Exclude) > 0 {
+		fmt.Print("exclude = ")
+		printlist(cfg.Exclude)
+	}
+}
+
 func main() {
 	if logwriter, err := syslog.New(syslog.LOG_NOTICE, filepath.Base(os.Args[0])); err == nil {
 		log.SetOutput(logwriter)
@@ -83,6 +130,8 @@ func main() {
 		expire()
 	case "info", "list":
 		info()
+	case "config", "cfg":
+		config()
 	case "ping", "test":
 		ping()
 	case "register":
@@ -117,6 +166,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Usage: %s COMMAND [options]\n\nCommands:\n", programName)
 		fmt.Fprintln(os.Stderr, "  archive")
 		fmt.Fprintln(os.Stderr, "  backup")
+		fmt.Fprintln(os.Stderr, "  config")
 		fmt.Fprintln(os.Stderr, "  expire")
 		fmt.Fprintln(os.Stderr, "  info")
 		fmt.Fprintln(os.Stderr, "  ping")
