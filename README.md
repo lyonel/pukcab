@@ -120,6 +120,7 @@ server="backupserver.localdomain.net"
 [delete][], [purge][]     | delete a backup
 [expire][]                | apply retention schedule to old backups
 **utilities** |
+[config][], [cfg][]       | display `pukcab`'s configuration
 [info][], [list][]        | list backups and files
 [ping][], [test][]        | check server connectivity
 [register][]              | register to backup server
@@ -207,6 +208,12 @@ Notes
  * on a [backup client](#client), the [name][] option is chosen automatically if not specified
  * the [schedule][] and [expiration][] are chosen automatically if not specified
  
+### config
+This command displays the current configuration.
+
+Syntax
+>  `pukcab config`
+
 ### info
 This command lists the backup sets stored on the server. Backup sets can be filtered by name and/or date and files.
 
@@ -402,6 +409,8 @@ Sending files... done
 [delete]: #delete
 [purge]: #delete
 [expire]: #expire
+[config]: #config
+[cfg]: #config
 [info]: #info
 [list]: #info
 [ping]: #ping
