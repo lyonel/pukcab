@@ -12,6 +12,8 @@ pukcab:
 
 release: pukcab README.md
 	zip pukcab-${VERSION}-${OS}-${ARCH}.zip $^
+	-git push -q git@github.com:/lyonel/pukcab.git
+	-git push -q --tags git@github.com:/lyonel/pukcab.git
 
 clean:
 	go clean
