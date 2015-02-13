@@ -266,7 +266,7 @@ func backup() {
 		log.Printf("Backup: date=%d files=%d type=%q\n", date, len(backupset), backuptype)
 	}
 
-	dumpfiles()
+	dumpfiles(files)
 	log.Printf("Finished backup: date=%d name=%q schedule=%q files=%d\n", date, name, schedule, len(backupset))
 }
 
@@ -347,12 +347,17 @@ func resume() {
 		fmt.Printf("Resuming backup: date=%d files=%d\n", date, len(backupset))
 	}
 	log.Printf("Resuming backup: date=%d files=%d\n", date, len(backupset))
-	dumpfiles()
+	dumpfiles(len(backupset))
 }
 
-func dumpfiles() {
+func dumpfiles(files int) {
+	done := files - len(backupset)
+
 	if verbose {
 		fmt.Print("Sending files... ")
+		if IsATTY(os.Stdout) {
+			fmt.Println()
+		}
 	}
 
 	cmd := remotecommand("submitfiles", "-name", name, "-date", fmt.Sprintf("%d", date))
@@ -452,6 +457,11 @@ func dumpfiles() {
 					}
 				} else {
 					tw.WriteHeader(hdr)
+				}
+				done++
+
+				if verbose && IsATTY(os.Stdout) {
+					fmt.Printf("\r %d %% ", (100*done)/files)
 				}
 			} else {
 				log.Printf("Couldn't backup %s: %s\n", f, err)
