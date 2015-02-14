@@ -9,15 +9,9 @@ backup expiration
 encrypt vault files
  * store keys in catalog
 
-store schema metadata (version) in catalog
-
 new commands:
  * `auto`: connect to server and wait for orders
 
 check disk space before accepting a new backup
  * fail if <5% disk space available
  * fail if available disk space < size previous backup
-
-change behaviour of `info` command on clients to only list backups for the default name if not specified
-
-display progress info in `dumpfiles()` in verbose mode
