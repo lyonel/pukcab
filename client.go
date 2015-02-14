@@ -484,9 +484,13 @@ func dumpfiles(files int) {
 
 func info() {
 	date = 0
+	name = ""
+	if !IsServer() {
+		name = defaultName
+	}
 
-	flag.StringVar(&name, "name", "", "Backup name")
-	flag.StringVar(&name, "n", "", "-name")
+	flag.StringVar(&name, "name", name, "Backup name")
+	flag.StringVar(&name, "n", name, "-name")
 	flag.Var(&date, "date", "Backup set")
 	flag.Var(&date, "d", "-date")
 	flag.Parse()
