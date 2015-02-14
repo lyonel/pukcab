@@ -29,7 +29,7 @@ func (id *BackupID) String() string {
 
 func (id *BackupID) Set(s string) error {
 	switch strings.ToLower(s) {
-	case "now", "latest":
+	case "now", "latest", "last":
 		*id = BackupID(time.Now().Unix())
 		return nil
 
