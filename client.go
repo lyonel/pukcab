@@ -156,7 +156,7 @@ func backup() {
 	}
 
 	for f := range backupset {
-		fmt.Fprintln(stdin, f)
+		fmt.Fprintln(stdin, strconv.Quote(f))
 	}
 	stdin.Close()
 

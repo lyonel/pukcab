@@ -149,8 +149,11 @@ func newbackup() {
 	tx, _ := catalog.Begin()
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
-		scanner.Text()
-		if _, err := tx.Exec("INSERT INTO files (backupid,name) VALUES(?,?)", date, filepath.Clean(scanner.Text())); err != nil {
+		f, err := strconv.Unquote(scanner.Text())
+		if err != nil {
+			f = scanner.Text()
+		}
+		if _, err := tx.Exec("INSERT INTO files (backupid,name) VALUES(?,?)", date, filepath.Clean(f)); err != nil {
 			tx.Rollback()
 			log.Fatal(err)
 		}
