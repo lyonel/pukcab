@@ -101,6 +101,8 @@ func main() {
 	flag.StringVar(&configFile, "c", defaultConfig, "-config")
 	flag.BoolVar(&verbose, "verbose", verbose, "Be more verbose")
 	flag.BoolVar(&verbose, "v", verbose, "-verbose")
+	flag.IntVar(&protocol, "protocol", protocol, "Protocol version")
+	flag.IntVar(&protocol, "p", protocol, "-protocol")
 	flag.Usage = usage
 
 	loadconfig()

@@ -156,7 +156,11 @@ func backup() {
 	}
 
 	for f := range backupset {
-		fmt.Fprintln(stdin, strconv.Quote(f))
+		if protocol > 0 {
+			fmt.Fprintln(stdin, strconv.Quote(f))
+		} else {
+			fmt.Fprintln(stdin, f)
+		}
 	}
 	stdin.Close()
 

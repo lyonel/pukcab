@@ -14,11 +14,13 @@ const defaultVault = "vault"
 const defaultMaxtries = 10
 
 const schemaVersion = 1
+const protocolVersion = 1
 
 var defaultName string = "backup"
 var defaultSchedule string = "daily"
 
 var verbose bool = false
+var protocol int = protocolVersion
 
 func setDefaults() {
 	defaultName, _ = os.Hostname()

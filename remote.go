@@ -53,6 +53,9 @@ func remotecommand(arg ...string) *exec.Cmd {
 
 	if cfg.Server != "" {
 		cmd := []string{programName}
+		if protocol > 0 {
+			cmd = append(cmd, "-protocol", strconv.Itoa(protocol))
+		}
 		cmd = append(cmd, arg...)
 		return ssh(cmd...)
 	} else {
