@@ -111,19 +111,19 @@ func newbackup() {
 
 	if name == "" {
 		fmt.Println(0)
-		fmt.Println("Missing backup name")
+		fmt.Fprintln(os.Stderr, "Missing backup name")
 		log.Fatal("Client did not provide a backup name")
 	}
 
 	if schedule == "" {
 		fmt.Println(0)
-		fmt.Println("Missing backup schedule")
+		fmt.Fprintln(os.Stderr, "Missing backup schedule")
 		log.Fatal("Client did not provide a backup schedule")
 	}
 
 	if err := opencatalog(); err != nil {
 		fmt.Println(0)
-		fmt.Println(err)
+		fmt.Fprintln(os.Stderr, err)
 		log.Fatal(err)
 	}
 
@@ -371,16 +371,17 @@ func submitfiles() {
 	ServerOnly()
 
 	if name == "" {
-		fmt.Println("Missing backup name")
+		fmt.Fprintln(os.Stderr, "Missing backup name")
 		log.Fatal("Client did not provide a backup name")
 	}
 
 	if IsATTY(os.Stdout) {
-		fmt.Println("Should not be called directly")
+		fmt.Fprintln(os.Stderr, "Should not be called directly")
 		log.Fatal("Should not be called directly")
 	}
 
 	if err := opencatalog(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
 		log.Fatal(err)
 	}
 
@@ -402,6 +403,7 @@ func submitfiles() {
 	catalog.QueryRow("SELECT name,schedule,finished FROM backups WHERE date=?", date).Scan(&name, &schedule, &finished)
 
 	if finished != 0 {
+		fmt.Fprintf(os.Stderr, "Error: backup set date=%d is already complete\n", date)
 		log.Fatalf("Error: backup set date=%d is already complete\n", date)
 	}
 	log.Printf("Receiving files for backup set: date=%d name=%q schedule=%q files=%d missing=%d\n", date, name, schedule, files, missing)
@@ -484,7 +486,7 @@ func submitfiles() {
 
 			}
 			if stmt, err := catalog.Prepare("INSERT OR REPLACE INTO files (hash,backupid,name,size,type,linkname,username,groupname,uid,gid,mode,access,modify,change,devmajor,devminor) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"); err != nil {
-				fmt.Println(err)
+				fmt.Fprintln(os.Stderr, err)
 				log.Fatal(err)
 			} else {
 				for try := 0; try < cfg.Maxtries; try++ {
@@ -500,7 +502,7 @@ func submitfiles() {
 					}
 				}
 				if err != nil {
-					fmt.Println(err)
+					fmt.Fprintln(os.Stderr, err)
 					log.Fatal(err)
 				}
 			}
@@ -521,7 +523,7 @@ func submitfiles() {
 			fmt.Printf("Received %d files for backup %d (%d files to go)\n", files-missing, date, missing)
 		}
 	} else {
-		fmt.Println(err)
+		fmt.Fprintln(os.Stderr, err)
 		log.Fatal(err)
 	}
 }
@@ -537,17 +539,17 @@ func purgebackup() {
 	ServerOnly()
 
 	if name == "" {
-		fmt.Println("Missing backup name")
+		fmt.Fprintln(os.Stderr, "Missing backup name")
 		log.Fatal("Client did not provide a backup name")
 	}
 
 	if date == 0 {
-		fmt.Println("Missing backup date")
+		fmt.Fprintln(os.Stderr, "Missing backup date")
 		log.Fatal("Client did not provide a backup date")
 	}
 
 	if err := opencatalog(); err != nil {
-		fmt.Println(err)
+		fmt.Fprintln(os.Stderr, err)
 		log.Fatal(err)
 	}
 
@@ -629,7 +631,7 @@ func expirebackup() {
 	ServerOnly()
 
 	if schedule == "" {
-		fmt.Println("Missing backup schedule")
+		fmt.Fprintln(os.Stderr, "Missing backup schedule")
 		log.Fatal("Client did not provide a backup schedule")
 	}
 
@@ -644,13 +646,13 @@ func expirebackup() {
 		case "yearly":
 			date = BackupID(time.Now().Unix() - 10*365*24*60*60) // 10 years
 		default:
-			fmt.Println("Missing expiration")
+			fmt.Fprintln(os.Stderr, "Missing expiration")
 			log.Fatal("Client did not provide an expiration")
 		}
 	}
 
 	if err := opencatalog(); err != nil {
-		fmt.Println(err)
+		fmt.Fprintln(os.Stderr, err)
 		log.Fatal(err)
 	}
 
@@ -675,7 +677,7 @@ func df() {
 	ServerOnly()
 
 	if err := opencatalog(); err != nil {
-		fmt.Println(err)
+		fmt.Fprintln(os.Stderr, err)
 		log.Fatal(err)
 	}
 
