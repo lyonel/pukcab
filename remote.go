@@ -47,7 +47,7 @@ func ssh(arg ...string) *exec.Cmd {
 	return exec.Command("ssh", cmd...)
 }
 
-func remotecommand(arg ...string) *exec.Cmd {
+func remotecommand(arg ...string) (rcmd *exec.Cmd) {
 	os.Setenv("SSH_CLIENT", "")
 	os.Setenv("SSH_CONNECTION", "")
 
@@ -58,15 +58,17 @@ func remotecommand(arg ...string) *exec.Cmd {
 			cmd = append(cmd, "-protocol", strconv.Itoa(protocol))
 		}
 		cmd = append(cmd, arg[1:]...)
-		return ssh(cmd...)
+		rcmd = ssh(cmd...)
 	} else {
 		exe, err := os.Readlink("/proc/self/exe")
 		if err != nil {
 			exe = programName
 		}
 
-		return exec.Command(exe, arg...)
+		rcmd = exec.Command(exe, arg...)
 	}
+	rcmd.Stderr = os.Stderr
+	return rcmd
 }
 
 func switchuser() {
