@@ -105,8 +105,6 @@ func main() {
 	flag.IntVar(&protocol, "p", protocol, "-protocol")
 	flag.Usage = usage
 
-	loadconfig()
-
 	if len(os.Args) <= 1 { // no command specified
 		os.Args = append(os.Args, defaultCommand)
 	}
@@ -179,7 +177,7 @@ func main() {
 		fmt.Fprintln(os.Stderr, "  version")
 		fmt.Fprintln(os.Stderr, "  help")
 	case "version":
-		flag.Parse()
+		Setup()
 		fmt.Printf("%s version %d.%d %s/%s\n", programName, versionMajor, versionMinor, runtime.GOOS, runtime.GOARCH)
 		if verbose {
 			fmt.Println()

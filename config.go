@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -69,5 +70,15 @@ func ClientOnly() {
 	if IsServer() {
 		fmt.Println("This command can only be used on a", programName, "client.")
 		log.Fatal("Client-only command issued on a server.")
+	}
+}
+
+func Setup() {
+	flag.Parse()
+	loadconfig()
+
+	if protocol > protocolVersion {
+		fmt.Fprintln(os.Stderr, "Unsupported protocol")
+		log.Fatalf("Protocol error (supported=%d requested=%d)", protocolVersion, protocol)
 	}
 }

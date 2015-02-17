@@ -101,7 +101,7 @@ func backup() {
 	flag.StringVar(&schedule, "r", defaultSchedule, "-schedule")
 	flag.BoolVar(&full, "full", full, "Full backup")
 	flag.BoolVar(&full, "f", full, "-full")
-	flag.Parse()
+	Setup()
 
 	log.Printf("Starting backup: name=%q schedule=%q\n", name, schedule)
 	if verbose {
@@ -280,7 +280,7 @@ func resume() {
 	flag.StringVar(&name, "n", defaultName, "-name")
 	flag.Var(&date, "date", "Backup set")
 	flag.Var(&date, "d", "-date")
-	flag.Parse()
+	Setup()
 
 	log.Printf("Resuming backup: date=%d\n", date)
 	if verbose {
@@ -497,7 +497,7 @@ func info() {
 	flag.StringVar(&name, "n", name, "-name")
 	flag.Var(&date, "date", "Backup set")
 	flag.Var(&date, "d", "-date")
-	flag.Parse()
+	Setup()
 
 	if name == "*" {
 		name = ""
@@ -609,7 +609,7 @@ func info() {
 }
 
 func ping() {
-	flag.Parse()
+	Setup()
 
 	if verbose {
 		if len(cfg.Server) > 0 {
@@ -649,9 +649,8 @@ func ping() {
 }
 
 func register() {
+	Setup()
 	ClientOnly()
-
-	flag.Parse()
 
 	if len(cfg.Server) < 1 {
 		fmt.Println("Error registering client: no server configured")
@@ -742,7 +741,8 @@ func verify() {
 	flag.StringVar(&name, "n", defaultName, "-name")
 	flag.Var(&date, "date", "Backup set")
 	flag.Var(&date, "d", "-date")
-	flag.Parse()
+
+	Setup()
 
 	args := []string{"metadata"}
 	args = append(args, "-date", fmt.Sprintf("%d", date))
@@ -848,18 +848,18 @@ func verify() {
 
 func purge() {
 	date = 0
-
-	if IsServer() {
-		name = ""
-	} else {
-		name = defaultName
-	}
+	name = ""
 
 	flag.StringVar(&name, "name", name, "Backup name")
 	flag.StringVar(&name, "n", name, "-name")
 	flag.Var(&date, "date", "Backup set")
 	flag.Var(&date, "d", "-date")
-	flag.Parse()
+
+	Setup()
+
+	if name == "" && !IsServer() {
+		name = defaultName
+	}
 
 	args := []string{"purgebackup"}
 	if date != 0 {
@@ -899,7 +899,8 @@ func archive() {
 	flag.StringVar(&output, "f", "", "-file")
 	flag.BoolVar(&gz, "gzip", gz, "Compress archive using gzip")
 	flag.BoolVar(&gz, "z", gz, "-gzip")
-	flag.Parse()
+
+	Setup()
 
 	if output == "" {
 		fmt.Println("Missing output file")
@@ -944,11 +945,7 @@ func archive() {
 
 func expire() {
 	keep := 0
-	if IsServer() {
-		name = ""
-	} else {
-		name = defaultName
-	}
+	name = ""
 	flag.StringVar(&name, "name", name, "Backup name")
 	flag.StringVar(&name, "n", name, "-name")
 	flag.StringVar(&schedule, "schedule", defaultSchedule, "Backup schedule")
@@ -960,7 +957,12 @@ func expire() {
 	flag.Var(&date, "a", "-age")
 	flag.Var(&date, "date", "-age")
 	flag.Var(&date, "d", "-age")
-	flag.Parse()
+
+	Setup()
+
+	if name == "" && !IsServer() {
+		name = defaultName
+	}
 
 	if verbose {
 		fmt.Printf("Expiring backups for %q, schedule %q\n", name, schedule)
@@ -1004,7 +1006,8 @@ func restore() {
 	flag.StringVar(&name, "n", defaultName, "-name")
 	flag.Var(&date, "date", "Backup set")
 	flag.Var(&date, "d", "-date")
-	flag.Parse()
+
+	Setup()
 
 	args := []string{"data"}
 	args = append(args, "-date", fmt.Sprintf("%d", date))

@@ -90,30 +90,24 @@ END;
 	}
 }
 
-func logclient() {
+func SetupServer() {
+	Setup()
+	switchuser()
 	if sshclient := strings.Split(os.Getenv("SSH_CLIENT"), " "); sshclient[0] != "" {
 		log.Printf("Remote client: ip=%q\n", sshclient[0])
 	}
 }
 
 func newbackup() {
-	ServerOnly()
-
 	flag.StringVar(&name, "name", "", "Backup name")
 	flag.StringVar(&name, "n", "", "-name")
 	flag.StringVar(&schedule, "schedule", defaultSchedule, "Backup schedule")
 	flag.StringVar(&schedule, "r", defaultSchedule, "-schedule")
 	flag.BoolVar(&full, "full", full, "Full backup")
 	flag.BoolVar(&full, "f", full, "-full")
-	flag.Parse()
 
-	switchuser()
-	logclient()
-
-	if protocol > protocolVersion {
-		fmt.Println("Protocol error")
-		log.Fatalf("Protocol error (supported=%d requested=%d)", protocolVersion, protocol)
-	}
+	SetupServer()
+	ServerOnly()
 
 	if name == "" {
 		fmt.Println(0)
@@ -189,9 +183,9 @@ func dumpcatalog(includedata bool) {
 	flag.StringVar(&name, "n", "", "-name")
 	flag.Var(&date, "date", "Backup set")
 	flag.Var(&date, "d", "-date")
-	flag.Parse()
 
-	switchuser()
+	SetupServer()
+	ServerOnly()
 
 	if err := opencatalog(); err != nil {
 		log.Fatal(err)
@@ -351,14 +345,10 @@ func dumpcatalog(includedata bool) {
 }
 
 func metadata() {
-	ServerOnly()
-
 	dumpcatalog(false)
 }
 
 func data() {
-	ServerOnly()
-
 	dumpcatalog(true)
 }
 
@@ -372,21 +362,13 @@ func toascii(s string) (result string) {
 }
 
 func submitfiles() {
-	ServerOnly()
-
 	flag.StringVar(&name, "name", "", "Backup name")
 	flag.StringVar(&name, "n", "", "-name")
 	flag.Var(&date, "date", "Backup set")
 	flag.Var(&date, "d", "-date")
-	flag.Parse()
 
-	switchuser()
-	logclient()
-
-	if protocol > protocolVersion {
-		fmt.Println("Protocol error")
-		log.Fatalf("Protocol error (supported=%d requested=%d)", protocolVersion, protocol)
-	}
+	SetupServer()
+	ServerOnly()
 
 	if name == "" {
 		fmt.Println("Missing backup name")
@@ -545,17 +527,14 @@ func submitfiles() {
 }
 
 func purgebackup() {
-	ServerOnly()
-
 	date = 0
 	flag.StringVar(&name, "name", "", "Backup name")
 	flag.StringVar(&name, "n", "", "-name")
 	flag.Var(&date, "date", "Backup set")
 	flag.Var(&date, "d", "-date")
-	flag.Parse()
 
-	switchuser()
-	logclient()
+	SetupServer()
+	ServerOnly()
 
 	if name == "" {
 		fmt.Println("Missing backup name")
@@ -634,8 +613,6 @@ func vacuum() {
 }
 
 func expirebackup() {
-	ServerOnly()
-
 	keep := 3
 	flag.StringVar(&name, "name", "", "Backup name")
 	flag.StringVar(&name, "n", "", "-name")
@@ -647,10 +624,9 @@ func expirebackup() {
 	flag.Var(&date, "a", "-age")
 	flag.Var(&date, "date", "-age")
 	flag.Var(&date, "d", "-age")
-	flag.Parse()
 
-	switchuser()
-	logclient()
+	SetupServer()
+	ServerOnly()
 
 	if schedule == "" {
 		fmt.Println("Missing backup schedule")
@@ -695,12 +671,8 @@ func printstats(name string, stat *syscall.Statfs_t) {
 }
 
 func df() {
+	SetupServer()
 	ServerOnly()
-
-	flag.Parse()
-
-	switchuser()
-	logclient()
 
 	if err := opencatalog(); err != nil {
 		fmt.Println(err)
