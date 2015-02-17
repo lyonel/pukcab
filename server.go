@@ -110,6 +110,11 @@ func newbackup() {
 	switchuser()
 	logclient()
 
+	if protocol > protocolVersion {
+		fmt.Println("Protocol error")
+		log.Fatalf("Protocol error (supported=%d requested=%d)", protocolVersion, protocol)
+	}
+
 	if name == "" {
 		fmt.Println(0)
 		fmt.Println("Missing backup name")
@@ -377,6 +382,11 @@ func submitfiles() {
 
 	switchuser()
 	logclient()
+
+	if protocol > protocolVersion {
+		fmt.Println("Protocol error")
+		log.Fatalf("Protocol error (supported=%d requested=%d)", protocolVersion, protocol)
+	}
 
 	if name == "" {
 		fmt.Println("Missing backup name")
