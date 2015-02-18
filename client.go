@@ -907,6 +907,10 @@ func archive() {
 		os.Exit(1)
 	}
 
+	if ext := filepath.Ext(output); ext == ".gz" || ext == ".tgz" {
+		gz = true
+	}
+
 	args := []string{"data"}
 	args = append(args, "-date", fmt.Sprintf("%d", date))
 	args = append(args, "-name", name)
