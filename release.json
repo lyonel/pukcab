@@ -1,7 +1,0 @@
-{
-    "version": "1.0.2",
-    "state": "stable",
-    "scope": "minor bugfix",
-    "changes": "properly handle filenames that contain non-printable characters (like ^M, etc.). this should fix the issue with `Icon?` files under OS X",
-    "download": "http://ezix.org/download/?package=pukcab.ezix.org"
-}
