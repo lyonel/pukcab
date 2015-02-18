@@ -123,7 +123,7 @@ func newbackup() {
 
 	if err := opencatalog(); err != nil {
 		fmt.Println(0)
-		fmt.Fprintln(os.Stderr, err)
+		fmt.Fprintln(os.Stderr, "Catalog error")
 		log.Fatal(err)
 	}
 
@@ -154,6 +154,7 @@ func newbackup() {
 		}
 		if _, err := tx.Exec("INSERT INTO files (backupid,name) VALUES(?,?)", date, filepath.Clean(f)); err != nil {
 			tx.Rollback()
+			fmt.Fprintln(os.Stderr, "Catalog error")
 			log.Fatal(err)
 		}
 	}
@@ -188,6 +189,7 @@ func dumpcatalog(includedata bool) {
 	ServerOnly()
 
 	if err := opencatalog(); err != nil {
+		fmt.Fprintln(os.Stderr, "Catalog error")
 		log.Fatal(err)
 	}
 
@@ -215,6 +217,7 @@ func dumpcatalog(includedata bool) {
 		}
 	}
 	if err != nil {
+		fmt.Fprintln(os.Stderr, "Catalog error")
 		log.Fatal(err)
 	}
 
@@ -233,6 +236,7 @@ func dumpcatalog(includedata bool) {
 				&f,
 				&s,
 			); err != nil {
+				fmt.Fprintln(os.Stderr, "Catalog error")
 				log.Fatal(err)
 			}
 
@@ -381,7 +385,7 @@ func submitfiles() {
 	}
 
 	if err := opencatalog(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		fmt.Fprintln(os.Stderr, "Catalog error")
 		log.Fatal(err)
 	}
 
@@ -416,6 +420,7 @@ func submitfiles() {
 			break
 		}
 		if err != nil {
+			fmt.Fprintln(os.Stderr, "Catalog error")
 			log.Fatal(err)
 		}
 
@@ -472,6 +477,7 @@ func submitfiles() {
 					tmpfile.Close()
 
 					if err != nil {
+						fmt.Fprintln(os.Stderr, "Catalog error")
 						log.Fatal(err)
 					}
 
@@ -486,7 +492,7 @@ func submitfiles() {
 
 			}
 			if stmt, err := catalog.Prepare("INSERT OR REPLACE INTO files (hash,backupid,name,size,type,linkname,username,groupname,uid,gid,mode,access,modify,change,devmajor,devminor) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"); err != nil {
-				fmt.Fprintln(os.Stderr, err)
+				fmt.Fprintln(os.Stderr, "Catalog error")
 				log.Fatal(err)
 			} else {
 				for try := 0; try < cfg.Maxtries; try++ {
@@ -502,7 +508,7 @@ func submitfiles() {
 					}
 				}
 				if err != nil {
-					fmt.Fprintln(os.Stderr, err)
+					fmt.Fprintln(os.Stderr, "Catalog error")
 					log.Fatal(err)
 				}
 			}
@@ -523,7 +529,7 @@ func submitfiles() {
 			fmt.Printf("Received %d files for backup %d (%d files to go)\n", files-missing, date, missing)
 		}
 	} else {
-		fmt.Fprintln(os.Stderr, err)
+		fmt.Fprintln(os.Stderr, "Catalog error")
 		log.Fatal(err)
 	}
 }
@@ -549,11 +555,12 @@ func purgebackup() {
 	}
 
 	if err := opencatalog(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		fmt.Fprintln(os.Stderr, "Catalog error")
 		log.Fatal(err)
 	}
 
 	if r, err := catalog.Exec("DELETE FROM backups WHERE date=? AND name=?", date, name); err != nil {
+		fmt.Fprintln(os.Stderr, "Catalog error")
 		log.Fatal(err)
 	} else {
 		if n, _ := r.RowsAffected(); n < 1 {
@@ -652,7 +659,7 @@ func expirebackup() {
 	}
 
 	if err := opencatalog(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		fmt.Fprintln(os.Stderr, "Catalog error")
 		log.Fatal(err)
 	}
 
@@ -661,6 +668,7 @@ func expirebackup() {
 	tx, _ := catalog.Begin()
 	if _, err := tx.Exec("DELETE FROM backups WHERE date<? AND ? IN (name,'') AND schedule=?", date, name, schedule); err != nil {
 		tx.Rollback()
+		fmt.Fprintln(os.Stderr, "Catalog error")
 		log.Fatal(err)
 	}
 	tx.Commit()
@@ -677,7 +685,7 @@ func df() {
 	ServerOnly()
 
 	if err := opencatalog(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		fmt.Fprintln(os.Stderr, "Catalog error")
 		log.Fatal(err)
 	}
 
