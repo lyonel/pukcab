@@ -6,11 +6,29 @@ Source: http://www.ezix.org/software/files/%{name}-%{version}-Linux-%{_arch}.zip
 URL: http://ezix.org/project/wiki/Pukcab
 License: GPL
 Group: Applications/System
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-Requires: openssh-clients
 
 %description
 Pukcab is a lightweight, single-binary backup system that stores de-duplicated, compressed and incremental backups on a remote server using just an SSH connection.
+
+%package client
+Summary: Simple Network Backup Utility (client)
+Requires: openssh-clients
+Requires: %{name} >= %{version}
+
+%description client
+Pukcab is a lightweight, single-binary backup system that stores de-duplicated, compressed and incremental backups on a remote server using just an SSH connection.
+
+This package ensures a system can act as a pukcab client.
+
+%package server
+Summary: Simple Network Backup Utility (server)
+Requires: openssh-server
+Requires: %{name} >= %{version}
+
+%description server
+Pukcab is a lightweight, single-binary backup system that stores de-duplicated, compressed and incremental backups on a remote server using just an SSH connection.
+
+This package ensures a system can act as a pukcab server.
 
 %prep
 %setup -q -c %{name}-%{version}
@@ -28,7 +46,12 @@ Pukcab is a lightweight, single-binary backup system that stores de-duplicated, 
 %files
 %defattr(-,root,root, 0555)
 %doc README.md
+%config %ghost %{_sysconfdir}/%{name}.conf
 %{_bindir}/*
+
+%files client
+
+%files server
 
 %changelog
 * Wed Feb 18 2015 Lyonel Vincent <lyonel@ezix.org> 1.1-1
