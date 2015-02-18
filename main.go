@@ -54,7 +54,7 @@ func printlist(l []string) {
 }
 
 func config() {
-	flag.Parse()
+	Setup()
 
 	fmt.Println("# global configuration")
 	if cfg.Server != "" {
