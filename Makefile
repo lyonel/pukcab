@@ -12,6 +12,9 @@ pukcab:
 
 release: pukcab README.md
 	zip pukcab-${VERSION}-${OS}-${ARCH}.zip $^
+	git archive -o pukcab-${VERSION}.tar.gz --prefix pukcab-${VERSION}/ HEAD
+
+github:
 	-git push -q git@github.com:/lyonel/pukcab.git
 	-git push -q --tags git@github.com:/lyonel/pukcab.git
 
