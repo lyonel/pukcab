@@ -40,10 +40,13 @@ This package ensures a system can act as a pukcab server.
 %install
 %{__rm} -rf "%{buildroot}"
 
-%{__install} -D pukcab %{buildroot}%{_bindir}/pukcab
+%{__install} -D pukcab "%{buildroot}%{_bindir}/pukcab"
 
 %clean
 %{__rm} -rf %{buildroot}
+
+%pre server
+useradd -r -m -d "%{_localstatedir}/pukcab" pukcab || true
 
 %files
 %defattr(-,root,root, 0555)
@@ -54,6 +57,7 @@ This package ensures a system can act as a pukcab server.
 %files client
 
 %files server
+%dir %ghost %{_localstatedir}/pukcab
 
 %changelog
 * Wed Feb 18 2015 Lyonel Vincent <lyonel@ezix.org> 1.1-1
