@@ -10,9 +10,13 @@ pukcab:
 	go build -o $@
 	strip $@
 
-release: pukcab README.md
-	zip pukcab-${VERSION}-${OS}-${ARCH}.zip $^
-	git archive -o pukcab-${VERSION}.tar.gz --prefix pukcab-${VERSION}/ HEAD
+release: pukcab-${VERSION}-${OS}-${ARCH}.zip pukcab-${VERSION}.tar.gz
+
+pukcab-${VERSION}-${OS}-${ARCH}.zip: pukcab README.md
+	zip $@ $^
+
+pukcab-${VERSION}.tar.gz:
+	git archive -o $@ --prefix pukcab-${VERSION}/ HEAD
 
 rpm: pukcab-${VERSION}-${OS}-${ARCH}.zip
 	rpmbuild -bb -D "%_rpmdir RPM" -D "%_sourcedir ${PWD}" -D "%_builddir ${PWD}/RPM/BUILD" -D "%_buildrootdir ${PWD}/RPM/BUILDROOT" -D "%VERSION "${VERSION} pukcab.spec
