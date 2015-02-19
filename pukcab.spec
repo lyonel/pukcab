@@ -1,6 +1,6 @@
 Summary: Simple Network Backup Utility
 Name: pukcab
-Version: 1.1
+Version: %{VERSION}
 Release: 1
 Source: http://www.ezix.org/software/files/%{name}-%{version}-Linux-%{_arch}.zip
 URL: http://ezix.org/project/wiki/Pukcab
