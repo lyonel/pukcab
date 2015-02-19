@@ -51,7 +51,7 @@ useradd -r -m -d "%{_localstatedir}/pukcab" pukcab || true
 %files
 %defattr(-,root,root, 0555)
 %doc README.md
-%config %ghost %{_sysconfdir}/%{name}.conf
+%config(noreplace) %ghost %{_sysconfdir}/%{name}.conf
 %{_bindir}/*
 
 %files client
