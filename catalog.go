@@ -9,9 +9,14 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-const schemaVersion = 1
+const schemaVersion = 2
 
 var catalog *sql.DB
+
+type Catalog interface {
+	Exec(query string, args ...interface{}) (sql.Result, error)
+	QueryRow(query string, args ...interface{}) *sql.Row
+}
 
 func opencatalog() error {
 	if err := os.MkdirAll(cfg.Vault, 0700); err != nil {
@@ -27,8 +32,9 @@ func opencatalog() error {
 
 		if _, err = catalog.Exec(`
 CREATE TABLE IF NOT EXISTS META(name TEXT COLLATE NOCASE PRIMARY KEY, value TEXT);
-INSERT OR IGNORE INTO META VALUES('schema', 1);
+INSERT OR IGNORE INTO META VALUES('schema', ?);
 INSERT OR IGNORE INTO META VALUES('application', 'org.ezix.pukcab');
+CREATE TABLE IF NOT EXISTS names(id INTEGER PRIMARY KEY, name TEXT, UNIQUE(name));
 CREATE TABLE IF NOT EXISTS backups(name TEXT NOT NULL,
 			schedule TEXT NOT NULL,
 			date INTEGER PRIMARY KEY,
@@ -57,7 +63,7 @@ CREATE TRIGGER IF NOT EXISTS cleanup_files AFTER DELETE ON backups FOR EACH ROW
 BEGIN
 			DELETE FROM files WHERE backupid=OLD.date;
 END;
-			`); err != nil {
+			`, schemaVersion); err != nil {
 			return err
 		}
 
@@ -73,4 +79,14 @@ END;
 	} else {
 		return err
 	}
+}
+
+func nameid(c Catalog, s string) (id int64) {
+	if result, err := c.Exec("INSERT INTO names(name) VALUES(?)", s); err == nil {
+		id, _ = result.LastInsertId()
+	} else {
+		err = c.QueryRow("SELECT id FROM names WHERE name=?", s).Scan(&id)
+	}
+
+	return id
 }
