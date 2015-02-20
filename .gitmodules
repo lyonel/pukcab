@@ -1,0 +1,9 @@
+[submodule "github.com/antage/mntent"]
+	path = src/github.com/antage/mntent
+	url = https://github.com/antage/mntent
+[submodule "github.com/BurntSushi/toml"]
+	path = src/github.com/BurntSushi/toml
+	url = https://github.com/BurntSushi/toml
+[submodule "github.com/mattn/go-sqlite3"]
+	path = src/github.com/mattn/go-sqlite3
+	url = https://github.com/mattn/go-sqlite3
