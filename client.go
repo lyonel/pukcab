@@ -20,6 +20,7 @@ import (
 	"github.com/antage/mntent"
 )
 
+var start = time.Now()
 var directories map[string]bool
 var backupset map[string]struct{}
 
@@ -270,8 +271,8 @@ func backup() {
 		log.Printf("Backup: date=%d files=%d type=%q\n", date, len(backupset), backuptype)
 	}
 
-	dumpfiles(files)
-	log.Printf("Finished backup: date=%d name=%q schedule=%q files=%d\n", date, name, schedule, len(backupset))
+	bytes := dumpfiles(files)
+	log.Printf("Finished backup: date=%d name=%q schedule=%q files=%d sent=%d duration=%.0f\n", date, name, schedule, len(backupset), bytes, time.Since(start).Seconds())
 }
 
 func resume() {
@@ -354,8 +355,9 @@ func resume() {
 	dumpfiles(len(backupset))
 }
 
-func dumpfiles(files int) {
+func dumpfiles(files int) (bytes int64) {
 	done := files - len(backupset)
+	bytes = 0
 
 	if verbose {
 		fmt.Print("Sending files... ")
@@ -458,6 +460,7 @@ func dumpfiles(files int) {
 						if written != hdr.Size {
 							log.Println("Could not backup ", f, ":", hdr.Size, " bytes expected but ", written, " bytes written")
 						}
+						bytes += written
 					}
 				} else {
 					tw.WriteHeader(hdr)
@@ -482,8 +485,10 @@ func dumpfiles(files int) {
 
 	if verbose {
 		fmt.Println("done.")
+		fmt.Println(Bytes(uint64(float64(bytes)/time.Since(start).Seconds())) + "/s")
 	}
 
+	return bytes
 }
 
 func info() {
