@@ -28,3 +28,6 @@ github:
 clean:
 	go clean
 
+update:
+	git submodule update --init --recursive
+	cd src ; go install github.com/*/*
