@@ -5,10 +5,12 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
+	"log"
 	"math"
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -132,4 +134,9 @@ func human(s uint64, base float64, sizes []string) string {
 func Bytes(s uint64) string {
 	sizes := []string{"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"}
 	return human(s, 1024, sizes)
+}
+
+func printdebug() {
+	_, fn, line, _ := runtime.Caller(1)
+	log.Printf("DEBUG %s:%d\n", fn, line)
 }
