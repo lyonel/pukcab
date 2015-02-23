@@ -75,7 +75,7 @@ END;
 				return errors.New("Unsupported catalog version, please upgrade")
 			} else {
 				if v == 1 {
-					log.Println("Upgrading schema")
+					log.Println("Upgrading catalog")
 					tx, _ := catalog.Begin()
 					if _, err := tx.Exec(`
 ALTER TABLE files RENAME to oldfiles;
@@ -109,7 +109,7 @@ UPDATE META SET value=2 WHERE name='schema';
 					}
 					tx.Commit()
 					v = 2
-					log.Println("Upgraded schema to version", v)
+					log.Println("Upgraded catalog to version", v)
 				}
 			}
 		} else {
