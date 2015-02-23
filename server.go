@@ -87,7 +87,7 @@ func newbackup() {
 		if err != nil {
 			f = scanner.Text()
 		}
-		if _, err := tx.Exec("INSERT INTO files (backupid,name) VALUES(?,?)", date, filepath.Clean(f)); err != nil {
+		if _, err := tx.Exec("INSERT INTO files (backupid,nameid) VALUES(?,?)", date, nameid(tx, filepath.Clean(f))); err != nil {
 			tx.Rollback()
 			fmt.Fprintln(os.Stderr, "Catalog error")
 			log.Fatal(err)
@@ -99,7 +99,7 @@ func newbackup() {
 	var previous SQLInt
 	if err := catalog.QueryRow("SELECT MAX(date) AS previous FROM backups WHERE finished AND name=?", name).Scan(&previous); err == nil {
 		if !full {
-			_, err = catalog.Exec("WITH previous AS (SELECT * FROM files WHERE backupid=? AND name IN (SELECT name FROM files WHERE backupid=?)) INSERT OR REPLACE INTO files (backupid,hash,type,name,linkname,size,birth,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor) SELECT ?,hash,type,name,linkname,size,birth,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor FROM previous", previous, date, date)
+			_, err = catalog.Exec("WITH previous AS (SELECT * FROM files WHERE backupid=? AND nameid IN (SELECT nameid FROM files WHERE backupid=?)) INSERT OR REPLACE INTO files (backupid,hash,type,nameid,linknameid,size,birth,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor) SELECT ?,hash,type,nameid,linknameid,size,birth,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor FROM previous", previous, date, date)
 		}
 		if err == nil {
 			fmt.Println(int64(previous))
@@ -202,7 +202,7 @@ func dumpcatalog(includedata bool) {
 			}
 
 			if details {
-				if files, err := catalog.Query("SELECT name,type,hash,linkname,size,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor FROM files WHERE backupid=? ORDER BY name", int64(date)); err == nil {
+				if files, err := catalog.Query("SELECT names.name AS name,type,hash,links.name AS linkname,size,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor FROM files,names,names AS links WHERE backupid=? AND nameid=names.id AND linknameid=links.id ORDER BY name", int64(date)); err == nil {
 					defer files.Close()
 					for files.Next() {
 						var hdr tar.Header
@@ -426,12 +426,12 @@ func submitfiles() {
 				}
 
 			}
-			if stmt, err := catalog.Prepare("INSERT OR REPLACE INTO files (hash,backupid,name,size,type,linkname,username,groupname,uid,gid,mode,access,modify,change,devmajor,devminor) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"); err != nil {
+			if stmt, err := catalog.Prepare("INSERT OR REPLACE INTO files (hash,backupid,nameid,size,type,linknameid,username,groupname,uid,gid,mode,access,modify,change,devmajor,devminor) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"); err != nil {
 				fmt.Fprintln(os.Stderr, "Catalog error")
 				log.Fatal(err)
 			} else {
 				for try := 0; try < cfg.Maxtries; try++ {
-					_, err = stmt.Exec(hash, date, filepath.Clean(hdr.Name), hdr.Size, string(hdr.Typeflag), filepath.Clean(hdr.Linkname), hdr.Uname, hdr.Gname, hdr.Uid, hdr.Gid, hdr.Mode, hdr.AccessTime.Unix(), hdr.ModTime.Unix(), hdr.ChangeTime.Unix(), hdr.Devmajor, hdr.Devminor)
+					_, err = stmt.Exec(hash, date, nameid(catalog, filepath.Clean(hdr.Name)), hdr.Size, string(hdr.Typeflag), nameid(catalog, filepath.Clean(hdr.Linkname)), hdr.Uname, hdr.Gname, hdr.Uid, hdr.Gid, hdr.Mode, hdr.AccessTime.Unix(), hdr.ModTime.Unix(), hdr.ChangeTime.Unix(), hdr.Devmajor, hdr.Devminor)
 					if e, retry := err.(sqlite3.Error); retry {
 						if e.Code != sqlite3.ErrBusy {
 							break
