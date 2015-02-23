@@ -3,6 +3,8 @@ package main
 import (
 	"database/sql"
 	"errors"
+	"fmt"
+	"log"
 	"os"
 	"strconv"
 
@@ -71,6 +73,44 @@ END;
 		if err := catalog.QueryRow("SELECT value FROM META WHERE name='schema'").Scan(&schema); err == nil {
 			if v, err := strconv.Atoi(schema); err != nil || v > schemaVersion {
 				return errors.New("Unsupported catalog version, please upgrade")
+			} else {
+				if v == 1 {
+					log.Println("Upgrading schema")
+					tx, _ := catalog.Begin()
+					if _, err := tx.Exec(`
+ALTER TABLE files RENAME to oldfiles;
+CREATE TABLE files(backupid INTEGER NOT NULL,
+                        hash TEXT COLLATE NOCASE NOT NULL DEFAULT '',
+                        type CHAR(1) NOT NULL DEFAULT '?',
+                        nameid INTEGER NOT NULL DEFAULT 0,
+                        linknameid INTEGER NOT NULL DEFAULT 0,
+                        size INTEGER NOT NULL DEFAULT -1,
+                        birth INTEGER NOT NULL DEFAULT 0,
+                        access INTEGER NOT NULL DEFAULT 0,
+                        modify INTEGER NOT NULL DEFAULT 0,
+                        change INTEGER NOT NULL DEFAULT 0,
+                        mode INTEGER NOT NULL DEFAULT 0,
+                        uid INTEGER NOT NULL DEFAULT 0,
+                        gid INTEGER NOT NULL DEFAULT 0,
+                        username TEXT NOT NULL DEFAULT '',
+                        groupname TEXT NOT NULL DEFAULT '',
+                        devmajor INTEGER NOT NULL DEFAULT 0,
+                        devminor INTEGER NOT NULL DEFAULT 0,
+                        UNIQUE (backupid, nameid));
+INSERT OR IGNORE INTO names (name) SELECT name FROM oldfiles;
+INSERT OR IGNORE INTO names (name) SELECT linkname FROM oldfiles;
+INSERT INTO files (backupid,hash,type,nameid,linknameid,size,birth,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor) SELECT backupid,hash,type,names.id AS nameid,linknames.id AS linknameid,size,birth,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor FROM oldfiles,names,names AS linknames WHERE names.name=oldfiles.name AND linknames.name=oldfiles.linkname;
+DROP TABLE oldfiles;
+UPDATE META SET value=2 WHERE name='schema';
+					`); err != nil {
+						tx.Rollback()
+						fmt.Fprintln(os.Stderr, "Catalog error")
+						log.Fatal(err)
+					}
+					tx.Commit()
+					v = 2
+					log.Println("Upgraded schema to version", v)
+				}
 			}
 		} else {
 			return err
