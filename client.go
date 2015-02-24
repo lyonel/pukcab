@@ -494,10 +494,13 @@ func dumpfiles(files int) (bytes int64) {
 func info() {
 	date = 0
 	name = ""
+	short := false
 	flag.StringVar(&name, "name", name, "Backup name")
 	flag.StringVar(&name, "n", name, "-name")
 	flag.Var(&date, "date", "Backup set")
 	flag.Var(&date, "d", "-date")
+	flag.BoolVar(&short, "short", short, "Concise output")
+	flag.BoolVar(&short, "s", short, "-short")
 	Setup()
 
 	if name == "" && !IsServer() {
@@ -547,7 +550,7 @@ func info() {
 
 		switch hdr.Typeflag {
 		case tar.TypeXGlobalHeader:
-			if !first {
+			if !short && !first {
 				fmt.Println()
 			}
 			first = false
@@ -562,17 +565,25 @@ func info() {
 				log.Fatal(err)
 			}
 
-			fmt.Println("Date:    ", header.Date)
-			fmt.Println("Name:    ", header.Name)
-			fmt.Println("Schedule:", header.Schedule)
-			fmt.Println("Started: ", time.Unix(int64(header.Date), 0))
-			if header.Finished.Unix() != 0 {
-				fmt.Println("Finished:", header.Finished)
-				fmt.Println("Duration:", header.Finished.Sub(time.Unix(int64(header.Date), 0)))
-			}
-			if header.Files > 0 {
-				fmt.Println("Size:    ", Bytes(uint64(header.Size)))
-				fmt.Println("Files:   ", header.Files)
+			if !short {
+				fmt.Println("Date:    ", header.Date)
+				fmt.Println("Name:    ", header.Name)
+				fmt.Println("Schedule:", header.Schedule)
+				fmt.Println("Started: ", time.Unix(int64(header.Date), 0))
+				if header.Finished.Unix() != 0 {
+					fmt.Println("Finished:", header.Finished)
+					fmt.Println("Duration:", header.Finished.Sub(time.Unix(int64(header.Date), 0)))
+				}
+				if header.Files > 0 {
+					fmt.Println("Size:    ", Bytes(uint64(header.Size)))
+					fmt.Println("Files:   ", header.Files)
+				}
+			} else {
+				fmt.Print(header.Date, " ", header.Name, " ", header.Schedule)
+				if header.Finished.Unix() != 0 {
+					fmt.Print(" ", header.Finished.Format("Mon Jan 2 15:04"))
+				}
+				fmt.Println()
 			}
 		default:
 			files++
