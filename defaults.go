@@ -7,7 +7,7 @@ import (
 
 const programName = "pukcab"
 const versionMajor = 1
-const versionMinor = 1
+const versionMinor = 2
 const defaultCommand = "help"
 const defaultCatalog = "catalog.db"
 const defaultVault = "vault"
