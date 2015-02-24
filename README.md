@@ -366,6 +366,20 @@ Syntax
 Default value
 >  `3`
 
+#### short
+Display a more concise output.
+
+Syntax
+>  `--short`[`=true`]
+
+>  `--short=false`
+
+>  `-s`
+
+Default value
+>  `false`
+
+
 
 #### files
 File names can be specified using the usual shell-like wildcards `*` (matches any number of characters) and `?` (matches exactly one character). The following conventions apply:
