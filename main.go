@@ -144,6 +144,8 @@ func main() {
 		resume()
 	case "verify", "check":
 		verify()
+	case "web", "ui":
+		web()
 	// server commands
 	case "data":
 		data()
