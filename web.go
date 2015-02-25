@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -157,5 +158,8 @@ func web() {
 
 	http.HandleFunc("/info/", webinfo)
 	http.HandleFunc("/list/", webinfo)
-	http.ListenAndServe(listen, nil)
+	if err := http.ListenAndServe(listen, nil); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		log.Fatal("Could no start web interface: ", err)
+	}
 }
