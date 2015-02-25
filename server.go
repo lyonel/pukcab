@@ -505,8 +505,6 @@ func purgebackup() {
 			log.Printf("Deleted backup: date=%d name=%q\n", date, name)
 		}
 	}
-
-	vacuum()
 }
 
 func vacuum() {
