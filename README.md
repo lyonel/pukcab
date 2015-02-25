@@ -218,7 +218,7 @@ Syntax
 This command lists the backup sets stored on the server. Backup sets can be filtered by name and/or date and files.
 
 Syntax
->  `pukcab info` [ --[name][]=_name_ ] [ --[date][]=_date_ ] [ _[FILES](#files)_... ]
+>  `pukcab info` [ --[short][] ] [ --[name][]=_name_ ] [ --[date][]=_date_ ] [ _[FILES](#files)_... ]
 
 Notes
 
@@ -435,6 +435,7 @@ Sending files... done
 [date]: #date
 [schedule]: #schedule
 [full]: #full
+[short]: #short
 [keep]: #keep
 [files]: #files
 [age]: #date
