@@ -78,9 +78,9 @@ const infotemplate = `
         <td><a href="/backup/{{.Date}}">{{.Date}}</a></td>
         <td><a href="/info/{{.Name}}">{{.Name}}</a></td>
         <td>{{.Schedule}}</td>
-        <td>{{.Finished}}</td>
-        <td>{{.Size}}</td>
-        <td>{{.Files}}</td>
+        <td>{{.Finished | date}}</td>
+        <td>{{if .Size}}{{.Size | bytes}}{{end}}</td>
+        <td>{{if .Files}}{{.Files}}{{end}}</td>
 	</tr>
     {{end}}
 </table>
@@ -91,7 +91,38 @@ const infotemplate = `
 </html>
 `
 
+func DateExpander(args ...interface{}) string {
+	ok := false
+	var t time.Time
+	if len(args) == 1 {
+		t, ok = args[0].(time.Time)
+	}
+	if !ok {
+		return fmt.Sprint(args...)
+	}
+
+	if t.IsZero() || t.Unix() == 0 {
+		return ""
+	}
+
+	return t.Format(time.RFC822)
+}
+
+func BytesExpander(args ...interface{}) string {
+	ok := false
+	var n int64
+	if len(args) == 1 {
+		n, ok = args[0].(int64)
+	}
+	if !ok {
+		return fmt.Sprint(args...)
+	}
+
+	return Bytes(uint64(n))
+}
+
 func stylesheets(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/css; charset=UTF-8")
 	fmt.Fprintf(w, css)
 }
 
@@ -117,7 +148,7 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 		name = ""
 	}
 
-	w.Header().Set("Refresh", "3600")
+	w.Header().Set("Refresh", "900")
 	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 
 	args := []string{"metadata"}
@@ -184,8 +215,13 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if t, err := template.New("Info template").Parse(infotemplate); err == nil {
+	t := template.New("Info template")
+	t = t.Funcs(template.FuncMap{"date": DateExpander})
+	t = t.Funcs(template.FuncMap{"bytes": BytesExpander})
+	if t, err := t.Parse(infotemplate); err == nil {
 		t.Execute(w, report)
+	} else {
+		log.Println(err)
 	}
 }
 
