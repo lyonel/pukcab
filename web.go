@@ -5,6 +5,7 @@ import (
 	"ezix.org/tar"
 	"flag"
 	"fmt"
+	"html/template"
 	"io"
 	"log"
 	"net/http"
@@ -13,6 +14,86 @@ import (
 	"strings"
 	"time"
 )
+
+type Report struct {
+	Title string
+	Date  time.Time
+}
+
+type InfoReport struct {
+	Report
+	Backups []BackupInfo
+}
+
+const css = `
+body {
+    font-family: Roboto, Verdana, Geneva, Arial, Helvetica, sans-serif ;
+    font-weight: normal;
+    font-size: 10px;
+}
+
+table
+{
+    font-size: 12px;
+    text-align: center;
+    color: #fff;
+    background-color: #666;
+    border: 0px;
+    border-collapse: collapse;
+    border-spacing: 0px;
+}
+
+table td
+{
+    color: #000;
+    padding: 4px;
+    border: 1px #fff solid;
+}
+
+tr:nth-child(even) { background: #EEE; }
+tr:nth-child(odd) { background: #DDD; }
+
+table th
+{
+    background-color: #666;
+    color: #fff;
+    padding: 4px;
+    border-bottom: 2px #fff solid;
+    font-size: 12px;
+    font-weight: bold;
+}
+`
+
+const infotemplate = `
+<html>
+<head>
+<title>{{.Title}}</title>
+<link rel="stylesheet" href="/css/default.css">
+<body>
+{{with .Backups}}
+<table>
+<tr><th>ID</th><th>Name</th><th>Schedule</th><th>Finished</th><th>Size</th><th>Files</th></tr>
+    {{range .}}
+	<tr>
+        <td><a href="/backup/{{.Date}}">{{.Date}}</a></td>
+        <td><a href="/info/{{.Name}}">{{.Name}}</a></td>
+        <td>{{.Schedule}}</td>
+        <td>{{.Finished}}</td>
+        <td>{{.Size}}</td>
+        <td>{{.Files}}</td>
+	</tr>
+    {{end}}
+</table>
+{{end}}
+<hr>
+{{.Date}}
+</body>
+</html>
+`
+
+func stylesheets(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, css)
+}
 
 func webinfo(w http.ResponseWriter, r *http.Request) {
 	date = 0
@@ -37,7 +118,7 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Refresh", "3600")
-	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
+	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 
 	args := []string{"metadata"}
 	if date != 0 {
@@ -63,11 +144,15 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	report := &InfoReport{
+		Report: Report{
+			Title: "Info",
+			Date:  time.Now(),
+		},
+		Backups: []BackupInfo{},
+	}
+
 	tr := tar.NewReader(stdout)
-	first := true
-	var size int64 = 0
-	var files int64 = 0
-	var missing int64 = 0
 	for {
 		hdr, err := tr.Next()
 		if err == io.EOF {
@@ -81,64 +166,15 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 
 		switch hdr.Typeflag {
 		case tar.TypeXGlobalHeader:
-			if !first {
-				fmt.Fprintln(w)
-			}
-			first = false
-			size = 0
-			files = 0
-			missing = 0
-
 			var header BackupInfo
 			dec := gob.NewDecoder(tr)
 			if err := dec.Decode(&header); err != nil {
 				fmt.Fprintln(w, "Protocol error:", err)
 				log.Println(err)
 				return
+			} else {
+				report.Backups = append(report.Backups, header)
 			}
-
-			fmt.Fprintln(w, "Date:    ", header.Date)
-			fmt.Fprintln(w, "Name:    ", header.Name)
-			fmt.Fprintln(w, "Schedule:", header.Schedule)
-			fmt.Fprintln(w, "Started: ", time.Unix(int64(header.Date), 0))
-			if header.Finished.Unix() != 0 {
-				fmt.Fprintln(w, "Finished:", header.Finished)
-				fmt.Fprintln(w, "Duration:", header.Finished.Sub(time.Unix(int64(header.Date), 0)))
-			}
-			if header.Files > 0 {
-				fmt.Fprintln(w, "Size:    ", Bytes(uint64(header.Size)))
-				fmt.Fprintln(w, "Files:   ", header.Files)
-			}
-		default:
-			files++
-			if s, err := strconv.ParseInt(hdr.Xattrs["backup.size"], 0, 0); err == nil {
-				size += s
-			}
-			if hdr.Xattrs["backup.type"] == "?" {
-				missing++
-			}
-			if verbose {
-				fmt.Fprintf(w, "%s %8s %-8s", hdr.FileInfo().Mode(), hdr.Uname, hdr.Gname)
-				if s, err := strconv.ParseUint(hdr.Xattrs["backup.size"], 0, 0); err == nil {
-					fmt.Fprintf(w, "%8s", Bytes(s))
-				} else {
-					fmt.Fprintf(w, "%8s", "")
-				}
-				fmt.Fprintf(w, " %s", hdr.Name)
-				if hdr.Linkname != "." {
-					fmt.Fprintf(w, " ➙ %s\n", hdr.Linkname)
-				} else {
-					fmt.Fprintln(w)
-				}
-			}
-		}
-	}
-	if files > 0 {
-		fmt.Fprint(w, "Complete: ")
-		if files > 0 && missing > 0 {
-			fmt.Fprintf(w, "%.1f%% (%d files missing)\n", 100*float64(files-missing)/float64(files), missing)
-		} else {
-			fmt.Fprintln(w, "yes")
 		}
 	}
 
@@ -148,6 +184,9 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if t, err := template.New("Info template").Parse(infotemplate); err == nil {
+		t.Execute(w, report)
+	}
 }
 
 func web() {
@@ -156,6 +195,7 @@ func web() {
 	flag.StringVar(&listen, "l", listen, "-listen")
 	Setup()
 
+	http.HandleFunc("/css/", stylesheets)
 	http.HandleFunc("/info/", webinfo)
 	http.HandleFunc("/list/", webinfo)
 	if err := http.ListenAndServe(listen, nil); err != nil {
