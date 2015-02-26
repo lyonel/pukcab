@@ -53,6 +53,12 @@ func loadconfig() {
 	if cfg.Maxtries < 1 {
 		cfg.Maxtries = defaultMaxtries
 	}
+
+	if IsServer() {
+		if pw, err := Getpwnam(cfg.User); err == nil {
+			cfg.Exclude = append(cfg.Exclude, filepath.Join(pw.Dir, cfg.Vault), filepath.Join(pw.Dir, cfg.Catalog))
+		}
+	}
 }
 
 func IsServer() bool {
