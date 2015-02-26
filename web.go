@@ -97,7 +97,7 @@ const infotemplate = `<!DOCTYPE html>
     {{range .}}
 	<tr>
         <td><a href="/backup/{{.Date}}">{{.Date}}</a></td>
-        <td><a href="/info/{{.Name}}">{{.Name}}</a></td>
+        <td><a href="{{.Name}}">{{.Name}}</a></td>
         <td>{{.Schedule}}</td>
         <td>{{.Finished | date}}</td>
         <td>{{if .Size}}{{.Size | bytes}}{{end}}</td>
@@ -198,7 +198,7 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 
 	report := &InfoReport{
 		Report: Report{
-			Title: "Info",
+			Title: "Backups",
 			Date:  time.Now(),
 		},
 		Backups: []BackupInfo{},
@@ -255,6 +255,7 @@ func web() {
 	http.HandleFunc("/css/", stylesheets)
 	http.HandleFunc("/info/", webinfo)
 	http.HandleFunc("/list/", webinfo)
+	http.HandleFunc("/backups/", webinfo)
 	if err := http.ListenAndServe(listen, nil); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		log.Fatal("Could no start web interface: ", err)
