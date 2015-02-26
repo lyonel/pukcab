@@ -32,6 +32,26 @@ body {
     font-size: 10px;
 }
 
+a:link {
+    text-decoration: none;
+    color: inherit;
+}
+
+a:visited {
+    text-decoration: none;
+    color: inherit;
+}
+
+a:hover {
+    text-decoration: none;
+    color: #CC704D;
+}
+
+a:active {
+    text-decoration: none;
+    color: #FF0000;
+}
+
 table
 {
     font-size: 12px;
@@ -64,12 +84,13 @@ table th
 }
 `
 
-const infotemplate = `
+const infotemplate = `<!DOCTYPE html>
 <html>
 <head>
 <title>{{.Title}}</title>
 <link rel="stylesheet" href="/css/default.css">
 <body>
+<h1>{{.Title}}</h1>
 {{with .Backups}}
 <table>
 <tr><th>ID</th><th>Name</th><th>Schedule</th><th>Finished</th><th>Size</th><th>Files</th></tr>
