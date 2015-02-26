@@ -56,7 +56,10 @@ func loadconfig() {
 
 	if IsServer() {
 		if pw, err := Getpwnam(cfg.User); err == nil {
-			cfg.Exclude = append(cfg.Exclude, filepath.Join(pw.Dir, cfg.Vault), filepath.Join(pw.Dir, cfg.Catalog))
+			cfg.Exclude = append(cfg.Exclude,
+				filepath.Join(pw.Dir, cfg.Vault),
+				filepath.Join(pw.Dir, cfg.Catalog),
+				filepath.Join(pw.Dir, cfg.Catalog+"-*"))
 		}
 	}
 }
