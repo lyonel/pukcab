@@ -20,7 +20,7 @@ type Report struct {
 	Date  time.Time
 }
 
-type InfoReport struct {
+type BackupsReport struct {
 	Report
 	Backups []BackupInfo
 }
@@ -84,7 +84,7 @@ table th
 }
 `
 
-const infotemplate = `<!DOCTYPE html>
+const backupstemplate = `<!DOCTYPE html>
 <html>
 <head>
 <title>{{.Title}}</title>
@@ -111,6 +111,8 @@ const infotemplate = `<!DOCTYPE html>
 </body>
 </html>
 `
+
+var backupspage = template.New("Info template")
 
 func DateExpander(args ...interface{}) string {
 	ok := false
@@ -196,7 +198,7 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	report := &InfoReport{
+	report := &BackupsReport{
 		Report: Report{
 			Title: "Backups",
 			Date:  time.Now(),
@@ -236,21 +238,24 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t := template.New("Info template")
-	t = t.Funcs(template.FuncMap{"date": DateExpander})
-	t = t.Funcs(template.FuncMap{"bytes": BytesExpander})
-	if t, err := t.Parse(infotemplate); err == nil {
-		t.Execute(w, report)
-	} else {
-		log.Println(err)
-	}
+	backupspage.Execute(w, report)
 }
 
 func web() {
+	var err error
+
 	listen := ":8080"
 	flag.StringVar(&listen, "listen", listen, "Address to listen to")
 	flag.StringVar(&listen, "l", listen, "-listen")
 	Setup()
+
+	backupspage = backupspage.Funcs(template.FuncMap{"date": DateExpander})
+	backupspage = backupspage.Funcs(template.FuncMap{"bytes": BytesExpander})
+	backupspage, err = backupspage.Parse(backupstemplate)
+	if err != nil {
+		log.Println(err)
+		log.Fatal("Could no start web interface: ", err)
+	}
 
 	http.HandleFunc("/css/", stylesheets)
 	http.HandleFunc("/info/", webinfo)
