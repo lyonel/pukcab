@@ -153,8 +153,8 @@ const configtemplate = templateheader + `
 {{if .Port}}<tr><th>Port</th><td>{{.Port}}</td></tr>{{end}}
 {{else}}
 <tr><th>Role</th><td>server</td></tr>
-{{if .Vault}}<tr><th>Vault</th><td>{{.Vault}}</td></tr>{{end}}
-{{if .Catalog}}<tr><th>Catalog</th><td>{{.Catalog}}</td></tr>{{end}}
+{{if .Vault}}<tr><th>Vault</th><td><tt>{{.Vault}}</tt></td></tr>{{end}}
+{{if .Catalog}}<tr><th>Catalog</th><td><tt>{{.Catalog}}</tt></td></tr>{{end}}
 {{if .Maxtries}}<tr><th>Maxtries</th><td>{{.Maxtries}}</td></tr>{{end}}
 {{end}}
 {{if .User}}<tr><th>User</th><td>{{.User}}</td></tr>{{end}}
