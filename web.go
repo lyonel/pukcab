@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -18,6 +19,15 @@ import (
 type Report struct {
 	Title string
 	Date  time.Time
+}
+
+type AboutReport struct {
+	Report
+	Name  string
+	Major int
+	Minor int
+	OS    string
+	Arch  string
 }
 
 type ConfigReport struct {
@@ -84,8 +94,32 @@ a:active {
     border-bottom:2px solid #D26911;
 }
 
+.submenu {
+    font-size: .7em;
+    margin-top: 10px;
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+}
+
+.submenu a {
+    padding: 10px 11px;
+    text-decoration:none;
+    color: #777;
+}
+
+.submenu a:hover {
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    color: #000;
+}
+
 .footer {
-    font-size: .5em
+    border-top: 1px solid #ccc;
+    padding: 10px;
+    font-size:.7em;
+    margin-top: 10px;
+    color: #ccc;
 }
 
 table.report {
@@ -122,9 +156,7 @@ table.report {
 
 const mainmenu = `<div class="mainmenu">
 <a href="/">Home</a>
-<a href="/config">Configuration</a>
 <a href="/backups">Backups</a>
-<a href="/maintenance">Maintenance</a>
 </div>`
 
 const templateheader = `<!DOCTYPE html>
@@ -136,16 +168,28 @@ const templateheader = `<!DOCTYPE html>
 <h1>{{.Title}}</h1>` +
 	mainmenu
 
-const templatefooter = `<hr>
-<div class="footer">{{.Date}}</div>
+const templatefooter = `<div class="footer">{{.Date}}</div>
 </body>
 </html>`
 
 const homepagetemplate = templateheader + `
+<div class="submenu">
+<a class="label" href="/about">About</a>
+<a class="label" href="/config">Configuration</a>
+</div>
+<table class="report"><tbody>
+{{if .Name}}<tr><th>Name</th><td>{{.Name}}</td></tr>{{end}}
+{{if .Major}}<tr><th>Pukcab</th><td>{{.Major}}.{{.Minor}}</td></tr>{{end}}
+{{if .OS}}<tr><th>OS</th><td>{{.OS}}/{{if .Arch}}{{.Arch}}{{end}}</td></tr>{{end}}
+</tbody></table>
 ` +
 	templatefooter
 
 const configtemplate = templateheader + `
+<div class="submenu">
+<a class="label" href="/about">About</a>
+<a class="label" href="/config">Configuration</a>
+</div>
 <table class="report"><tbody>
 {{if .Server}}
 <tr><th>Role</th><td>client</td></tr>
@@ -173,7 +217,11 @@ const configtemplate = templateheader + `
 	templatefooter
 
 const backupstemplate = templateheader +
-	`{{with .Backups}}
+	`<div class="submenu">
+<a class="label" href=".">Default</a>
+<a class="label" href="*">All</a>
+</div>
+	{{with .Backups}}
 <table class="report">
 <thead><tr><th>ID</th><th>Name</th><th>Schedule</th><th>Finished</th><th>Size</th><th>Files</th></tr></thead>
 <tbody>
@@ -232,12 +280,16 @@ func stylesheets(w http.ResponseWriter, r *http.Request) {
 func webhome(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 
-	report := &BackupsReport{
+	report := &AboutReport{
 		Report: Report{
-			Title: "Backups",
+			Title: programName + " on " + defaultName,
 			Date:  time.Now(),
 		},
-		Backups: []BackupInfo{},
+		Name:  defaultName,
+		Major: versionMajor,
+		Minor: versionMinor,
+		OS:    strings.ToTitle(runtime.GOOS[:1]) + runtime.GOOS[1:],
+		Arch:  runtime.GOARCH,
 	}
 	homepage.Execute(w, report)
 }
@@ -247,7 +299,7 @@ func webconfig(w http.ResponseWriter, r *http.Request) {
 
 	report := &ConfigReport{
 		Report: Report{
-			Title: "Configuration",
+			Title: programName + " on " + defaultName,
 			Date:  time.Now(),
 		},
 		Config: cfg,
@@ -377,6 +429,7 @@ func web() {
 	http.HandleFunc("/backups/", webinfo)
 	http.HandleFunc("/config/", webconfig)
 	http.HandleFunc("/", webhome)
+	http.HandleFunc("/about", webhome)
 	if err := http.ListenAndServe(listen, nil); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		log.Fatal("Could no start web interface: ", err)
