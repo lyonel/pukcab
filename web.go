@@ -20,6 +20,11 @@ type Report struct {
 	Date  time.Time
 }
 
+type ConfigReport struct {
+	Report
+	Config
+}
+
 type BackupsReport struct {
 	Report
 	Backups []BackupInfo
@@ -27,9 +32,15 @@ type BackupsReport struct {
 
 const css = `
 body {
-    font-family: Roboto, Verdana, Geneva, Arial, Helvetica, sans-serif ;
+    font-family: "Open Sans", Verdana, Geneva, Arial, Helvetica, sans-serif ;
     font-weight: normal;
-    font-size: 10px;
+}
+
+tt {
+    font-size: 1.2em;
+    background: #eee;
+    border: 1px solid #ccc;
+    padding: 1px;
 }
 
 a:link {
@@ -52,48 +63,120 @@ a:active {
     color: #FF0000;
 }
 
-table
-{
-    font-size: 12px;
-    text-align: center;
-    color: #fff;
-    background-color: #666;
-    border: 0px;
-    border-collapse: collapse;
-    border-spacing: 0px;
+.mainmenu {
+    font-size:.8em;
+    clear:both;
+    padding:10px;
+    background:#eaeaea linear-gradient(#fafafa, #eaeaea) repeat-x;
+    border:1px solid #eaeaea;
+    border-radius:5px;
 }
 
-table td
-{
+.mainmenu a {
+    padding: 10px 20px;
+    text-decoration:none;
+    color: #777;
+    border-right:1px solid #eaeaea;
+}
+.mainmenu a.active,
+.mainmenu a:hover {
     color: #000;
-    padding: 4px;
-    border: 1px #fff solid;
+    border-bottom:2px solid #D26911;
 }
 
-tr:nth-child(even) { background: #EEE; }
-tr:nth-child(odd) { background: #DDD; }
+.footer {
+    font-size: .5em
+}
 
-table th
-{
-    background-color: #666;
-    color: #fff;
-    padding: 4px;
-    border-bottom: 2px #fff solid;
-    font-size: 12px;
-    font-weight: bold;
+table.report {
+    cursor: auto;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    margin: 1em 0;
+}
+.report td, .report th {
+   border: 0;
+   font-size: .8em;
+   padding: 10px;
+}
+.report td:first-child {
+    border-top-left-radius: 5px;
+}
+.report tbody tr:last-child td:first-child {
+    border-bottom-left-radius: 5px;
+}
+.report td:last-child {
+    border-top-right-radius: 5px;
+}
+.report tbody tr:last-child {
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+.report tbody tr:last-child td:last-child {
+    border-bottom-right-radius: 5px;
+}
+.report thead+tbody tr:hover {
+    background-color: #e5e9ec !important;
 }
 `
 
-const backupstemplate = `<!DOCTYPE html>
+const mainmenu = `<div class="mainmenu">
+<a href="/">Home</a>
+<a href="/config">Configuration</a>
+<a href="/backups">Backups</a>
+<a href="/maintenance">Maintenance</a>
+</div>`
+
+const templateheader = `<!DOCTYPE html>
 <html>
 <head>
 <title>{{.Title}}</title>
 <link rel="stylesheet" href="/css/default.css">
 <body>
-<h1>{{.Title}}</h1>
-{{with .Backups}}
-<table>
-<tr><th>ID</th><th>Name</th><th>Schedule</th><th>Finished</th><th>Size</th><th>Files</th></tr>
+<h1>{{.Title}}</h1>` +
+	mainmenu
+
+const templatefooter = `<hr>
+<div class="footer">{{.Date}}</div>
+</body>
+</html>`
+
+const homepagetemplate = templateheader + `
+` +
+	templatefooter
+
+const configtemplate = templateheader + `
+<table class="report"><tbody>
+{{if .Server}}
+<tr><th>Role</th><td>client</td></tr>
+<tr><th>Server</th><td>{{.Server}}</td></tr>
+{{if .Port}}<tr><th>Port</th><td>{{.Port}}</td></tr>{{end}}
+{{else}}
+<tr><th>Role</th><td>server</td></tr>
+{{if .Vault}}<tr><th>Vault</th><td>{{.Vault}}</td></tr>{{end}}
+{{if .Catalog}}<tr><th>Catalog</th><td>{{.Catalog}}</td></tr>{{end}}
+{{if .Maxtries}}<tr><th>Maxtries</th><td>{{.Maxtries}}</td></tr>{{end}}
+{{end}}
+{{if .User}}<tr><th>User</th><td>{{.User}}</td></tr>{{end}}
+<tr><th>Include</th><td>
+{{range .Include}}
+<tt>{{.}}</tt>
+{{end}}
+</td></tr>
+<tr><th>Exclude</th><td>
+{{range .Exclude}}
+<tt>{{.}}</tt>
+{{end}}
+</td></tr>
+</tbody></table>
+` +
+	templatefooter
+
+const backupstemplate = templateheader +
+	`{{with .Backups}}
+<table class="report">
+<thead><tr><th>ID</th><th>Name</th><th>Schedule</th><th>Finished</th><th>Size</th><th>Files</th></tr></thead>
+<tbody>
     {{range .}}
 	<tr>
         <td><a href="/backup/{{.Date}}">{{.Date}}</a></td>
@@ -104,15 +187,12 @@ const backupstemplate = `<!DOCTYPE html>
         <td>{{if .Files}}{{.Files}}{{end}}</td>
 	</tr>
     {{end}}
+</tbody>
 </table>
-{{end}}
-<hr>
-{{.Date}}
-</body>
-</html>
-`
+{{end}}` +
+	templatefooter
 
-var backupspage = template.New("Info template")
+var homepage, configpage, backupspage template.Template
 
 func DateExpander(args ...interface{}) string {
 	ok := false
@@ -149,11 +229,37 @@ func stylesheets(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, css)
 }
 
+func webhome(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
+
+	report := &BackupsReport{
+		Report: Report{
+			Title: "Backups",
+			Date:  time.Now(),
+		},
+		Backups: []BackupInfo{},
+	}
+	homepage.Execute(w, report)
+}
+
+func webconfig(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
+
+	report := &ConfigReport{
+		Report: Report{
+			Title: "Configuration",
+			Date:  time.Now(),
+		},
+		Config: cfg,
+	}
+	configpage.Execute(w, report)
+}
+
 func webinfo(w http.ResponseWriter, r *http.Request) {
 	date = 0
 	name = ""
 
-	req := strings.SplitN(r.RequestURI[1:], "/", 3)
+	req := strings.SplitN(r.RequestURI[1:], "/", 2)
 	if len(req) > 1 && len(req[1]) > 0 {
 		name = req[1]
 	}
@@ -241,26 +347,36 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 	backupspage.Execute(w, report)
 }
 
-func web() {
-	var err error
+func setuptemplate(s string) template.Template {
+	t := template.New("webpage template")
+	t = t.Funcs(template.FuncMap{"date": DateExpander})
+	t = t.Funcs(template.FuncMap{"bytes": BytesExpander})
+	t, err := t.Parse(s)
+	if err != nil {
+		log.Println(err)
+		log.Fatal("Could no start web interface: ", err)
+	}
+	return *t
+}
 
+func web() {
 	listen := ":8080"
 	flag.StringVar(&listen, "listen", listen, "Address to listen to")
 	flag.StringVar(&listen, "l", listen, "-listen")
 	Setup()
 
-	backupspage = backupspage.Funcs(template.FuncMap{"date": DateExpander})
-	backupspage = backupspage.Funcs(template.FuncMap{"bytes": BytesExpander})
-	backupspage, err = backupspage.Parse(backupstemplate)
-	if err != nil {
-		log.Println(err)
-		log.Fatal("Could no start web interface: ", err)
-	}
+	verbose = false // disable verbose mode when using web ui
+
+	homepage = setuptemplate(homepagetemplate)
+	configpage = setuptemplate(configtemplate)
+	backupspage = setuptemplate(backupstemplate)
 
 	http.HandleFunc("/css/", stylesheets)
 	http.HandleFunc("/info/", webinfo)
 	http.HandleFunc("/list/", webinfo)
 	http.HandleFunc("/backups/", webinfo)
+	http.HandleFunc("/config/", webconfig)
+	http.HandleFunc("/", webhome)
 	if err := http.ListenAndServe(listen, nil); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		log.Fatal("Could no start web interface: ", err)
