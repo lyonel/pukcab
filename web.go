@@ -101,6 +101,10 @@ a:active {
     border-bottom: 1px solid #ccc;
 }
 
+.caution:hover {
+    background-color: #f66;
+}
+
 .submenu a {
     padding: 10px 11px;
     text-decoration:none;
@@ -218,8 +222,8 @@ const configtemplate = templateheader + `
 
 const backupstemplate = templateheader +
 	`<div class="submenu">
-<a class="label" href=".">Default</a>
-<a class="label" href="*">All</a>
+<a class="label" href="/backups/">Default</a>
+<a class="label" href="/backups/*">All</a>
 </div>
 	{{with .Backups}}
 <table class="report">
@@ -227,7 +231,7 @@ const backupstemplate = templateheader +
 <tbody>
     {{range .}}
 	<tr>
-        <td><a href="/backup/{{.Date}}">{{.Date}}</a></td>
+        <td><a href="/backups/{{.Name}}/{{.Date}}">{{.Date}}</a></td>
         <td><a href="{{.Name}}">{{.Name}}</a></td>
         <td>{{.Schedule}}</td>
         <td>{{.Finished | date}}</td>
@@ -240,13 +244,41 @@ const backupstemplate = templateheader +
 {{end}}` +
 	templatefooter
 
-var homepage, configpage, backupspage template.Template
+const backuptemplate = templateheader +
+	`<div class="submenu">
+<a class="caution" href=".">Delete</a>
+</div>
+	{{with .Backups}}
+<table class="report">
+<tbody>
+    {{range .}}
+	<tr><th>ID</th><td>{{.Date}}</td></tr>
+        <tr><th>Name</th><td>{{.Name}}</td></tr>
+        <tr><th>Schedule</th><td>{{.Schedule}}</td></tr>
+        <tr><th>Started</th><td>{{.Date | date}}</td></tr>
+        <tr><th>Finished</th><td>{{.Finished | date}}</td></tr>
+        {{if .Size}}<tr><th>Size</th><td>{{.Size | bytes}}</td></tr>{{end}}
+        {{if .Files}}<tr><th>Files</th><td>{{.Files}}</td></tr>{{end}}
+    {{end}}
+</tbody>
+</table>
+{{end}}` +
+	templatefooter
+
+var homepage, configpage, backupspage, backuppage template.Template
 
 func DateExpander(args ...interface{}) string {
 	ok := false
 	var t time.Time
 	if len(args) == 1 {
 		t, ok = args[0].(time.Time)
+
+		if !ok {
+			var d BackupID
+			if d, ok = args[0].(BackupID); ok {
+				t = time.Unix(int64(d), 0)
+			}
+		}
 	}
 	if !ok {
 		return fmt.Sprint(args...)
@@ -311,7 +343,7 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 	date = 0
 	name = ""
 
-	req := strings.SplitN(r.RequestURI[1:], "/", 2)
+	req := strings.SplitN(r.RequestURI[1:], "/", 3)
 	if len(req) > 1 && len(req[1]) > 0 {
 		name = req[1]
 	}
@@ -333,10 +365,6 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 
 	args := []string{"metadata"}
-	if date != 0 {
-		args = append(args, "-date", fmt.Sprintf("%d", date))
-		verbose = true
-	}
 	if name != "" {
 		args = append(args, "-name", name)
 	}
@@ -385,7 +413,9 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 				log.Println(err)
 				return
 			} else {
-				report.Backups = append(report.Backups, header)
+				if date == 0 || header.Date == date {
+					report.Backups = append(report.Backups, header)
+				}
 			}
 		}
 	}
@@ -396,7 +426,12 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	backupspage.Execute(w, report)
+	if len(report.Backups) > 1 {
+		backupspage.Execute(w, report)
+	} else {
+		report.Title = "Backup"
+		backuppage.Execute(w, report)
+	}
 }
 
 func setuptemplate(s string) template.Template {
@@ -422,6 +457,7 @@ func web() {
 	homepage = setuptemplate(homepagetemplate)
 	configpage = setuptemplate(configtemplate)
 	backupspage = setuptemplate(backupstemplate)
+	backuppage = setuptemplate(backuptemplate)
 
 	http.HandleFunc("/css/", stylesheets)
 	http.HandleFunc("/info/", webinfo)
