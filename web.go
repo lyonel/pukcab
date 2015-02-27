@@ -156,6 +156,9 @@ table.report {
 .report thead+tbody tr:hover {
     background-color: #e5e9ec !important;
 }
+.rowtitle {
+    text-align: right;
+}
 `
 
 const mainmenu = `<div class="mainmenu">
@@ -182,9 +185,9 @@ const homepagetemplate = templateheader + `
 <a class="label" href="/config">Configuration</a>
 </div>
 <table class="report"><tbody>
-{{if .Name}}<tr><th>Name</th><td>{{.Name}}</td></tr>{{end}}
-{{if .Major}}<tr><th>Pukcab</th><td>{{.Major}}.{{.Minor}}</td></tr>{{end}}
-{{if .OS}}<tr><th>OS</th><td>{{.OS}}/{{if .Arch}}{{.Arch}}{{end}}</td></tr>{{end}}
+{{if .Name}}<tr><th class="rowtitle">Name</th><td>{{.Name}}</td></tr>{{end}}
+{{if .Major}}<tr><th class="rowtitle">Pukcab</th><td>{{.Major}}.{{.Minor}}</td></tr>{{end}}
+{{if .OS}}<tr><th class="rowtitle">OS</th><td>{{.OS}}/{{if .Arch}}{{.Arch}}{{end}}</td></tr>{{end}}
 </tbody></table>
 ` +
 	templatefooter
@@ -196,22 +199,22 @@ const configtemplate = templateheader + `
 </div>
 <table class="report"><tbody>
 {{if .Server}}
-<tr><th>Role</th><td>client</td></tr>
-<tr><th>Server</th><td>{{.Server}}</td></tr>
-{{if .Port}}<tr><th>Port</th><td>{{.Port}}</td></tr>{{end}}
+<tr><th class="rowtitle">Role</th><td>client</td></tr>
+<tr><th class="rowtitle">Server</th><td>{{.Server}}</td></tr>
+{{if .Port}}<tr><th class="rowtitle">Port</th><td>{{.Port}}</td></tr>{{end}}
 {{else}}
-<tr><th>Role</th><td>server</td></tr>
-{{if .Vault}}<tr><th>Vault</th><td><tt>{{.Vault}}</tt></td></tr>{{end}}
-{{if .Catalog}}<tr><th>Catalog</th><td><tt>{{.Catalog}}</tt></td></tr>{{end}}
-{{if .Maxtries}}<tr><th>Maxtries</th><td>{{.Maxtries}}</td></tr>{{end}}
+<tr><th class="rowtitle">Role</th><td>server</td></tr>
+{{if .Vault}}<tr><th class="rowtitle">Vault</th><td><tt>{{.Vault}}</tt></td></tr>{{end}}
+{{if .Catalog}}<tr><th class="rowtitle">Catalog</th><td><tt>{{.Catalog}}</tt></td></tr>{{end}}
+{{if .Maxtries}}<tr><th class="rowtitle">Maxtries</th><td>{{.Maxtries}}</td></tr>{{end}}
 {{end}}
-{{if .User}}<tr><th>User</th><td>{{.User}}</td></tr>{{end}}
-<tr><th>Include</th><td>
+{{if .User}}<tr><th class="rowtitle">User</th><td>{{.User}}</td></tr>{{end}}
+<tr><th class="rowtitle">Include</th><td>
 {{range .Include}}
 <tt>{{.}}</tt>
 {{end}}
 </td></tr>
-<tr><th>Exclude</th><td>
+<tr><th class="rowtitle">Exclude</th><td>
 {{range .Exclude}}
 <tt>{{.}}</tt>
 {{end}}
@@ -252,13 +255,13 @@ const backuptemplate = templateheader +
 <table class="report">
 <tbody>
     {{range .}}
-	<tr><th>ID</th><td>{{.Date}}</td></tr>
-        <tr><th>Name</th><td>{{.Name}}</td></tr>
-        <tr><th>Schedule</th><td>{{.Schedule}}</td></tr>
-        <tr><th>Started</th><td>{{.Date | date}}</td></tr>
-        <tr><th>Finished</th><td>{{.Finished | date}}</td></tr>
-        {{if .Size}}<tr><th>Size</th><td>{{.Size | bytes}}</td></tr>{{end}}
-        {{if .Files}}<tr><th>Files</th><td>{{.Files}}</td></tr>{{end}}
+	<tr><th class="rowtitle">ID</th><td>{{.Date}}</td></tr>
+        <tr><th class="rowtitle">Name</th><td>{{.Name}}</td></tr>
+        <tr><th class="rowtitle">Schedule</th><td>{{.Schedule}}</td></tr>
+        <tr><th class="rowtitle">Started</th><td>{{.Date | date}}</td></tr>
+        <tr><th class="rowtitle">Finished</th><td>{{.Finished | date}}</td></tr>
+        {{if .Size}}<tr><th class="rowtitle">Size</th><td>{{.Size | bytes}}</td></tr>{{end}}
+        {{if .Files}}<tr><th class="rowtitle">Files</th><td>{{.Files}}</td></tr>{{end}}
     {{end}}
 </tbody>
 </table>
