@@ -18,8 +18,6 @@ import (
 
 type Report struct {
 	Title string
-	Me string
-	Date  time.Time
 }
 
 type AboutReport struct {
@@ -52,8 +50,6 @@ func webhome(w http.ResponseWriter, r *http.Request) {
 	report := &AboutReport{
 		Report: Report{
 			Title: programName + " on " + defaultName,
-			Date:  time.Now(),
-			Me: defaultName,
 		},
 		Name:  defaultName,
 		Major: versionMajor,
@@ -70,8 +66,6 @@ func webconfig(w http.ResponseWriter, r *http.Request) {
 	report := &ConfigReport{
 		Report: Report{
 			Title: programName + " on " + defaultName,
-			Date:  time.Now(),
-			Me: defaultName,
 		},
 		Config: cfg,
 	}
@@ -126,8 +120,6 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 	report := &BackupsReport{
 		Report: Report{
 			Title: "Backups",
-			Date:  time.Now(),
-			Me: defaultName,
 		},
 		Backups: []BackupInfo{},
 	}
@@ -168,8 +160,8 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 
 	if len(report.Backups) > 1 {
 		for i, j := 0, len(report.Backups)-1; i < j; i, j = i+1, j-1 {
-		report.Backups[i], report.Backups[j] = report.Backups[j], report.Backups[i]
-	}
+			report.Backups[i], report.Backups[j] = report.Backups[j], report.Backups[i]
+		}
 		pages.ExecuteTemplate(w, "BACKUPS", report)
 	} else {
 		report.Title = "Backup"
@@ -185,8 +177,13 @@ func web() {
 
 	verbose = false // disable verbose mode when using web ui
 
-	pages = pages.Funcs(template.FuncMap{"date": DateExpander})
-	pages = pages.Funcs(template.FuncMap{"bytes": BytesExpander})
+	pages = pages.Funcs(template.FuncMap{
+		"date":     DateExpander,
+		"bytes":    BytesExpander,
+		"isserver": IsServer,
+		"now":      time.Now,
+		"hostname": os.Hostname,
+	})
 
 	setuptemplate(webparts)
 	setuptemplate(homepagetemplate)

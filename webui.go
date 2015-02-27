@@ -131,6 +131,7 @@ table.report {
 const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 <a href="/">Home</a>
 <a href="/backups">Backups</a>
+{{if isserver}}<a href="/tools">Tools</a>{{end}}
 </div>{{end}}
 {{define "HEADER"}}<!DOCTYPE html>
 <html>
@@ -139,7 +140,7 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 <link rel="stylesheet" href="/css/default.css">
 <body>
 <h1>{{.Title}}</h1>{{template "MAINMENU" .}}{{end}}
-{{define "FOOTER"}}<div class="footer">{{.Date}}</div>
+{{define "FOOTER"}}<div class="footer">{{now}}</div>
 </body>
 </html>{{end}}`
 
@@ -187,10 +188,10 @@ const configtemplate = `{{define "CONFIG"}}{{template "HEADER" .}}
 
 const backupstemplate = `{{define "BACKUPS"}}{{template "HEADER" .}}
 <div class="submenu">
-<a class="label" href="/backups/">&#9733;</a>
+{{if not isserver}}<a class="label" href="/backups/">&#9733;</a>{{end}}
 <a class="label" href="/backups/*">All</a>
 </div>
-{{$me := .Me}}
+{{$me := hostname}}
 	{{with .Backups}}
 <table class="report">
 <thead><tr><th>ID</th><th>Name</th><th>Schedule</th><th>Finished</th><th>Size</th><th>Files</th></tr></thead>
