@@ -138,12 +138,12 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 <title>{{.Title}}</title>
 <link rel="stylesheet" href="/css/default.css">
 <body>
-<h1>{{.Title}}</h1>{{template "MAINMENU"}}{{end}}
+<h1>{{.Title}}</h1>{{template "MAINMENU" .}}{{end}}
 {{define "FOOTER"}}<div class="footer">{{.Date}}</div>
 </body>
 </html>{{end}}`
 
-const homepagetemplate = `{{define "HOME"}}{{template "HEADER"}}
+const homepagetemplate = `{{define "HOME"}}{{template "HEADER" .}}
 <div class="submenu">
 <a class="label" href="/about">About</a>
 <a class="label" href="/config">Configuration</a>
@@ -153,9 +153,9 @@ const homepagetemplate = `{{define "HOME"}}{{template "HEADER"}}
 {{if .Major}}<tr><th class="rowtitle">Pukcab</th><td>{{.Major}}.{{.Minor}}</td></tr>{{end}}
 {{if .OS}}<tr><th class="rowtitle">OS</th><td>{{.OS}}/{{if .Arch}}{{.Arch}}{{end}}</td></tr>{{end}}
 </tbody></table>
-{{template "FOOTER"}}{{end}}`
+{{template "FOOTER" .}}{{end}}`
 
-const configtemplate = `{{define "CONFIG"}}{{template "HEADER"}}
+const configtemplate = `{{define "CONFIG"}}{{template "HEADER" .}}
 <div class="submenu">
 <a class="label" href="/about">About</a>
 <a class="label" href="/config">Configuration</a>
@@ -183,9 +183,9 @@ const configtemplate = `{{define "CONFIG"}}{{template "HEADER"}}
 {{end}}
 </td></tr>
 </tbody></table>
-{{template "FOOTER"}}{{end}}`
+{{template "FOOTER" .}}{{end}}`
 
-const backupstemplate = `{{define "BACKUPS"}}{{template "HEADER"}}
+const backupstemplate = `{{define "BACKUPS"}}{{template "HEADER" .}}
 <div class="submenu">
 <a class="label" href="/backups/">&#9733;</a>
 <a class="label" href="/backups/*">All</a>
@@ -208,9 +208,9 @@ const backupstemplate = `{{define "BACKUPS"}}{{template "HEADER"}}
 </tbody>
 </table>
 {{end}}
-{{template "FOOTER"}}{{end}}`
+{{template "FOOTER" .}}{{end}}`
 
-const backuptemplate = `{{define "BACKUP"}}{{template "HEADER"}}
+const backuptemplate = `{{define "BACKUP"}}{{template "HEADER" .}}
 {{with .Backups}}
     {{range .}}
 <div class="submenu">{{if .Files}}<a href="/files/{{.Date}}">Open</a><a href="/verify/{{.Date}}">&#10003; Verify</a>{{end}}<a href="/delete/{{.Date}}" class="caution">&#10006; Delete</a></div>
@@ -227,7 +227,7 @@ const backuptemplate = `{{define "BACKUP"}}{{template "HEADER"}}
 </table>
     {{end}}
 {{end}}
-{{template "FOOTER"}}{{end}}`
+{{template "FOOTER" .}}{{end}}`
 
 var pages = template.New("webpages")
 
