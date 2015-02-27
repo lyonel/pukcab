@@ -18,6 +18,7 @@ import (
 
 type Report struct {
 	Title string
+	Me string
 	Date  time.Time
 }
 
@@ -225,9 +226,10 @@ const configtemplate = templateheader + `
 
 const backupstemplate = templateheader +
 	`<div class="submenu">
-<a class="label" href="/backups/">Default</a>
+<a class="label" href="/backups/">&#9733;</a>
 <a class="label" href="/backups/*">All</a>
 </div>
+{{$me := .Me}}
 	{{with .Backups}}
 <table class="report">
 <thead><tr><th>ID</th><th>Name</th><th>Schedule</th><th>Finished</th><th>Size</th><th>Files</th></tr></thead>
@@ -235,7 +237,7 @@ const backupstemplate = templateheader +
     {{range .}}
 	<tr>
         <td><a href="/backups/{{.Name}}/{{.Date}}">{{.Date}}</a></td>
-        <td><a href="{{.Name}}">{{.Name}}</a></td>
+        <td>{{if eq .Name $me}}&#9733;{{end}}<a href="{{.Name}}">{{.Name}}</a></td>
         <td>{{.Schedule}}</td>
         <td>{{.Finished | date}}</td>
         <td>{{if .Size}}{{.Size | bytes}}{{end}}</td>
@@ -248,13 +250,11 @@ const backupstemplate = templateheader +
 	templatefooter
 
 const backuptemplate = templateheader +
-	`<div class="submenu">
-<a class="caution" href=".">Delete</a>
-</div>
-	{{with .Backups}}
+	`{{with .Backups}}
+    {{range .}}
+<div class="submenu">{{if .Files}}<a href="/files/{{.Date}}">Open</a><a href="/verify/{{.Date}}">&#10003; Verify</a>{{end}}<a href="/delete/{{.Date}}" class="caution">&#10006; Delete</a></div>
 <table class="report">
 <tbody>
-    {{range .}}
 	<tr><th class="rowtitle">ID</th><td>{{.Date}}</td></tr>
         <tr><th class="rowtitle">Name</th><td>{{.Name}}</td></tr>
         <tr><th class="rowtitle">Schedule</th><td>{{.Schedule}}</td></tr>
@@ -262,9 +262,9 @@ const backuptemplate = templateheader +
         <tr><th class="rowtitle">Finished</th><td>{{.Finished | date}}</td></tr>
         {{if .Size}}<tr><th class="rowtitle">Size</th><td>{{.Size | bytes}}</td></tr>{{end}}
         {{if .Files}}<tr><th class="rowtitle">Files</th><td>{{.Files}}</td></tr>{{end}}
-    {{end}}
 </tbody>
 </table>
+    {{end}}
 {{end}}` +
 	templatefooter
 
@@ -319,6 +319,7 @@ func webhome(w http.ResponseWriter, r *http.Request) {
 		Report: Report{
 			Title: programName + " on " + defaultName,
 			Date:  time.Now(),
+			Me: defaultName,
 		},
 		Name:  defaultName,
 		Major: versionMajor,
@@ -336,6 +337,7 @@ func webconfig(w http.ResponseWriter, r *http.Request) {
 		Report: Report{
 			Title: programName + " on " + defaultName,
 			Date:  time.Now(),
+			Me: defaultName,
 		},
 		Config: cfg,
 	}
@@ -391,6 +393,7 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 		Report: Report{
 			Title: "Backups",
 			Date:  time.Now(),
+			Me: defaultName,
 		},
 		Backups: []BackupInfo{},
 	}
@@ -430,6 +433,9 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(report.Backups) > 1 {
+		for i, j := 0, len(report.Backups)-1; i < j; i, j = i+1, j-1 {
+		report.Backups[i], report.Backups[j] = report.Backups[j], report.Backups[i]
+	}
 		backupspage.Execute(w, report)
 	} else {
 		report.Title = "Backup"
