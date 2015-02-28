@@ -162,10 +162,14 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 		for i, j := 0, len(report.Backups)-1; i < j; i, j = i+1, j-1 {
 			report.Backups[i], report.Backups[j] = report.Backups[j], report.Backups[i]
 		}
-		pages.ExecuteTemplate(w, "BACKUPS", report)
+		if err := pages.ExecuteTemplate(w, "BACKUPS", report); err != nil {
+			log.Println(err)
+		}
 	} else {
 		report.Title = "Backup"
-		pages.ExecuteTemplate(w, "BACKUP", report)
+		if err := pages.ExecuteTemplate(w, "BACKUP", report); err != nil {
+			log.Println(err)
+		}
 	}
 }
 
@@ -233,6 +237,7 @@ func web() {
 	pages = pages.Funcs(template.FuncMap{
 		"date":     DateExpander,
 		"bytes":    BytesExpander,
+		"status":   BackupStatus,
 		"isserver": IsServer,
 		"now":      time.Now,
 		"hostname": os.Hostname,
