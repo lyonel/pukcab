@@ -169,6 +169,59 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func webtools(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
+
+	report := &ConfigReport{
+		Report: Report{
+			Title: programName + " on " + defaultName,
+		},
+		Config: cfg,
+	}
+	pages.ExecuteTemplate(w, "TOOLS", report)
+}
+
+func webdelete(w http.ResponseWriter, r *http.Request) {
+	date = 0
+	name = ""
+
+	req := strings.SplitN(r.RequestURI[1:], "/", 3)
+
+	if len(req) != 3 {
+		http.Error(w, "Invalid request", http.StatusNotAcceptable)
+		return
+	}
+
+	if len(req[1]) > 0 {
+		name = req[1]
+	}
+	if len(req[2]) > 0 {
+		if d, err := strconv.Atoi(req[2]); err == nil {
+			date = BackupID(d)
+		}
+	}
+
+	if date == 0 || name == "" {
+		http.Error(w, "Invalid request", http.StatusNotAcceptable)
+		return
+	}
+
+	//w.Header().Set("Content-Type", "text/html; charset=UTF-8")
+
+	args := []string{"purgebackup", "-name", name, "-date", fmt.Sprintf("%d", date)}
+	cmd := remotecommand(args...)
+
+	if err := cmd.Start(); err != nil {
+		fmt.Fprintln(w, "Backend error:", err)
+		log.Println(cmd.Args, err)
+		return
+	}
+
+	go cmd.Wait()
+
+	http.Redirect(w, r, "/backups/", http.StatusFound)
+}
+
 func web() {
 	listen := ":8080"
 	flag.StringVar(&listen, "listen", listen, "Address to listen to")
@@ -190,14 +243,17 @@ func web() {
 	setuptemplate(configtemplate)
 	setuptemplate(backupstemplate)
 	setuptemplate(backuptemplate)
+	setuptemplate(toolstemplate)
 
 	http.HandleFunc("/css/", stylesheets)
 	http.HandleFunc("/info/", webinfo)
 	http.HandleFunc("/list/", webinfo)
 	http.HandleFunc("/backups/", webinfo)
 	http.HandleFunc("/config/", webconfig)
+	http.HandleFunc("/tools/", webtools)
 	http.HandleFunc("/", webhome)
-	http.HandleFunc("/about", webhome)
+	http.HandleFunc("/about/", webhome)
+	http.HandleFunc("/delete/", webdelete)
 	if err := http.ListenAndServe(listen, nil); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		log.Fatal("Could no start web interface: ", err)

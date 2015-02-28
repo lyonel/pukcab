@@ -214,7 +214,7 @@ const backupstemplate = `{{define "BACKUPS"}}{{template "HEADER" .}}
 const backuptemplate = `{{define "BACKUP"}}{{template "HEADER" .}}
 {{with .Backups}}
     {{range .}}
-<div class="submenu">{{if .Files}}<a href="/files/{{.Date}}">Open</a><a href="/verify/{{.Date}}">&#10003; Verify</a>{{end}}<a href="/delete/{{.Date}}" class="caution">&#10006; Delete</a></div>
+<div class="submenu">{{if .Files}}<a href="">Open</a><a href="">&#10003; Verify</a>{{end}}<a href="/delete/{{.Name}}/{{.Date}}" class="caution">&#10006; Delete</a></div>
 <table class="report">
 <tbody>
 	<tr><th class="rowtitle">ID</th><td>{{.Date}}</td></tr>
@@ -228,6 +228,15 @@ const backuptemplate = `{{define "BACKUP"}}{{template "HEADER" .}}
 </table>
     {{end}}
 {{end}}
+{{template "FOOTER" .}}{{end}}`
+
+const toolstemplate = `{{define "TOOLS"}}{{template "HEADER" .}}
+<div class="submenu">
+<a class="label" href="/tools/vacuum">Vacuum</a>
+<a class="label" href="/tools/fsck">Check storage</a>
+</div>
+<table class="report"><tbody>
+</tbody></table>
 {{template "FOOTER" .}}{{end}}`
 
 var pages = template.New("webpages")
