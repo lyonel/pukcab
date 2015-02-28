@@ -7,14 +7,14 @@ import (
 	"time"
 )
 
-const css = `
-body {
-    font-family: "Open Sans", Verdana, Geneva, Arial, Helvetica, sans-serif ;
-    font-weight: normal;
+const css =
+`body {
+    font-family: sans-serif;
+    font-weight: light;
 }
 
 tt {
-    font-size: 1.2em;
+    font-family: Inconsolata, Consolas, Monaco, "Andale Mono";
     background: #eee;
     border: 1px solid #ccc;
     padding: 1px;
@@ -128,7 +128,8 @@ table.report {
 }
 `
 
-const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
+const webparts =
+`{{define "MAINMENU"}}<div class="mainmenu">
 <a href="/">Home</a>
 <a href="/backups">Backups</a>
 {{if isserver}}<a href="/tools">Tools</a>{{end}}
@@ -144,7 +145,8 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 </body>
 </html>{{end}}`
 
-const homepagetemplate = `{{define "HOME"}}{{template "HEADER" .}}
+const homepagetemplate =
+`{{define "HOME"}}{{template "HEADER" .}}
 <div class="submenu">
 <a class="label" href="/about">About</a>
 <a class="label" href="/config">Configuration</a>
@@ -186,7 +188,8 @@ const configtemplate = `{{define "CONFIG"}}{{template "HEADER" .}}
 </tbody></table>
 {{template "FOOTER" .}}{{end}}`
 
-const backupstemplate = `{{define "BACKUPS"}}{{template "HEADER" .}}
+const backupstemplate =
+`{{define "BACKUPS"}}{{template "HEADER" .}}
 <div class="submenu">
 {{if not isserver}}<a class="label" href="/backups/">&#9733;</a>{{end}}
 <a class="label" href="/backups/*">All</a>
@@ -211,7 +214,8 @@ const backupstemplate = `{{define "BACKUPS"}}{{template "HEADER" .}}
 {{end}}
 {{template "FOOTER" .}}{{end}}`
 
-const backuptemplate = `{{define "BACKUP"}}{{template "HEADER" .}}
+const backuptemplate =
+`{{define "BACKUP"}}{{template "HEADER" .}}
 {{with .Backups}}
     {{range .}}
 <div class="submenu">{{if .Files}}<a href="">Open</a><a href="">&#10003; Verify</a>{{end}}<a href="/delete/{{.Name}}/{{.Date}}" class="caution">&#10006; Delete</a></div>
@@ -230,7 +234,8 @@ const backuptemplate = `{{define "BACKUP"}}{{template "HEADER" .}}
 {{end}}
 {{template "FOOTER" .}}{{end}}`
 
-const toolstemplate = `{{define "TOOLS"}}{{template "HEADER" .}}
+const toolstemplate =
+`{{define "TOOLS"}}{{template "HEADER" .}}
 <div class="submenu">
 <a class="label" href="/tools/vacuum">Vacuum</a>
 <a class="label" href="/tools/fsck">Check storage</a>
@@ -262,7 +267,18 @@ func DateExpander(args ...interface{}) string {
 		return ""
 	}
 
-	return t.Format(time.RFC822)
+	switch duration := time.Since(t); {
+		case duration < 24*time.Hour:
+			return t.Format("15:04")
+		case duration < 48*time.Hour:
+			return t.Format("yesterday 15:04")
+		case duration < 7*24*time.Hour:
+			return t.Format("Mon 15:04")
+		case duration < 365*24*time.Hour:
+			return t.Format("2 Jan 15:04")
+	}
+
+	return t.Format("2 Jan 2006 15:04")
 }
 
 func BytesExpander(args ...interface{}) string {
