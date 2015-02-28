@@ -197,16 +197,15 @@ const backupstemplate =
 {{$me := hostname}}
 	{{with .Backups}}
 <table class="report">
-<thead><tr><th>ID</th><th>Name</th><th>Schedule</th><th>Finished</th><th>Size</th><th>Files</th></tr></thead>
+<thead><tr><th>ID</th><th>Name</th><th>Schedule</th><th>Finished</th><th>Size</th></tr></thead>
 <tbody>
     {{range .}}
 	<tr>
         <td><a href="/backups/{{.Name}}/{{.Date}}">{{.Date}}</a></td>
         <td><a href="{{.Name}}">{{.Name}}</a>{{if eq .Name $me}} &#9734;{{end}}</td>
         <td>{{.Schedule}}</td>
-        <td>{{.Finished | date}}</td>
-        <td>{{if .Size}}{{.Size | bytes}}{{end}}</td>
-        <td>{{if .Files}}{{.Files}}{{end}}</td>
+        <td title="{{.Finished}}">{{.Finished | date}}</td>
+        <td {{if .Files}}title="{{.Files}} files"{{end}}>{{if .Size}}{{.Size | bytes}}{{end}}</td>
 	</tr>
     {{end}}
 </tbody>
@@ -225,7 +224,7 @@ const backuptemplate =
         <tr><th class="rowtitle">Name</th><td>{{.Name}}</td></tr>
         <tr><th class="rowtitle">Schedule</th><td>{{.Schedule}}</td></tr>
         <tr><th class="rowtitle">Started</th><td>{{.Date | date}}</td></tr>
-        <tr><th class="rowtitle">Finished</th><td>{{.Finished | date}}</td></tr>
+        <tr><th class="rowtitle">Finished</th><td title="{{.Finished}}">{{.Finished | date}}</td></tr>
         {{if .Size}}<tr><th class="rowtitle">Size</th><td>{{.Size | bytes}}</td></tr>{{end}}
         {{if .Files}}<tr><th class="rowtitle">Files</th><td>{{.Files}}</td></tr>{{end}}
 </tbody>
@@ -269,13 +268,13 @@ func DateExpander(args ...interface{}) string {
 
 	switch duration := time.Since(t); {
 		case duration < 24*time.Hour:
-			return t.Format("15:04")
+			return t.Format("Today 15:04")
 		case duration < 48*time.Hour:
-			return t.Format("yesterday 15:04")
+			return t.Format("Yesterday 15:04")
 		case duration < 7*24*time.Hour:
-			return t.Format("Mon 15:04")
+			return t.Format("Monday 15:04")
 		case duration < 365*24*time.Hour:
-			return t.Format("2 Jan 15:04")
+			return t.Format("2 January 15:04")
 	}
 
 	return t.Format("2 Jan 2006 15:04")
