@@ -83,6 +83,9 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 	if len(req) > 2 && len(req[2]) > 0 {
 		if d, err := strconv.Atoi(req[2]); err == nil {
 			date = BackupID(d)
+		} else {
+			http.Error(w, "Invalid request", http.StatusNotAcceptable)
+			return
 		}
 	}
 
@@ -94,26 +97,22 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 		name = ""
 	}
 
-	w.Header().Set("Refresh", "900")
-	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
-
 	args := []string{"metadata"}
 	if name != "" {
 		args = append(args, "-name", name)
 	}
-	args = append(args, flag.Args()...)
 	cmd := remotecommand(args...)
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		fmt.Fprintln(w, "Backend error:", err)
 		log.Println(cmd.Args, err)
+		http.Error(w, "Backend error: "+err.Error(), http.StatusServiceUnavailable)
 		return
 	}
 
 	if err := cmd.Start(); err != nil {
-		fmt.Fprintln(w, "Backend error:", err)
 		log.Println(cmd.Args, err)
+		http.Error(w, "Backend error: "+err.Error(), http.StatusServiceUnavailable)
 		return
 	}
 
@@ -131,8 +130,8 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 		if err != nil {
-			fmt.Fprintln(w, "Backend error:", err)
 			log.Println(err)
+			http.Error(w, "Backend error: "+err.Error(), http.StatusBadGateway)
 			return
 		}
 
@@ -141,7 +140,7 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 			var header BackupInfo
 			dec := gob.NewDecoder(tr)
 			if err := dec.Decode(&header); err != nil {
-				fmt.Fprintln(w, "Protocol error:", err)
+				http.Error(w, "Protocol error: "+err.Error(), http.StatusBadGateway)
 				log.Println(err)
 				return
 			} else {
@@ -153,10 +152,13 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := cmd.Wait(); err != nil {
-		fmt.Fprintln(w, "Backend error:", err)
 		log.Println(cmd.Args, err)
+		http.Error(w, "Backend error: "+err.Error(), http.StatusServiceUnavailable)
 		return
 	}
+
+	w.Header().Set("Refresh", "900")
+	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 
 	if len(report.Backups) > 1 {
 		for i, j := 0, len(report.Backups)-1; i < j; i, j = i+1, j-1 {
@@ -164,11 +166,13 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 		}
 		if err := pages.ExecuteTemplate(w, "BACKUPS", report); err != nil {
 			log.Println(err)
+			http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
 		}
 	} else {
 		report.Title = "Backup"
 		if err := pages.ExecuteTemplate(w, "BACKUP", report); err != nil {
 			log.Println(err)
+			http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
 		}
 	}
 }
@@ -202,6 +206,9 @@ func webdelete(w http.ResponseWriter, r *http.Request) {
 	if len(req[2]) > 0 {
 		if d, err := strconv.Atoi(req[2]); err == nil {
 			date = BackupID(d)
+		} else {
+			http.Error(w, "Invalid request", http.StatusNotAcceptable)
+			return
 		}
 	}
 
@@ -210,14 +217,12 @@ func webdelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//w.Header().Set("Content-Type", "text/html; charset=UTF-8")
-
 	args := []string{"purgebackup", "-name", name, "-date", fmt.Sprintf("%d", date)}
 	cmd := remotecommand(args...)
 
 	if err := cmd.Start(); err != nil {
-		fmt.Fprintln(w, "Backend error:", err)
 		log.Println(cmd.Args, err)
+		http.Error(w, "Backend error: "+err.Error(), http.StatusServiceUnavailable)
 		return
 	}
 
