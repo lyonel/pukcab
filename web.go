@@ -22,14 +22,15 @@ type Report struct {
 
 type AboutReport struct {
 	Report
-	Name  string
-	Major int
-	Minor int
-	OS    string
-	Arch  string
-	CPUs int
-	Goroutines int
+	Name          string
+	Major         int
+	Minor         int
+	OS            string
+	Arch          string
+	CPUs          int
+	Goroutines    int
 	Bytes, Memory int64
+	Load          float64
 }
 
 type ConfigReport struct {
@@ -56,15 +57,16 @@ func webhome(w http.ResponseWriter, r *http.Request) {
 		Report: Report{
 			Title: programName + " on " + defaultName,
 		},
-		Name:  defaultName,
-		Major: versionMajor,
-		Minor: versionMinor,
-		OS:    strings.ToTitle(runtime.GOOS[:1]) + runtime.GOOS[1:],
-		Arch:  runtime.GOARCH,
-		CPUs: runtime.NumCPU(),
+		Name:       defaultName,
+		Major:      versionMajor,
+		Minor:      versionMinor,
+		OS:         strings.ToTitle(runtime.GOOS[:1]) + runtime.GOOS[1:],
+		Arch:       runtime.GOARCH,
+		CPUs:       runtime.NumCPU(),
 		Goroutines: runtime.NumGoroutine(),
-		Bytes: int64(mem.Alloc),
-		Memory: int64(mem.Sys),
+		Bytes:      int64(mem.Alloc),
+		Memory:     int64(mem.Sys),
+		Load:       LoadAvg(),
 	}
 	pages.ExecuteTemplate(w, "HOME", report)
 }

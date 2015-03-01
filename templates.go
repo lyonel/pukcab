@@ -172,6 +172,7 @@ const homepagetemplate = `{{define "HOME"}}{{template "HEADER" .}}
 {{if .Major}}<tr><th class="rowtitle">Pukcab</th><td>{{.Major}}.{{.Minor}}</td></tr>{{end}}
 {{if .OS}}<tr><th class="rowtitle">OS</th><td>{{.OS}}/{{if .Arch}}{{.Arch}}{{end}}</td></tr>{{end}}
 {{if .CPUs}}<tr><th class="rowtitle">CPU(s)</th><td>{{.CPUs}}</td></tr>{{end}}
+{{if .Load}}<tr><th class="rowtitle">Load</th><td>{{.Load}}</td></tr>{{end}}
 {{if .Goroutines}}<tr><th class="rowtitle">Tasks</th><td>{{.Goroutines}}</td></tr>{{end}}
 {{if .Bytes}}<tr><th class="rowtitle">Memory</th><td>{{.Memory | bytes}} ({{.Bytes | bytes}} used)</td></tr>{{end}}
 </tbody></table>
