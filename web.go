@@ -171,17 +171,17 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Refresh", "900")
 	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 
-	if len(report.Backups) > 1 {
-		for i, j := 0, len(report.Backups)-1; i < j; i, j = i+1, j-1 {
-			report.Backups[i], report.Backups[j] = report.Backups[j], report.Backups[i]
-		}
-		if err := pages.ExecuteTemplate(w, "BACKUPS", report); err != nil {
+	if len(report.Backups) == 1 {
+		report.Title = "Backup"
+		if err := pages.ExecuteTemplate(w, "BACKUP", report); err != nil {
 			log.Println(err)
 			http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
 		}
 	} else {
-		report.Title = "Backup"
-		if err := pages.ExecuteTemplate(w, "BACKUP", report); err != nil {
+		for i, j := 0, len(report.Backups)-1; i < j; i, j = i+1, j-1 {
+			report.Backups[i], report.Backups[j] = report.Backups[j], report.Backups[i]
+		}
+		if err := pages.ExecuteTemplate(w, "BACKUPS", report); err != nil {
 			log.Println(err)
 			http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
 		}

@@ -127,6 +127,12 @@ table.report {
     text-align: right;
 }
 
+.placeholder {
+    font-size: .6em;
+    color: #ccc;
+    padding: 10em;
+}
+
 .starting {
     font-weight: bold;
     color: #0f0;
@@ -211,6 +217,7 @@ const backupstemplate = `{{define "BACKUPS"}}{{template "HEADER" .}}
 <a class="label" href="/backups/*">All</a>
 </div>
 {{$me := hostname}}
+{{$count := len .Backups}}
 	{{with .Backups}}
 <table class="report">
 <thead><tr><th>ID</th><th>Name</th><th>Schedule</th><th>Finished</th><th>Size</th></tr></thead>
@@ -227,6 +234,7 @@ const backupstemplate = `{{define "BACKUPS"}}{{template "HEADER" .}}
 </tbody>
 </table>
 {{end}}
+    {{if not $count}}<div class="placeholder">empty list</div>{{end}}
 {{template "FOOTER" .}}{{end}}`
 
 const backuptemplate = `{{define "BACKUP"}}{{template "HEADER" .}}
