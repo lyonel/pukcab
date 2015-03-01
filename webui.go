@@ -214,7 +214,7 @@ const backupstemplate = `{{define "BACKUPS"}}{{template "HEADER" .}}
 <tbody>
     {{range .}}
 	<tr class="{{. | status}}">
-        <td><a href="/backups/{{.Name}}/{{.Date}}">{{.Date}}</a></td>
+        <td title="{{. | status}}"><a href="/backups/{{.Name}}/{{.Date}}">{{.Date}}</a></td>
         <td><a href="{{.Name}}">{{.Name}}</a>{{if eq .Name $me}} &#9734;{{end}}</td>
         <td>{{.Schedule}}</td>
         <td title="{{.Finished}}">{{.Finished | date}}</td>
@@ -232,7 +232,7 @@ const backuptemplate = `{{define "BACKUP"}}{{template "HEADER" .}}
 <div class="submenu">{{if .Files}}<a href="">Open</a><a href="">&#10003; Verify</a>{{end}}<a href="/delete/{{.Name}}/{{.Date}}" class="caution">&#10006; Delete</a></div>
 <table class="report">
 <tbody>
-	<tr><th class="rowtitle">ID</th><td>{{.Date}}</td></tr>
+	<tr><th class="rowtitle">ID</th><td class="{{. | status}}" title="{{. | status}}">{{.Date}}</td></tr>
         <tr><th class="rowtitle">Name</th><td>{{.Name}}</td></tr>
         <tr><th class="rowtitle">Schedule</th><td>{{.Schedule}}</td></tr>
         <tr><th class="rowtitle">Started</th><td>{{.Date | date}}</td></tr>
