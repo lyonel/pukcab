@@ -27,6 +27,9 @@ type AboutReport struct {
 	Minor int
 	OS    string
 	Arch  string
+	CPUs int
+	Goroutines int
+	Bytes, Memory int64
 }
 
 type ConfigReport struct {
@@ -45,6 +48,8 @@ func stylesheets(w http.ResponseWriter, r *http.Request) {
 }
 
 func webhome(w http.ResponseWriter, r *http.Request) {
+	var mem runtime.MemStats
+	runtime.ReadMemStats(&mem)
 	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 
 	report := &AboutReport{
@@ -56,6 +61,10 @@ func webhome(w http.ResponseWriter, r *http.Request) {
 		Minor: versionMinor,
 		OS:    strings.ToTitle(runtime.GOOS[:1]) + runtime.GOOS[1:],
 		Arch:  runtime.GOARCH,
+		CPUs: runtime.NumCPU(),
+		Goroutines: runtime.NumGoroutine(),
+		Bytes: int64(mem.Alloc),
+		Memory: int64(mem.Sys),
 	}
 	pages.ExecuteTemplate(w, "HOME", report)
 }
@@ -260,7 +269,9 @@ func web() {
 	http.HandleFunc("/list/", webinfo)
 	http.HandleFunc("/backups/", webinfo)
 	http.HandleFunc("/config/", webconfig)
-	http.HandleFunc("/tools/", webtools)
+	if IsServer() {
+		http.HandleFunc("/tools/", webtools)
+	}
 	http.HandleFunc("/", webhome)
 	http.HandleFunc("/about/", webhome)
 	http.HandleFunc("/delete/", webdelete)
