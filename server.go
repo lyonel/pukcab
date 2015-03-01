@@ -512,6 +512,9 @@ func vacuum() {
 		defer tx.Commit()
 		log.Println("Vacuum...")
 
+		tx.Exec("DELETE FROM files WHERE backupid NOT IN (SELECT date FROM backups)")
+		tx.Exec("VACUUM")
+
 		unused := make(map[string]struct{})
 		if vaultfiles, err := ioutil.ReadDir(cfg.Vault); err == nil {
 			for _, f := range vaultfiles {
@@ -524,7 +527,7 @@ func vacuum() {
 			return
 		}
 
-		if datafiles, err := catalog.Query("SELECT DISTINCT hash FROM files"); err == nil {
+		if datafiles, err := tx.Query("SELECT DISTINCT hash FROM files"); err == nil {
 			defer datafiles.Close()
 			for datafiles.Next() {
 				var f string
