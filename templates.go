@@ -249,7 +249,7 @@ const backuptemplate = `{{define "BACKUP"}}{{template "HEADER" .}}
         <tr><th class="rowtitle">Name</th><td>{{.Name}}</td></tr>
         <tr><th class="rowtitle">Schedule</th><td>{{.Schedule}}</td></tr>
         <tr><th class="rowtitle">Started</th><td>{{.Date | date}}</td></tr>
-        <tr><th class="rowtitle">Finished</th><td title="{{.Finished}}">{{.Finished | date}}</td></tr>
+        {{if .Files}}<tr><th class="rowtitle">Finished</th><td title="{{.Finished}}">{{.Finished | date}}</td></tr>{{end}}
         {{if .Size}}<tr><th class="rowtitle">Size</th><td>{{.Size | bytes}}</td></tr>{{end}}
         {{if .Files}}<tr><th class="rowtitle">Files</th><td>{{.Files}}</td></tr>{{end}}
 </tbody>
