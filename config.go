@@ -61,14 +61,6 @@ func loadconfig() {
 			} else {
 				cfg.Exclude = append(cfg.Exclude, filepath.Join(pw.Dir, cfg.Vault))
 			}
-
-			if filepath.IsAbs(cfg.Catalog) {
-				cfg.Exclude = append(cfg.Exclude, cfg.Catalog, cfg.Catalog+"-*")
-			} else {
-				cfg.Exclude = append(cfg.Exclude,
-					filepath.Join(pw.Dir, cfg.Catalog),
-					filepath.Join(pw.Dir, cfg.Catalog+"-*"))
-			}
 		}
 	}
 }

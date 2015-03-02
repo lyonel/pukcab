@@ -139,6 +139,20 @@ func backup() {
 		}
 	}
 
+	if IsServer() {
+		if pw, err := Getpwnam(cfg.User); err == nil {
+			if filepath.IsAbs(cfg.Catalog) {
+				delete(backupset, cfg.Catalog)
+				delete(backupset, cfg.Catalog+"-shm")
+				delete(backupset, cfg.Catalog+"-wal")
+			} else {
+				delete(backupset, filepath.Join(pw.Dir, cfg.Catalog))
+				delete(backupset, filepath.Join(pw.Dir, cfg.Catalog+"-shm"))
+				delete(backupset, filepath.Join(pw.Dir, cfg.Catalog+"-wal"))
+			}
+		}
+	}
+
 	if verbose {
 		fmt.Print("Sending file list... ")
 	}
