@@ -20,6 +20,20 @@ import (
 	"github.com/antage/mntent"
 )
 
+type Backup struct {
+	name        string
+	backupset   map[string]struct{}
+	directories map[string]bool
+}
+
+func NewBackup(n string) *Backup {
+	return &Backup{
+		name:        n,
+		backupset:   make(map[string]struct{}),
+		directories: make(map[string]bool),
+	}
+}
+
 var start = time.Now()
 var directories map[string]bool
 var backupset map[string]struct{}
@@ -139,7 +153,7 @@ func backup() {
 		}
 	}
 
-	if IsServer() {
+	if cfg.IsServer() {
 		if pw, err := Getpwnam(cfg.User); err == nil {
 			if filepath.IsAbs(cfg.Catalog) {
 				delete(backupset, cfg.Catalog)
@@ -521,7 +535,7 @@ func info() {
 	flag.BoolVar(&short, "s", short, "-short")
 	Setup()
 
-	if name == "" && !IsServer() {
+	if name == "" && !cfg.IsServer() {
 		name = defaultName
 	}
 
@@ -684,7 +698,7 @@ func ping() {
 
 func register() {
 	Setup()
-	ClientOnly()
+	cfg.ClientOnly()
 
 	if len(cfg.Server) < 1 {
 		fmt.Println("Error registering client: no server configured")
@@ -891,7 +905,7 @@ func purge() {
 
 	Setup()
 
-	if name == "" && !IsServer() {
+	if name == "" && !cfg.IsServer() {
 		name = defaultName
 	}
 
@@ -998,7 +1012,7 @@ func expire() {
 
 	Setup()
 
-	if name == "" && !IsServer() {
+	if name == "" && !cfg.IsServer() {
 		name = defaultName
 	}
 

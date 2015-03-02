@@ -66,7 +66,7 @@ func config() {
 	if cfg.User != "" {
 		fmt.Printf("user = %q\n", cfg.User)
 	}
-	if IsServer() {
+	if cfg.IsServer() {
 		fmt.Println("# server-side configuration")
 		if cfg.Catalog != "" {
 			fmt.Printf("catalog = %q\n", cfg.Catalog)

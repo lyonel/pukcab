@@ -42,7 +42,7 @@ func newbackup() {
 	flag.BoolVar(&full, "f", full, "-full")
 
 	SetupServer()
-	ServerOnly()
+	cfg.ServerOnly()
 
 	if name == "" {
 		fmt.Println(0)
@@ -121,7 +121,7 @@ func dumpcatalog(includedata bool) {
 	flag.Var(&date, "d", "-date")
 
 	SetupServer()
-	ServerOnly()
+	cfg.ServerOnly()
 
 	if err := opencatalog(); err != nil {
 		fmt.Fprintln(os.Stderr, "Catalog error")
@@ -307,7 +307,7 @@ func submitfiles() {
 	flag.Var(&date, "d", "-date")
 
 	SetupServer()
-	ServerOnly()
+	cfg.ServerOnly()
 
 	if name == "" {
 		fmt.Fprintln(os.Stderr, "Missing backup name")
@@ -477,7 +477,7 @@ func purgebackup() {
 	flag.Var(&date, "d", "-date")
 
 	SetupServer()
-	ServerOnly()
+	cfg.ServerOnly()
 
 	if name == "" {
 		fmt.Fprintln(os.Stderr, "Missing backup name")
@@ -571,7 +571,7 @@ func expirebackup() {
 	flag.Var(&date, "d", "-age")
 
 	SetupServer()
-	ServerOnly()
+	cfg.ServerOnly()
 
 	if schedule == "" {
 		fmt.Fprintln(os.Stderr, "Missing backup schedule")
@@ -618,7 +618,7 @@ func printstats(name string, stat *syscall.Statfs_t) {
 
 func df() {
 	SetupServer()
-	ServerOnly()
+	cfg.ServerOnly()
 
 	if err := opencatalog(); err != nil {
 		fmt.Fprintln(os.Stderr, "Catalog error")

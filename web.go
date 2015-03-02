@@ -100,7 +100,7 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if name == "" && !IsServer() {
+	if name == "" && !cfg.IsServer() {
 		name = defaultName
 	}
 
@@ -254,7 +254,7 @@ func web() {
 		"date":     DateExpander,
 		"bytes":    BytesExpander,
 		"status":   BackupStatus,
-		"isserver": IsServer,
+		"isserver": cfg.IsServer,
 		"now":      time.Now,
 		"hostname": os.Hostname,
 	})
@@ -271,7 +271,7 @@ func web() {
 	http.HandleFunc("/list/", webinfo)
 	http.HandleFunc("/backups/", webinfo)
 	http.HandleFunc("/config/", webconfig)
-	if IsServer() {
+	if cfg.IsServer() {
 		http.HandleFunc("/tools/", webtools)
 	}
 	http.HandleFunc("/", webhome)

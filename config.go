@@ -26,8 +26,8 @@ type Config struct {
 var cfg Config
 var configFile string = defaultConfig
 
-func loadconfig() {
-	if _, err := toml.DecodeFile(configFile, &cfg); err != nil && !os.IsNotExist(err) {
+func (cfg *Config) Load(filename string) {
+	if _, err := toml.DecodeFile(filename, &cfg); err != nil && !os.IsNotExist(err) {
 		fmt.Fprintln(os.Stderr, "Failed to parse configuration: ", err)
 		log.Fatal("Failed to parse configuration: ", err)
 	}
@@ -54,7 +54,7 @@ func loadconfig() {
 		cfg.Maxtries = defaultMaxtries
 	}
 
-	if IsServer() {
+	if cfg.IsServer() {
 		if pw, err := Getpwnam(cfg.User); err == nil {
 			if filepath.IsAbs(cfg.Vault) {
 				cfg.Exclude = append(cfg.Exclude, cfg.Vault)
@@ -63,21 +63,23 @@ func loadconfig() {
 			}
 		}
 	}
+
+	return
 }
 
-func IsServer() bool {
+func (cfg *Config) IsServer() bool {
 	return len(cfg.Server) < 1
 }
 
-func ServerOnly() {
-	if !IsServer() {
+func (cfg *Config) ServerOnly() {
+	if !cfg.IsServer() {
 		fmt.Println("This command can only be used on a", programName, "server.")
 		log.Fatal("Server-only command issued on a client.")
 	}
 }
 
-func ClientOnly() {
-	if IsServer() {
+func (cfg *Config) ClientOnly() {
+	if cfg.IsServer() {
 		fmt.Println("This command can only be used on a", programName, "client.")
 		log.Fatal("Client-only command issued on a server.")
 	}
@@ -85,7 +87,7 @@ func ClientOnly() {
 
 func Setup() {
 	flag.Parse()
-	loadconfig()
+	cfg.Load(configFile)
 
 	if protocol > protocolVersion {
 		fmt.Fprintln(os.Stderr, "Unsupported protocol")
