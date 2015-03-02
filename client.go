@@ -41,15 +41,15 @@ func contains(set []string, e string) bool {
 			return true
 		}
 
+		if matched, _ := filepath.Match(a, filepath.Base(e)); matched && strings.ContainsAny(a, "*?[") {
+			return true
+		}
+
 		if filepath.IsAbs(a) {
 			if strings.HasPrefix(e, a+string(filepath.Separator)) {
 				return true
 			}
 		} else {
-			if matched, _ := filepath.Match(a, filepath.Base(e)); matched && strings.ContainsAny(a, "*?[") {
-				return true
-			}
-
 			if strings.HasPrefix(a, "."+string(filepath.Separator)) {
 				if _, err := os.Lstat(filepath.Join(e, a)); !os.IsNotExist(err) {
 					return true
