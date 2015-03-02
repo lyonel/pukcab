@@ -215,6 +215,7 @@ const backupstemplate = `{{define "BACKUPS"}}{{template "HEADER" .}}
 <div class="submenu">
 {{if not isserver}}<a class="label" href="/backups/">&#9733;</a>{{end}}
 <a class="label" href="/backups/*">All</a>
+<a class="label" href="/new/{{hostname}}">Start new...</a>
 </div>
 {{$me := hostname}}
 {{$count := len .Backups}}
@@ -241,7 +242,7 @@ const backuptemplate = `{{define "BACKUP"}}{{template "HEADER" .}}
 {{with .Backups}}
 {{$me := hostname}}
     {{range .}}
-<div class="submenu">{{if .Files}}<a href="">Open</a><a href="" {{if ne $me .Name}}onclick="return confirm('This backup seems to be from a different system ({{.Name}}).\n\nAre you sure you want to verify on {{$me}}?')"{{end}}>&#10003; Verify</a>{{end}}<a href="/delete/{{.Name}}/{{.Date}}" onclick="return confirm('Are you sure?')" class="caution">&#10006; Delete</a></div>
+<div class="submenu">{{if .Files}}<a href="">Open</a><a href="" {{if ne $me .Name}}onclick="return confirm('This backup seems to be from a different system ({{.Name}}).\n\nAre you sure you want to verify it on {{$me}}?')"{{end}}>&#10003; Verify</a>{{end}}<a href="/delete/{{.Name}}/{{.Date}}" onclick="return confirm('Are you sure?')" class="caution">&#10006; Delete</a></div>
 <table class="report">
 <tbody>
 	<tr><th class="rowtitle">ID</th><td class="{{. | status}}" title="{{. | status}}">{{.Date}}</td></tr>
