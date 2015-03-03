@@ -156,7 +156,7 @@ func backup() {
 					hdr.Size = s
 				}
 
-				switch check(*hdr, true) {
+				switch Check(*hdr, true) {
 				case OK:
 					backup.Forget(hdr.Name)
 				}
@@ -244,7 +244,7 @@ func resume() {
 				hdr.Size = s
 			}
 
-			if check(*hdr, true) != OK {
+			if Check(*hdr, true) != OK {
 				backup.Add(hdr.Name)
 			}
 
@@ -605,60 +605,6 @@ func register() {
 	log.Println("Registered to server:", cfg.Server)
 }
 
-func check(hdr tar.Header, quick bool) (result Status) {
-	result = Unknown
-
-	if hdr.Typeflag == '?' {
-		result = Missing
-		return
-	}
-
-	if fi, err := os.Lstat(hdr.Name); err == nil {
-		fhdr, err := tar.FileInfoHeader(fi, hdr.Linkname)
-		if err != nil {
-			return
-		} else {
-			fhdr.Uname = Username(fhdr.Uid)
-			fhdr.Gname = Groupname(fhdr.Gid)
-		}
-		result = OK
-		if fhdr.Mode != hdr.Mode ||
-			fhdr.Uid != hdr.Uid ||
-			fhdr.Gid != hdr.Gid ||
-			fhdr.Uname != hdr.Uname ||
-			fhdr.Gname != hdr.Gname ||
-			!fhdr.ModTime.IsZero() && !hdr.ModTime.IsZero() && fhdr.ModTime.Unix() != hdr.ModTime.Unix() ||
-			!fhdr.AccessTime.IsZero() && !hdr.AccessTime.IsZero() && fhdr.AccessTime.Unix() != hdr.AccessTime.Unix() ||
-			!fhdr.ChangeTime.IsZero() && !hdr.ChangeTime.IsZero() && fhdr.ChangeTime.Unix() != hdr.ChangeTime.Unix() ||
-			fhdr.Typeflag != hdr.Typeflag ||
-			fhdr.Typeflag == tar.TypeSymlink && fhdr.Linkname != hdr.Linkname {
-			result = MetaModified
-		}
-		if hdr.Typeflag != tar.TypeReg && hdr.Typeflag != tar.TypeRegA {
-			return
-		}
-		if hdr.Size != fhdr.Size {
-			result = Modified
-			return
-		}
-
-		if quick && result != OK {
-			return
-		}
-
-		if hdr.Xattrs["backup.hash"] != Hash(hdr.Name) {
-			result = Modified
-		}
-	} else {
-		if os.IsNotExist(err) {
-			result = Deleted
-		}
-		return
-	}
-
-	return
-}
-
 func verify() {
 	date = 0
 
@@ -732,7 +678,7 @@ func verify() {
 
 			size += hdr.Size
 
-			switch check(*hdr, false) {
+			switch Check(*hdr, false) {
 			case OK:
 				status = ""
 			case Modified:

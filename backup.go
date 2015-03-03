@@ -1,6 +1,7 @@
 package main
 
 import (
+	"ezix.org/tar"
 	"io/ioutil"
 	"log"
 	"os"
@@ -165,4 +166,58 @@ func (b *Backup) ForEach(action func(string)) {
 	for f := range b.backupset {
 		action(f)
 	}
+}
+
+func Check(hdr tar.Header, quick bool) (result Status) {
+	result = Unknown
+
+	if hdr.Typeflag == '?' {
+		result = Missing
+		return
+	}
+
+	if fi, err := os.Lstat(hdr.Name); err == nil {
+		fhdr, err := tar.FileInfoHeader(fi, hdr.Linkname)
+		if err != nil {
+			return
+		} else {
+			fhdr.Uname = Username(fhdr.Uid)
+			fhdr.Gname = Groupname(fhdr.Gid)
+		}
+		result = OK
+		if fhdr.Mode != hdr.Mode ||
+			fhdr.Uid != hdr.Uid ||
+			fhdr.Gid != hdr.Gid ||
+			fhdr.Uname != hdr.Uname ||
+			fhdr.Gname != hdr.Gname ||
+			!fhdr.ModTime.IsZero() && !hdr.ModTime.IsZero() && fhdr.ModTime.Unix() != hdr.ModTime.Unix() ||
+			!fhdr.AccessTime.IsZero() && !hdr.AccessTime.IsZero() && fhdr.AccessTime.Unix() != hdr.AccessTime.Unix() ||
+			!fhdr.ChangeTime.IsZero() && !hdr.ChangeTime.IsZero() && fhdr.ChangeTime.Unix() != hdr.ChangeTime.Unix() ||
+			fhdr.Typeflag != hdr.Typeflag ||
+			fhdr.Typeflag == tar.TypeSymlink && fhdr.Linkname != hdr.Linkname {
+			result = MetaModified
+		}
+		if hdr.Typeflag != tar.TypeReg && hdr.Typeflag != tar.TypeRegA {
+			return
+		}
+		if hdr.Size != fhdr.Size {
+			result = Modified
+			return
+		}
+
+		if quick && result != OK {
+			return
+		}
+
+		if hdr.Xattrs["backup.hash"] != Hash(hdr.Name) {
+			result = Modified
+		}
+	} else {
+		if os.IsNotExist(err) {
+			result = Deleted
+		}
+		return
+	}
+
+	return
 }
