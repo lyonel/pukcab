@@ -290,10 +290,13 @@ func DateExpander(args ...interface{}) string {
 		return ""
 	}
 
+	now := time.Now().Local()
+	midnight := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+
 	switch duration := time.Since(t); {
-	case duration < 24*time.Hour:
+	case t.After(midnight):
 		return t.Format("Today 15:04")
-	case duration < 48*time.Hour:
+	case t.After(midnight.AddDate(0, 0, -1)):
 		return t.Format("Yesterday 15:04")
 	case duration < 7*24*time.Hour:
 		return t.Format("Monday 15:04")
