@@ -60,12 +60,7 @@ func remotecommand(arg ...string) (rcmd *exec.Cmd) {
 		cmd = append(cmd, arg[1:]...)
 		rcmd = ssh(cmd...)
 	} else {
-		exe, err := os.Readlink("/proc/self/exe")
-		if err != nil {
-			exe = programName
-		}
-
-		rcmd = exec.Command(exe, arg...)
+		rcmd = exec.Command(os.Args[0], arg...)
 	}
 	rcmd.Stderr = os.Stderr
 	return rcmd
