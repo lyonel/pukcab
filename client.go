@@ -20,20 +20,6 @@ import (
 	"github.com/antage/mntent"
 )
 
-type Backup struct {
-	name        string
-	backupset   map[string]struct{}
-	directories map[string]bool
-}
-
-func NewBackup(n string) *Backup {
-	return &Backup{
-		name:        n,
-		backupset:   make(map[string]struct{}),
-		directories: make(map[string]bool),
-	}
-}
-
 var start = time.Now()
 var directories map[string]bool
 var backupset map[string]struct{}
