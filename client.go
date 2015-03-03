@@ -14,7 +14,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/antage/mntent"
@@ -34,35 +33,6 @@ const (
 	Missing
 	Unknown
 )
-
-func contains(set []string, e string) bool {
-	for _, a := range set {
-		if a == e {
-			return true
-		}
-
-		if filepath.IsAbs(a) {
-			if matched, _ := filepath.Match(a, e); matched && strings.ContainsAny(a, "*?[") {
-				return true
-			}
-
-			if strings.HasPrefix(e, a+string(filepath.Separator)) {
-				return true
-			}
-		} else {
-			if matched, _ := filepath.Match(a, filepath.Base(e)); matched && strings.ContainsAny(a, "*?[") {
-				return true
-			}
-
-			if strings.HasPrefix(a, "."+string(filepath.Separator)) {
-				if _, err := os.Lstat(filepath.Join(e, a)); !os.IsNotExist(err) {
-					return true
-				}
-			}
-		}
-	}
-	return false
-}
 
 func includeorexclude(e *mntent.Entry) bool {
 	result := !(contains(cfg.Exclude, e.Types[0]) || contains(cfg.Exclude, e.Directory)) && (contains(cfg.Include, e.Types[0]) || contains(cfg.Include, e.Directory))
