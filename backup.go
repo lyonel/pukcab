@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/antage/mntent"
 )
@@ -14,6 +15,7 @@ import (
 type Backup struct {
 	Date           BackupID
 	Name, Schedule string
+	Started        time.Time
 
 	backupset   map[string]struct{}
 	directories map[string]bool
@@ -110,6 +112,7 @@ func (b *Backup) addfiles(d string) {
 
 func (b *Backup) Start(name string, schedule string) {
 	b.Name, b.Schedule = name, schedule
+	b.Started = time.Now()
 
 	b.backupset = make(map[string]struct{})
 	b.directories = make(map[string]bool)

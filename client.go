@@ -16,8 +16,6 @@ import (
 	"time"
 )
 
-var start = time.Now()
-
 type Status int
 
 const (
@@ -181,7 +179,7 @@ func backup() {
 	}
 
 	bytes := dumpfiles(files, backup)
-	log.Printf("Finished backup: date=%d name=%q schedule=%q files=%d sent=%d duration=%.0f\n", date, name, schedule, backup.Count(), bytes, time.Since(start).Seconds())
+	log.Printf("Finished backup: date=%d name=%q schedule=%q files=%d sent=%d duration=%.0f\n", date, name, schedule, backup.Count(), bytes, time.Since(backup.Started).Seconds())
 }
 
 func resume() {
@@ -394,7 +392,7 @@ func dumpfiles(files int, backup *Backup) (bytes int64) {
 
 	if verbose {
 		fmt.Println("done.")
-		fmt.Println(Bytes(uint64(float64(bytes)/time.Since(start).Seconds())) + "/s")
+		fmt.Println(Bytes(uint64(float64(bytes)/time.Since(backup.Started).Seconds())) + "/s")
 	}
 
 	return bytes
