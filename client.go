@@ -25,7 +25,6 @@ func backup() {
 	flag.BoolVar(&full, "f", full, "-full")
 	Setup()
 
-	log.Printf("Starting backup: name=%q schedule=%q\n", name, schedule)
 	if verbose {
 		fmt.Printf("Starting backup: name=%q schedule=%q\n", name, schedule)
 	}
@@ -168,7 +167,7 @@ func backup() {
 	}
 
 	bytes := dumpfiles(files, backup)
-	log.Printf("Finished backup: date=%d name=%q schedule=%q files=%d sent=%d duration=%.0f\n", date, name, schedule, backup.Count(), bytes, time.Since(backup.Started).Seconds())
+	log.Printf("Finished sending: date=%d name=%q schedule=%q files=%d sent=%d duration=%.0f\n", date, name, schedule, backup.Count(), bytes, time.Since(backup.Started).Seconds())
 }
 
 func resume() {

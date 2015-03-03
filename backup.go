@@ -34,7 +34,9 @@ func NewBackup(cfg Config) (backup *Backup) {
 	if cfg.IsServer() {
 		if pw, err := Getpwnam(cfg.User); err == nil {
 			if filepath.IsAbs(cfg.Catalog) {
-				backup.Ignore(cfg.Catalog, cfg.Catalog+"-shm", cfg.Catalog+"-wal")
+				backup.Ignore(cfg.Catalog,
+					cfg.Catalog+"-shm",
+					cfg.Catalog+"-wal")
 			} else {
 				backup.Ignore(filepath.Join(pw.Dir, cfg.Catalog),
 					filepath.Join(pw.Dir, cfg.Catalog+"-shm"),
@@ -117,6 +119,8 @@ func (b *Backup) Start(name string, schedule string) {
 	b.backupset = make(map[string]struct{})
 	b.directories = make(map[string]bool)
 	devices := make(map[string]bool)
+
+	log.Printf("Starting backup: name=%q schedule=%q\n", name, schedule)
 
 	if mtab, err := loadmtab(); err != nil {
 		log.Println("Failed to parse /etc/mtab: ", err)
