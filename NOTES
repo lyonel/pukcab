@@ -15,3 +15,9 @@ new commands:
 check disk space before accepting a new backup
  * fail if <5% disk space available
  * fail if available disk space < size previous backup
+
+investigate DAR format for `archive` command (cf. http://dar.linux.free.fr/)
+
+detect sparse files (esp. /var/log/lastlog)
+
+better handle changing files ("Could not backup  /var/log/messages : 41070  bytes expected but  0  bytes written")
