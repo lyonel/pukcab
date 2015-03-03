@@ -8,20 +8,15 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
 	"time"
-
-	"github.com/antage/mntent"
 )
 
 var start = time.Now()
-var directories map[string]bool
-var backupset map[string]struct{}
 
 type Status int
 
@@ -33,41 +28,6 @@ const (
 	Missing
 	Unknown
 )
-
-func includeorexclude(e *mntent.Entry) bool {
-	result := !(contains(cfg.Exclude, e.Types[0]) || contains(cfg.Exclude, e.Directory)) && (contains(cfg.Include, e.Types[0]) || contains(cfg.Include, e.Directory))
-
-	directories[e.Directory] = result
-	return result
-}
-
-func excluded(f string) bool {
-	if _, known := directories[f]; known {
-		return !directories[f]
-	}
-	return contains(cfg.Exclude, f) && !contains(cfg.Include, f)
-}
-
-func addfiles(d string) {
-	backupset[d] = struct{}{}
-
-	if contains(cfg.Exclude, d) {
-		return
-	}
-
-	files, _ := ioutil.ReadDir(d)
-	for _, f := range files {
-		file := filepath.Join(d, f.Name())
-
-		if !IsNodump(f, file) {
-			backupset[file] = struct{}{}
-
-			if f.IsDir() && !excluded(file) {
-				addfiles(file)
-			}
-		}
-	}
-}
 
 func backup() {
 	flag.StringVar(&name, "name", defaultName, "Backup name")
@@ -83,45 +43,8 @@ func backup() {
 		fmt.Printf("Starting backup: name=%q schedule=%q\n", name, schedule)
 	}
 
-	directories = make(map[string]bool)
-	backupset = make(map[string]struct{})
-	devices := make(map[string]bool)
-
-	if mtab, err := loadmtab(); err != nil {
-		log.Println("Failed to parse /etc/mtab: ", err)
-	} else {
-		for _, m := range mtab {
-			if !devices[m.Name] && includeorexclude(m) {
-				devices[m.Name] = true
-			}
-		}
-	}
-
-	for _, i := range cfg.Include {
-		if filepath.IsAbs(i) {
-			directories[i] = true
-		}
-	}
-
-	for d := range directories {
-		if directories[d] {
-			addfiles(d)
-		}
-	}
-
-	if cfg.IsServer() {
-		if pw, err := Getpwnam(cfg.User); err == nil {
-			if filepath.IsAbs(cfg.Catalog) {
-				delete(backupset, cfg.Catalog)
-				delete(backupset, cfg.Catalog+"-shm")
-				delete(backupset, cfg.Catalog+"-wal")
-			} else {
-				delete(backupset, filepath.Join(pw.Dir, cfg.Catalog))
-				delete(backupset, filepath.Join(pw.Dir, cfg.Catalog+"-shm"))
-				delete(backupset, filepath.Join(pw.Dir, cfg.Catalog+"-wal"))
-			}
-		}
-	}
+	backup := NewBackup(cfg)
+	backup.Start(name, schedule)
 
 	if verbose {
 		fmt.Print("Sending file list... ")
@@ -144,12 +67,10 @@ func backup() {
 		log.Fatal(cmd.Args, err)
 	}
 
-	for f := range backupset {
-		if protocol > 0 {
-			fmt.Fprintln(stdin, strconv.Quote(f))
-		} else {
-			fmt.Fprintln(stdin, f)
-		}
+	if protocol > 0 {
+		backup.ForEach(func(f string) { fmt.Fprintln(stdin, strconv.Quote(f)) })
+	} else {
+		backup.ForEach(func(f string) { fmt.Fprintln(stdin, f) })
 	}
 	stdin.Close()
 
@@ -176,9 +97,9 @@ func backup() {
 		log.Fatal("Server error:", errmsg)
 	} else {
 		if verbose {
-			fmt.Printf("New backup: date=%d files=%d\n", date, len(backupset))
+			fmt.Printf("New backup: date=%d files=%d\n", date, backup.Count())
 		}
-		log.Printf("New backup: date=%d files=%d\n", date, len(backupset))
+		log.Printf("New backup: date=%d files=%d\n", date, backup.Count())
 		if scanner.Scan() {
 			previous, _ = strconv.ParseInt(scanner.Text(), 10, 0)
 			if previous > 0 {
@@ -195,7 +116,7 @@ func backup() {
 		log.Fatal(cmd.Args, err)
 	}
 
-	files := len(backupset)
+	files := backup.Count()
 
 	if !full {
 		cmd = remotecommand("metadata", "-name", name, "-date", fmt.Sprintf("%d", date))
@@ -237,7 +158,7 @@ func backup() {
 
 				switch check(*hdr, true) {
 				case OK:
-					delete(backupset, hdr.Name)
+					backup.Forget(hdr.Name)
 				}
 
 			}
@@ -249,18 +170,18 @@ func backup() {
 		}
 
 		backuptype := "incremental"
-		if files == len(backupset) {
+		if files == backup.Count() {
 			backuptype = "full"
 		}
 		if verbose {
 			fmt.Println("done.")
-			fmt.Printf("Backup: date=%d files=%d type=%q\n", date, len(backupset), backuptype)
+			fmt.Printf("Backup: date=%d files=%d type=%q\n", date, backup.Count(), backuptype)
 		}
-		log.Printf("Backup: date=%d files=%d type=%q\n", date, len(backupset), backuptype)
+		log.Printf("Backup: date=%d files=%d type=%q\n", date, backup.Count(), backuptype)
 	}
 
-	bytes := dumpfiles(files)
-	log.Printf("Finished backup: date=%d name=%q schedule=%q files=%d sent=%d duration=%.0f\n", date, name, schedule, len(backupset), bytes, time.Since(start).Seconds())
+	bytes := dumpfiles(files, backup)
+	log.Printf("Finished backup: date=%d name=%q schedule=%q files=%d sent=%d duration=%.0f\n", date, name, schedule, backup.Count(), bytes, time.Since(start).Seconds())
 }
 
 func resume() {
@@ -276,7 +197,7 @@ func resume() {
 		fmt.Printf("Resuming backup: date=%d\n", date)
 	}
 
-	backupset = make(map[string]struct{})
+	backup := NewBackup(cfg)
 
 	cmd := remotecommand("metadata", "-name", name, "-date", fmt.Sprintf("%d", date))
 
@@ -324,7 +245,7 @@ func resume() {
 			}
 
 			if check(*hdr, true) != OK {
-				backupset[hdr.Name] = struct{}{}
+				backup.Add(hdr.Name)
 			}
 
 		}
@@ -337,14 +258,14 @@ func resume() {
 
 	if verbose {
 		fmt.Println("done.")
-		fmt.Printf("Resuming backup: date=%d files=%d\n", date, len(backupset))
+		fmt.Printf("Resuming backup: date=%d files=%d\n", date, backup.Count())
 	}
-	log.Printf("Resuming backup: date=%d files=%d\n", date, len(backupset))
-	dumpfiles(len(backupset))
+	log.Printf("Resuming backup: date=%d files=%d\n", date, backup.Count())
+	dumpfiles(backup.Count(), backup)
 }
 
-func dumpfiles(files int) (bytes int64) {
-	done := files - len(backupset)
+func dumpfiles(files int, backup *Backup) (bytes int64) {
+	done := files - backup.Count()
 	bytes = 0
 
 	if verbose {
@@ -384,7 +305,7 @@ func dumpfiles(files int) (bytes int64) {
 	tw.WriteHeader(globalhdr)
 	tw.Write(globaldata)
 
-	for f := range backupset {
+	backup.ForEach(func(f string) {
 		if fi, err := os.Lstat(f); err != nil {
 			log.Println(err)
 			if os.IsNotExist(err) {
@@ -462,7 +383,7 @@ func dumpfiles(files int) (bytes int64) {
 				log.Printf("Couldn't backup %s: %s\n", f, err)
 			}
 		}
-	}
+	})
 
 	stdin.Close()
 

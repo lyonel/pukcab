@@ -20,13 +20,27 @@ type Backup struct {
 	include, exclude, ignore []string
 }
 
-func NewBackup(cfg Config) *Backup {
-	return &Backup{
+func NewBackup(cfg Config) (backup *Backup) {
+	backup = &Backup{
 
 		include: cfg.Include,
 		exclude: cfg.Exclude,
 		ignore:  []string{},
 	}
+
+	if cfg.IsServer() {
+		if pw, err := Getpwnam(cfg.User); err == nil {
+			if filepath.IsAbs(cfg.Catalog) {
+				backup.Ignore(cfg.Catalog, cfg.Catalog+"-shm", cfg.Catalog+"-wal")
+			} else {
+				backup.Ignore(filepath.Join(pw.Dir, cfg.Catalog),
+					filepath.Join(pw.Dir, cfg.Catalog+"-shm"),
+					filepath.Join(pw.Dir, cfg.Catalog+"-wal"))
+			}
+		}
+	}
+
+	return
 }
 
 func contains(set []string, e string) bool {
@@ -61,7 +75,7 @@ func contains(set []string, e string) bool {
 func (b *Backup) includeorexclude(e *mntent.Entry) bool {
 	result := !(contains(b.exclude, e.Types[0]) || contains(b.exclude, e.Directory)) && (contains(b.include, e.Types[0]) || contains(b.include, e.Directory))
 
-	directories[e.Directory] = result
+	b.directories[e.Directory] = result
 	return result
 }
 
@@ -96,15 +110,15 @@ func (b *Backup) addfiles(d string) {
 func (b *Backup) Start(name string, schedule string) {
 	b.Name, b.Schedule = name, schedule
 
-	backupset = make(map[string]struct{})
-	directories = make(map[string]bool)
+	b.backupset = make(map[string]struct{})
+	b.directories = make(map[string]bool)
 	devices := make(map[string]bool)
 
 	if mtab, err := loadmtab(); err != nil {
 		log.Println("Failed to parse /etc/mtab: ", err)
 	} else {
 		for _, m := range mtab {
-			if !devices[m.Name] && includeorexclude(m) {
+			if !devices[m.Name] && b.includeorexclude(m) {
 				devices[m.Name] = true
 			}
 		}
@@ -112,13 +126,13 @@ func (b *Backup) Start(name string, schedule string) {
 
 	for _, i := range cfg.Include {
 		if filepath.IsAbs(i) {
-			directories[i] = true
+			b.directories[i] = true
 		}
 	}
 
-	for d := range directories {
-		if directories[d] {
-			addfiles(d)
+	for d := range b.directories {
+		if b.directories[d] {
+			b.addfiles(d)
 		}
 	}
 
@@ -131,12 +145,24 @@ func (b *Backup) Ignore(files ...string) {
 	b.ignore = append(b.ignore, files...)
 }
 
+func (b *Backup) Forget(files ...string) {
+	for _, f := range files {
+		delete(b.backupset, f)
+	}
+}
+
+func (b *Backup) Add(files ...string) {
+	for _, f := range files {
+		b.backupset[f] = struct{}{}
+	}
+}
+
 func (b *Backup) Count() int {
 	return len(b.backupset)
 }
 
 func (b *Backup) ForEach(action func(string)) {
-	for f := range backupset {
+	for f := range b.backupset {
 		action(f)
 	}
 }
