@@ -16,17 +16,6 @@ import (
 	"time"
 )
 
-type Status int
-
-const (
-	OK = iota
-	Modified
-	MetaModified
-	Deleted
-	Missing
-	Unknown
-)
-
 func backup() {
 	flag.StringVar(&name, "name", defaultName, "Backup name")
 	flag.StringVar(&name, "n", defaultName, "-name")

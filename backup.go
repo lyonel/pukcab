@@ -171,6 +171,17 @@ func (b *Backup) ForEach(action func(string)) {
 	}
 }
 
+type Status int
+
+const (
+	OK = iota
+	Modified
+	MetaModified
+	Deleted
+	Missing
+	Unknown
+)
+
 func Check(hdr tar.Header, quick bool) (result Status) {
 	result = Unknown
 
