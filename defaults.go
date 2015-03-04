@@ -15,6 +15,7 @@ const defaultMaxtries = 10
 
 const protocolVersion = 1
 
+var programFile string = "backup"
 var defaultName string = "backup"
 var defaultSchedule string = "daily"
 

@@ -105,6 +105,8 @@ func main() {
 	flag.IntVar(&protocol, "p", protocol, "-protocol")
 	flag.Usage = usage
 
+	programFile = os.Args[0]
+
 	if len(os.Args) <= 1 { // no command specified
 		os.Args = append(os.Args, defaultCommand)
 	}
