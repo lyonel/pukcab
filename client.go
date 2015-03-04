@@ -68,7 +68,6 @@ func dobackup(name string, schedule string, full bool) (fail error) {
 
 	info.Println("done.")
 
-	date = 0
 	var previous int64 = 0
 	scanner := bufio.NewScanner(stdout)
 	if scanner.Scan() {
@@ -77,19 +76,19 @@ func dobackup(name string, schedule string, full bool) (fail error) {
 			log.Println("Protocol error")
 			return err
 		} else {
-			date = BackupID(d)
+			backup.Date = BackupID(d)
 		}
 	}
 
-	if date == 0 {
+	if backup.Date == 0 {
 		scanner.Scan()
 		errmsg := scanner.Text()
 		failure.Println("Server error", errmsg)
 		log.Println("Server error", errmsg)
 		return errors.New("Server error")
 	} else {
-		info.Printf("New backup: date=%d files=%d\n", date, backup.Count())
-		log.Printf("New backup: date=%d files=%d\n", date, backup.Count())
+		info.Printf("New backup: date=%d files=%d\n", backup.Date, backup.Count())
+		log.Printf("New backup: date=%d files=%d\n", backup.Date, backup.Count())
 		if scanner.Scan() {
 			previous, _ = strconv.ParseInt(scanner.Text(), 10, 0)
 			if previous > 0 {
@@ -108,7 +107,7 @@ func dobackup(name string, schedule string, full bool) (fail error) {
 	files := backup.Count()
 
 	if !full {
-		cmd = remotecommand("metadata", "-name", name, "-date", fmt.Sprintf("%d", date))
+		cmd = remotecommand("metadata", "-name", name, "-date", fmt.Sprintf("%d", backup.Date))
 
 		stdout, err := cmd.StdoutPipe()
 		if err != nil {
@@ -165,24 +164,31 @@ func dobackup(name string, schedule string, full bool) (fail error) {
 			backuptype = "full"
 		}
 		info.Println("done.")
-		info.Printf("Backup: date=%d files=%d type=%q\n", date, backup.Count(), backuptype)
-		log.Printf("Backup: date=%d files=%d type=%q\n", date, backup.Count(), backuptype)
+		info.Printf("Backup: date=%d files=%d type=%q\n", backup.Date, backup.Count(), backuptype)
+		log.Printf("Backup: date=%d files=%d type=%q\n", backup.Date, backup.Count(), backuptype)
 	}
 
 	bytes := dumpfiles(files, backup)
-	log.Printf("Finished sending: date=%d name=%q schedule=%q files=%d sent=%d duration=%.0f\n", date, name, schedule, backup.Count(), bytes, time.Since(backup.Started).Seconds())
+	log.Printf("Finished sending: date=%d name=%q schedule=%q files=%d sent=%d duration=%.0f\n", backup.Date, name, schedule, backup.Count(), bytes, time.Since(backup.Started).Seconds())
 
 	return
 }
 
 func resume() {
-	date = 0
+	var date BackupID = 0
+
 	flag.StringVar(&name, "name", defaultName, "Backup name")
 	flag.StringVar(&name, "n", defaultName, "-name")
 	flag.Var(&date, "date", "Backup set")
 	flag.Var(&date, "d", "-date")
 	Setup()
 
+	if err := doresume(date, name); err != nil {
+		failure.Fatal("Backup failure.")
+	}
+}
+
+func doresume(date BackupID, name string) (fail error) {
 	log.Printf("Resuming backup: date=%d\n", date)
 	info.Printf("Resuming backup: date=%d\n", date)
 
@@ -192,13 +198,15 @@ func resume() {
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		fmt.Println("Backend error:", err)
-		log.Fatal(cmd.Args, err)
+		failure.Println("Backend error:", err)
+		log.Println(cmd.Args, err)
+		return err
 	}
 
 	if err := cmd.Start(); err != nil {
-		fmt.Println("Backend error:", err)
-		log.Fatal(cmd.Args, err)
+		failure.Println("Backend error:", err)
+		log.Println(cmd.Args, err)
+		return err
 	}
 
 	tr := tar.NewReader(stdout)
@@ -208,19 +216,21 @@ func resume() {
 			break
 		}
 		if err != nil {
-			fmt.Println("Backend error:", err)
-			log.Fatal(err)
+			failure.Println("Backend error:", err)
+			log.Println(err)
+			return err
 		}
 
 		switch hdr.Typeflag {
 		case tar.TypeXGlobalHeader:
-			name = hdr.Name
-			schedule = hdr.Linkname
-			date = BackupID(hdr.ModTime.Unix())
+			backup.Name = hdr.Name
+			backup.Schedule = hdr.Linkname
+			backup.Date = BackupID(hdr.ModTime.Unix())
 			hdr.ChangeTime = time.Unix(int64(hdr.Uid), 0)
 			if hdr.ChangeTime.Unix() != 0 {
-				fmt.Printf("Error: backup set date=%d is already complete\n", date)
-				log.Fatalf("Error: backup set date=%d is already complete\n", date)
+				failure.Printf("Error: backup set date=%d is already complete\n", backup.Date)
+				log.Printf("Error: backup set date=%d is already complete\n", backup.Date)
+				return nil
 			}
 			info.Print("Determining files to backup... ")
 		default:
@@ -239,14 +249,17 @@ func resume() {
 	}
 
 	if err := cmd.Wait(); err != nil {
-		fmt.Println("Backend error:", err)
-		log.Fatal(cmd.Args, err)
+		failure.Println("Backend error:", err)
+		log.Println(cmd.Args, err)
+		return err
 	}
 
 	info.Println("done.")
-	info.Printf("Resuming backup: date=%d files=%d\n", date, backup.Count())
-	log.Printf("Resuming backup: date=%d files=%d\n", date, backup.Count())
+	info.Printf("Resuming backup: date=%d files=%d\n", backup.Date, backup.Count())
+	log.Printf("Resuming backup: date=%d files=%d\n", backup.Date, backup.Count())
 	dumpfiles(backup.Count(), backup)
+
+	return
 }
 
 func dumpfiles(files int, backup *Backup) (bytes int64) {
@@ -255,7 +268,7 @@ func dumpfiles(files int, backup *Backup) (bytes int64) {
 
 	info.Print("Sending files... ")
 
-	cmd := remotecommand("submitfiles", "-name", name, "-date", fmt.Sprintf("%d", date))
+	cmd := remotecommand("submitfiles", "-name", backup.Name, "-date", fmt.Sprintf("%d", backup.Date))
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		fmt.Println("Backend error:", err)
@@ -271,15 +284,15 @@ func dumpfiles(files int, backup *Backup) (bytes int64) {
 	defer tw.Close()
 
 	globaldata := paxHeaders(map[string]interface{}{
-		".name":     name,
-		".schedule": schedule,
+		".name":     backup.Name,
+		".schedule": backup.Schedule,
 		".version":  fmt.Sprintf("%d.%d", versionMajor, versionMinor),
 	})
 	globalhdr := &tar.Header{
-		Name:     name,
+		Name:     backup.Name,
 		Size:     int64(len(globaldata)),
-		Linkname: schedule,
-		ModTime:  time.Unix(int64(date), 0),
+		Linkname: backup.Schedule,
+		ModTime:  time.Unix(int64(backup.Date), 0),
 		Typeflag: tar.TypeXGlobalHeader,
 	}
 	tw.WriteHeader(globalhdr)
