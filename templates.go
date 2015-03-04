@@ -215,7 +215,7 @@ const backupstemplate = `{{define "BACKUPS"}}{{template "HEADER" .}}
 <div class="submenu">
 {{if not isserver}}<a class="label" href="/backups/">&#9733;</a>{{end}}
 <a class="label" href="/backups/*">All</a>
-<a class="label" href="/new/{{hostname}}">Start new...</a>
+<a class="label" href="/new/">Start new...</a>
 </div>
 {{$me := hostname}}
 {{$count := len .Backups}}
@@ -256,6 +256,28 @@ const backuptemplate = `{{define "BACKUP"}}{{template "HEADER" .}}
 </table>
     {{end}}
 {{end}}
+{{template "FOOTER" .}}{{end}}`
+
+const newtemplate = `{{define "NEW"}}{{template "HEADER" .}}
+<div class="submenu"><a href="/start/">Start backup</a></div>
+<table class="report"><tbody>
+<tr><th class="rowtitle">Name</th><td>{{hostname}}</td></tr>
+{{if .Server}}
+<tr><th class="rowtitle">Target</th><td>{{if .User}}{{.User}}@{{end}}{{.Server}}{{if .Port}}:{{.Port}}{{end}}</td></tr>
+{{else}}
+<tr><th class="rowtitle">Target</th><td>{{hostname}} (<em>self</em>)</td></tr>
+{{end}}
+<tr><th class="rowtitle">Include</th><td>
+{{range .Include}}
+<tt>{{.}}</tt>
+{{end}}
+</td></tr>
+<tr><th class="rowtitle">Exclude</th><td>
+{{range .Exclude}}
+<tt>{{.}}</tt>
+{{end}}
+</td></tr>
+</tbody></table>
 {{template "FOOTER" .}}{{end}}`
 
 const toolstemplate = `{{define "TOOLS"}}{{template "HEADER" .}}

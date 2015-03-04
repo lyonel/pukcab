@@ -242,6 +242,27 @@ func webdelete(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/backups/", http.StatusFound)
 }
 
+func webnew(w http.ResponseWriter, r *http.Request) {
+	report := &ConfigReport{
+		Report: Report{
+			Title: "New backup",
+		},
+		Config: cfg,
+	}
+	if err := pages.ExecuteTemplate(w, "NEW", report); err != nil {
+		log.Println(err)
+		http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func webstart(w http.ResponseWriter, r *http.Request) {
+	setDefaults()
+
+	go dobackup(defaultName, defaultSchedule, false)
+
+	http.Redirect(w, r, "/backups/", http.StatusFound)
+}
+
 func web() {
 	listen := ":8080"
 	flag.StringVar(&listen, "listen", listen, "Address to listen to")
@@ -265,6 +286,7 @@ func web() {
 	setuptemplate(backupstemplate)
 	setuptemplate(backuptemplate)
 	setuptemplate(toolstemplate)
+	setuptemplate(newtemplate)
 
 	http.HandleFunc("/css/", stylesheets)
 	http.HandleFunc("/info/", webinfo)
@@ -277,6 +299,8 @@ func web() {
 	http.HandleFunc("/", webhome)
 	http.HandleFunc("/about/", webhome)
 	http.HandleFunc("/delete/", webdelete)
+	http.HandleFunc("/new/", webnew)
+	http.HandleFunc("/start/", webstart)
 	if err := http.ListenAndServe(listen, nil); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		log.Fatal("Could no start web interface: ", err)
