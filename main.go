@@ -131,7 +131,7 @@ func main() {
 	case "expire":
 		expire()
 	case "info", "list":
-		info()
+		list()
 	case "config", "cfg":
 		config()
 	case "ping", "test":

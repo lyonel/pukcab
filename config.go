@@ -87,6 +87,7 @@ func (cfg *Config) ClientOnly() {
 
 func Setup() {
 	flag.Parse()
+	Info(verbose)
 	cfg.Load(configFile)
 
 	if protocol > protocolVersion {

@@ -25,16 +25,12 @@ func backup() {
 	flag.BoolVar(&full, "f", full, "-full")
 	Setup()
 
-	if verbose {
-		fmt.Printf("Starting backup: name=%q schedule=%q\n", name, schedule)
-	}
+	info.Printf("Starting backup: name=%q schedule=%q\n", name, schedule)
 
 	backup := NewBackup(cfg)
 	backup.Start(name, schedule)
 
-	if verbose {
-		fmt.Print("Sending file list... ")
-	}
+	info.Print("Sending file list... ")
 
 	cmd := remotecommand("newbackup", "-name", name, "-schedule", schedule, "-full="+strconv.FormatBool(full))
 	stdout, err := cmd.StdoutPipe()
@@ -60,9 +56,7 @@ func backup() {
 	}
 	stdin.Close()
 
-	if verbose {
-		fmt.Println("done.")
-	}
+	info.Println("done.")
 
 	date = 0
 	var previous int64 = 0
@@ -82,16 +76,12 @@ func backup() {
 		fmt.Println("Server error:", errmsg)
 		log.Fatal("Server error:", errmsg)
 	} else {
-		if verbose {
-			fmt.Printf("New backup: date=%d files=%d\n", date, backup.Count())
-		}
+		info.Printf("New backup: date=%d files=%d\n", date, backup.Count())
 		log.Printf("New backup: date=%d files=%d\n", date, backup.Count())
 		if scanner.Scan() {
 			previous, _ = strconv.ParseInt(scanner.Text(), 10, 0)
 			if previous > 0 {
-				if verbose {
-					fmt.Printf("Previous backup: date=%d\n", previous)
-				}
+				info.Printf("Previous backup: date=%d\n", previous)
 				log.Printf("Previous backup: date=%d\n", previous)
 			}
 		}
@@ -131,9 +121,7 @@ func backup() {
 
 			switch hdr.Typeflag {
 			case tar.TypeXGlobalHeader:
-				if verbose {
-					fmt.Print("Determining files to backup... ")
-				}
+				info.Print("Determining files to backup... ")
 			default:
 				if len(hdr.Xattrs["backup.type"]) > 0 {
 					hdr.Typeflag = hdr.Xattrs["backup.type"][0]
@@ -159,10 +147,8 @@ func backup() {
 		if files == backup.Count() {
 			backuptype = "full"
 		}
-		if verbose {
-			fmt.Println("done.")
-			fmt.Printf("Backup: date=%d files=%d type=%q\n", date, backup.Count(), backuptype)
-		}
+		info.Println("done.")
+		info.Printf("Backup: date=%d files=%d type=%q\n", date, backup.Count(), backuptype)
 		log.Printf("Backup: date=%d files=%d type=%q\n", date, backup.Count(), backuptype)
 	}
 
@@ -179,9 +165,7 @@ func resume() {
 	Setup()
 
 	log.Printf("Resuming backup: date=%d\n", date)
-	if verbose {
-		fmt.Printf("Resuming backup: date=%d\n", date)
-	}
+	info.Printf("Resuming backup: date=%d\n", date)
 
 	backup := NewBackup(cfg)
 
@@ -219,9 +203,7 @@ func resume() {
 				fmt.Printf("Error: backup set date=%d is already complete\n", date)
 				log.Fatalf("Error: backup set date=%d is already complete\n", date)
 			}
-			if verbose {
-				fmt.Print("Determining files to backup... ")
-			}
+			info.Print("Determining files to backup... ")
 		default:
 			if len(hdr.Xattrs["backup.type"]) > 0 {
 				hdr.Typeflag = hdr.Xattrs["backup.type"][0]
@@ -242,10 +224,8 @@ func resume() {
 		log.Fatal(cmd.Args, err)
 	}
 
-	if verbose {
-		fmt.Println("done.")
-		fmt.Printf("Resuming backup: date=%d files=%d\n", date, backup.Count())
-	}
+	info.Println("done.")
+	info.Printf("Resuming backup: date=%d files=%d\n", date, backup.Count())
 	log.Printf("Resuming backup: date=%d files=%d\n", date, backup.Count())
 	dumpfiles(backup.Count(), backup)
 }
@@ -254,12 +234,7 @@ func dumpfiles(files int, backup *Backup) (bytes int64) {
 	done := files - backup.Count()
 	bytes = 0
 
-	if verbose {
-		fmt.Print("Sending files... ")
-		if IsATTY(os.Stdout) {
-			fmt.Println()
-		}
-	}
+	info.Print("Sending files... ")
 
 	cmd := remotecommand("submitfiles", "-name", name, "-date", fmt.Sprintf("%d", date))
 	stdin, err := cmd.StdinPipe()
@@ -361,10 +336,6 @@ func dumpfiles(files int, backup *Backup) (bytes int64) {
 					tw.WriteHeader(hdr)
 				}
 				done++
-
-				if verbose && IsATTY(os.Stdout) {
-					fmt.Printf("\r %d %% ", (100*done)/files)
-				}
 			} else {
 				log.Printf("Couldn't backup %s: %s\n", f, err)
 			}
@@ -378,15 +349,13 @@ func dumpfiles(files int, backup *Backup) (bytes int64) {
 		log.Fatal(cmd.Args, err)
 	}
 
-	if verbose {
-		fmt.Println("done.")
-		fmt.Println(Bytes(uint64(float64(bytes)/time.Since(backup.Started).Seconds())) + "/s")
-	}
+	info.Println("done.")
+	info.Println(Bytes(uint64(float64(bytes)/time.Since(backup.Started).Seconds())) + "/s")
 
 	return bytes
 }
 
-func info() {
+func list() {
 	date = 0
 	name = ""
 	short := false
@@ -522,30 +491,24 @@ func info() {
 func ping() {
 	Setup()
 
-	if verbose {
-		if len(cfg.Server) > 0 {
-			fmt.Println("Server:", cfg.Server)
-		}
-		if cfg.Port > 0 {
-			fmt.Println("Port:", cfg.Port)
-		}
-		if len(cfg.User) > 0 {
-			fmt.Println("User:", cfg.User)
-		}
+	if len(cfg.Server) > 0 {
+		info.Println("Server:", cfg.Server)
+	}
+	if cfg.Port > 0 {
+		info.Println("Port:", cfg.Port)
+	}
+	if len(cfg.User) > 0 {
+		info.Println("User:", cfg.User)
 	}
 
 	cmd := remotecommand("version")
 
-	if verbose {
-		fmt.Println("Backend:", cmd.Path)
-	}
+	info.Println("Backend:", cmd.Path)
 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	if verbose {
-		fmt.Println()
-	}
+	info.Println()
 
 	if err := cmd.Start(); err != nil {
 		fmt.Println("Backend error:", cmd.Args, err)
@@ -568,16 +531,14 @@ func register() {
 		log.Fatal("Error registering client: no server configured")
 	}
 
-	if verbose {
-		if len(cfg.Server) > 0 {
-			fmt.Println("Server:", cfg.Server)
-		}
-		if cfg.Port > 0 {
-			fmt.Println("Port:", cfg.Port)
-		}
-		if len(cfg.User) > 0 {
-			fmt.Println("User:", cfg.User)
-		}
+	if len(cfg.Server) > 0 {
+		info.Println("Server:", cfg.Server)
+	}
+	if cfg.Port > 0 {
+		info.Println("Port:", cfg.Port)
+	}
+	if len(cfg.User) > 0 {
+		info.Println("User:", cfg.User)
 	}
 
 	if err := sshcopyid(); err != nil {
@@ -585,9 +546,7 @@ func register() {
 		log.Fatal("Error registering client:", err)
 	}
 
-	if verbose {
-		fmt.Println("Registered to server:", cfg.Server)
-	}
+	info.Println("Registered to server:", cfg.Server)
 	log.Println("Registered to server:", cfg.Server)
 }
 
@@ -825,9 +784,7 @@ func expire() {
 		name = defaultName
 	}
 
-	if verbose {
-		fmt.Printf("Expiring backups for %q, schedule %q\n", name, schedule)
-	}
+	info.Printf("Expiring backups for %q, schedule %q\n", name, schedule)
 
 	if name == "*" {
 		name = ""
