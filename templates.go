@@ -225,8 +225,8 @@ const backupstemplate = `{{define "BACKUPS"}}{{template "HEADER" .}}
 <tbody>
     {{range .}}
 	<tr class="{{. | status}}">
-        <td title="{{. | status}}"><a href="/backups/{{.Name}}/{{.Date}}">{{.Date}}</a></td>
-        <td><a href="{{.Name}}">{{.Name}}</a>{{if eq .Name $me}} &#9734;{{end}}</td>
+        <td title="{{.Date | date}}"><a href="/backups/{{.Name}}/{{.Date}}">{{.Date}}</a></td>
+        <td title="{{. | status}}"><a href="{{.Name}}">{{.Name}}</a>{{if eq .Name $me}} &#9734;{{end}}</td>
         <td>{{.Schedule}}</td>
         <td title="{{.Finished}}">{{.Finished | date}}</td>
         <td {{if .Files}}title="{{.Files}} files"{{end}}>{{if .Size}}{{.Size | bytes}}{{end}}</td>
