@@ -7,10 +7,12 @@ import (
 )
 
 const debugFlags = log.LstdFlags | log.Lshortfile
-const debugPrefix = "DEBUG: "
+const debugPrefix = "[DEBUG] "
+const failPrefix = "[ERROR] "
 
 var debug = log.New(ioutil.Discard, "", 0)
 var info = log.New(ioutil.Discard, "", 0)
+var failure = log.New(os.Stderr, failPrefix, 0)
 
 func Debug(on bool) {
 	if on {
@@ -25,5 +27,13 @@ func Info(on bool) {
 		info = log.New(os.Stdout, "", 0)
 	} else {
 		info = log.New(ioutil.Discard, "", 0)
+	}
+}
+
+func Failure(on bool) {
+	if on {
+		failure = log.New(os.Stderr, failPrefix, 0)
+	} else {
+		failure = log.New(ioutil.Discard, "", 0)
 	}
 }

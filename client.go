@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"compress/gzip"
 	"encoding/gob"
+	"errors"
 	"ezix.org/tar"
 	"flag"
 	"fmt"
@@ -25,6 +26,12 @@ func backup() {
 	flag.BoolVar(&full, "f", full, "-full")
 	Setup()
 
+	if err := dobackup(name, schedule, full); err != nil {
+		failure.Fatal("Backup failure.")
+	}
+}
+
+func dobackup(name string, schedule string, full bool) (fail error) {
 	info.Printf("Starting backup: name=%q schedule=%q\n", name, schedule)
 
 	backup := NewBackup(cfg)
@@ -35,18 +42,21 @@ func backup() {
 	cmd := remotecommand("newbackup", "-name", name, "-schedule", schedule, "-full="+strconv.FormatBool(full))
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		fmt.Println("Backend error:", err)
-		log.Fatal(cmd.Args, err)
+		failure.Println("Backend error:", err)
+		log.Println(cmd.Args, err)
+		return err
 	}
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
-		fmt.Println("Backend error:", err)
-		log.Fatal(cmd.Args, err)
+		failure.Println("Backend error:", err)
+		log.Println(cmd.Args, err)
+		return err
 	}
 
 	if err := cmd.Start(); err != nil {
-		fmt.Println("Backend error:", err)
-		log.Fatal(cmd.Args, err)
+		failure.Println("Backend error:", err)
+		log.Println(cmd.Args, err)
+		return err
 	}
 
 	if protocol > 0 {
@@ -63,8 +73,9 @@ func backup() {
 	scanner := bufio.NewScanner(stdout)
 	if scanner.Scan() {
 		if d, err := strconv.ParseInt(scanner.Text(), 10, 0); err != nil {
-			fmt.Println("Protocol error")
-			log.Fatal("Protocol error")
+			failure.Println("Protocol error")
+			log.Println("Protocol error")
+			return err
 		} else {
 			date = BackupID(d)
 		}
@@ -73,8 +84,9 @@ func backup() {
 	if date == 0 {
 		scanner.Scan()
 		errmsg := scanner.Text()
-		fmt.Println("Server error:", errmsg)
-		log.Fatal("Server error:", errmsg)
+		failure.Println("Server error", errmsg)
+		log.Println("Server error", errmsg)
+		return errors.New("Server error")
 	} else {
 		info.Printf("New backup: date=%d files=%d\n", date, backup.Count())
 		log.Printf("New backup: date=%d files=%d\n", date, backup.Count())
@@ -88,8 +100,9 @@ func backup() {
 	}
 
 	if err := cmd.Wait(); err != nil {
-		fmt.Println("Backend error:", err)
-		log.Fatal(cmd.Args, err)
+		failure.Println("Backend error:", err)
+		log.Println(cmd.Args, err)
+		return err
 	}
 
 	files := backup.Count()
@@ -99,13 +112,15 @@ func backup() {
 
 		stdout, err := cmd.StdoutPipe()
 		if err != nil {
-			fmt.Println("Backend error:", err)
-			log.Fatal(cmd.Args, err)
+			failure.Println("Backend error:", err)
+			log.Println(cmd.Args, err)
+			return err
 		}
 
 		if err := cmd.Start(); err != nil {
-			fmt.Println("Backend error:", err)
-			log.Fatal(cmd.Args, err)
+			failure.Println("Backend error:", err)
+			log.Println(cmd.Args, err)
+			return err
 		}
 
 		tr := tar.NewReader(stdout)
@@ -115,8 +130,9 @@ func backup() {
 				break
 			}
 			if err != nil {
-				fmt.Println("Backend error:", err)
-				log.Fatal(err)
+				failure.Println("Backend error:", err)
+				log.Println(err)
+				return err
 			}
 
 			switch hdr.Typeflag {
@@ -139,8 +155,9 @@ func backup() {
 		}
 
 		if err := cmd.Wait(); err != nil {
-			fmt.Println("Backend error:", err)
-			log.Fatal(cmd.Args, err)
+			failure.Println("Backend error:", err)
+			log.Println(cmd.Args, err)
+			return err
 		}
 
 		backuptype := "incremental"
@@ -154,6 +171,8 @@ func backup() {
 
 	bytes := dumpfiles(files, backup)
 	log.Printf("Finished sending: date=%d name=%q schedule=%q files=%d sent=%d duration=%.0f\n", date, name, schedule, backup.Count(), bytes, time.Since(backup.Started).Seconds())
+
+	return
 }
 
 func resume() {
