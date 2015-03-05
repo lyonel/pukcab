@@ -123,6 +123,18 @@ table.report {
     background-color: #e5e9ec !important;
 }
 
+tr.daily {
+}
+tr.weekly {
+    background-color: #ffe;
+}
+tr.monthly {
+    background-color: #ffd;
+}
+tr.yearly {
+    background-color: #ffc;
+}
+
 .rowtitle {
     text-align: right;
 }
@@ -135,7 +147,7 @@ table.report {
 
 .starting {
     font-weight: bold;
-    color: #0f0;
+    background-color: #efe;
 }
 .running {
     font-weight: bold;
@@ -224,7 +236,7 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 <thead><tr><th>ID</th><th>Name</th><th>Schedule</th><th>Finished</th><th>Size</th></tr></thead>
 <tbody>
     {{range .}}
-	<tr class="{{. | status}}">
+	<tr class="{{. | status}} {{.Schedule}}">
         <td title="{{.Date | date}}"><a href="/backups/{{.Name}}/{{.Date}}">{{.Date}}</a></td>
         <td title="{{. | status}}"><a href="{{.Name}}">{{.Name}}</a>{{if eq .Name $me}} &#9734;{{end}}</td>
         <td>{{.Schedule}}</td>
@@ -247,7 +259,7 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 <tbody>
 	<tr><th class="rowtitle">ID</th><td class="{{. | status}}" title="{{. | status}}">{{.Date}}</td></tr>
         <tr><th class="rowtitle">Name</th><td>{{.Name}}</td></tr>
-        <tr><th class="rowtitle">Schedule</th><td>{{.Schedule}}</td></tr>
+        <tr class="{{.Schedule}}"><th class="rowtitle">Schedule</th><td>{{.Schedule}}</td></tr>
         <tr><th class="rowtitle">Started</th><td>{{.Date | date}}</td></tr>
         {{if .Files}}<tr><th class="rowtitle">Finished</th><td title="{{.Finished}}">{{.Finished | date}}</td></tr>{{end}}
         {{if .Size}}<tr><th class="rowtitle">Size</th><td>{{.Size | bytes}}</td></tr>{{end}}
