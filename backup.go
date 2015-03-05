@@ -120,8 +120,6 @@ func (b *Backup) Start(name string, schedule string) {
 	b.directories = make(map[string]bool)
 	devices := make(map[string]bool)
 
-	log.Printf("Starting backup: name=%q schedule=%q\n", name, schedule)
-
 	if mtab, err := loadmtab(); err != nil {
 		log.Println("Failed to parse /etc/mtab: ", err)
 	} else {

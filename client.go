@@ -33,6 +33,7 @@ func backup() {
 
 func dobackup(name string, schedule string, full bool) (fail error) {
 	info.Printf("Starting backup: name=%q schedule=%q\n", name, schedule)
+	log.Printf("Starting backup: name=%q schedule=%q\n", name, schedule)
 
 	backup := NewBackup(cfg)
 	backup.Start(name, schedule)
