@@ -169,9 +169,9 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 <div class="submenu">
 <a class="label" href="/about">About</a>
 <a class="label" href="/config">Configuration</a>
-</div>{{end}}`
+</div>{{end}}
 
-const homepagetemplate = `{{define "HOME"}}{{template "HEADER" .}}
+{{define "HOME"}}{{template "HEADER" .}}
 {{template "HOMEMENU" .}}
 <table class="report"><tbody>
 {{if .Name}}<tr><th class="rowtitle">Name</th><td>{{.Name}}</td></tr>{{end}}
@@ -182,9 +182,9 @@ const homepagetemplate = `{{define "HOME"}}{{template "HEADER" .}}
 {{if .Goroutines}}<tr><th class="rowtitle">Tasks</th><td>{{.Goroutines}}</td></tr>{{end}}
 {{if .Bytes}}<tr><th class="rowtitle">Memory</th><td>{{.Memory | bytes}} ({{.Bytes | bytes}} used)</td></tr>{{end}}
 </tbody></table>
-{{template "FOOTER" .}}{{end}}`
+{{template "FOOTER" .}}{{end}}
 
-const configtemplate = `{{define "CONFIG"}}{{template "HEADER" .}}
+{{define "CONFIG"}}{{template "HEADER" .}}
 {{template "HOMEMENU" .}}
 <table class="report"><tbody>
 {{if .Server}}
@@ -209,9 +209,9 @@ const configtemplate = `{{define "CONFIG"}}{{template "HEADER" .}}
 {{end}}
 </td></tr>
 </tbody></table>
-{{template "FOOTER" .}}{{end}}`
+{{template "FOOTER" .}}{{end}}
 
-const backupstemplate = `{{define "BACKUPS"}}{{template "HEADER" .}}
+{{define "BACKUPS"}}{{template "HEADER" .}}
 <div class="submenu">
 {{if not isserver}}<a class="label" href="/backups/">&#9733;</a>{{end}}
 <a class="label" href="/backups/*">All</a>
@@ -236,9 +236,9 @@ const backupstemplate = `{{define "BACKUPS"}}{{template "HEADER" .}}
 </table>
 {{end}}
     {{if not $count}}<div class="placeholder">empty list</div>{{end}}
-{{template "FOOTER" .}}{{end}}`
+{{template "FOOTER" .}}{{end}}
 
-const backuptemplate = `{{define "BACKUP"}}{{template "HEADER" .}}
+{{define "BACKUP"}}{{template "HEADER" .}}
 {{with .Backups}}
 {{$me := hostname}}
     {{range .}}
@@ -256,9 +256,9 @@ const backuptemplate = `{{define "BACKUP"}}{{template "HEADER" .}}
 </table>
     {{end}}
 {{end}}
-{{template "FOOTER" .}}{{end}}`
+{{template "FOOTER" .}}{{end}}
 
-const newtemplate = `{{define "NEW"}}{{template "HEADER" .}}
+{{define "NEW"}}{{template "HEADER" .}}
 <div class="submenu"><a href="/start/">Start backup</a></div>
 <table class="report"><tbody>
 <tr><th class="rowtitle">Name</th><td>{{hostname}}</td></tr>
@@ -278,16 +278,17 @@ const newtemplate = `{{define "NEW"}}{{template "HEADER" .}}
 {{end}}
 </td></tr>
 </tbody></table>
-{{template "FOOTER" .}}{{end}}`
+{{template "FOOTER" .}}{{end}}
 
-const toolstemplate = `{{define "TOOLS"}}{{template "HEADER" .}}
+{{define "TOOLS"}}{{template "HEADER" .}}
 <div class="submenu">
 <a class="label" href="/tools/vacuum">Vacuum</a>
 <a class="label" href="/tools/fsck">Check storage</a>
 </div>
 <table class="report"><tbody>
 </tbody></table>
-{{template "FOOTER" .}}{{end}}`
+{{template "FOOTER" .}}{{end}}
+`
 
 var pages = template.New("webpages")
 

@@ -281,12 +281,6 @@ func web() {
 	})
 
 	setuptemplate(webparts)
-	setuptemplate(homepagetemplate)
-	setuptemplate(configtemplate)
-	setuptemplate(backupstemplate)
-	setuptemplate(backuptemplate)
-	setuptemplate(toolstemplate)
-	setuptemplate(newtemplate)
 
 	http.HandleFunc("/css/", stylesheets)
 	http.HandleFunc("/info/", webinfo)
