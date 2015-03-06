@@ -16,11 +16,14 @@ type Backup struct {
 	Date           BackupID
 	Name, Schedule string
 	Started        time.Time
+	Finished       time.Time
 
 	backupset   map[string]struct{}
 	directories map[string]bool
 
 	include, exclude, ignore []string
+
+	metadata map[string]tar.Header
 }
 
 func NewBackup(cfg Config) (backup *Backup) {
@@ -171,6 +174,37 @@ func (b *Backup) ForEach(action func(string)) {
 	for f := range b.backupset {
 		action(f)
 	}
+}
+
+func (b *Backup) AddMeta(files ...*tar.Header) {
+	if b.metadata == nil {
+		b.metadata = make(map[string]tar.Header)
+	}
+	for _, f := range files {
+		if f != nil {
+			b.backupset[f.Name] = struct{}{}
+			b.metadata[f.Name] = *f
+		}
+	}
+}
+
+func (b *Backup) Meta(file string) tar.Header {
+	return b.metadata[file]
+}
+
+func (b *Backup) Check(file string, quick bool) Status {
+	return Check(b.Meta(file), quick)
+}
+
+func (b *Backup) CheckAll(quick bool) (result Status) {
+	for file := range b.backupset {
+		if Check(b.metadata[file], quick) == OK {
+			delete(b.backupset, file)
+		} else {
+			result = Modified
+		}
+	}
+	return
 }
 
 type Status int

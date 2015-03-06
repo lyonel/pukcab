@@ -175,6 +175,66 @@ func dobackup(name string, schedule string, full bool) (fail error) {
 	return
 }
 
+func getmetadata(backup *Backup) (fail error) {
+	cmd := remotecommand("metadata", "-name", backup.Name, "-date", fmt.Sprintf("%d", backup.Date))
+
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		failure.Println("Backend error:", err)
+		log.Println(cmd.Args, err)
+		return err
+	}
+
+	if err := cmd.Start(); err != nil {
+		failure.Println("Backend error:", err)
+		log.Println(cmd.Args, err)
+		return err
+	}
+
+	tr := tar.NewReader(stdout)
+	for {
+		hdr, err := tr.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			failure.Println("Backend error:", err)
+			log.Println(err)
+			return err
+		}
+
+		switch hdr.Typeflag {
+		case tar.TypeXGlobalHeader:
+			var header BackupInfo
+			dec := gob.NewDecoder(tr)
+			if err := dec.Decode(&header); err != nil {
+				failure.Println("Protocol error:", err)
+				log.Println(err)
+				return err
+			}
+			backup.Name, backup.Schedule, backup.Date, backup.Finished =
+				header.Name, header.Schedule, header.Date, header.Finished
+		default:
+			if len(hdr.Xattrs["backup.type"]) > 0 {
+				hdr.Typeflag = hdr.Xattrs["backup.type"][0]
+			}
+			if s, err := strconv.ParseInt(hdr.Xattrs["backup.size"], 0, 0); err == nil {
+				hdr.Size = s
+			}
+
+			backup.AddMeta(hdr)
+		}
+	}
+
+	if err := cmd.Wait(); err != nil {
+		failure.Println("Backend error:", err)
+		log.Println(cmd.Args, err)
+		return err
+	}
+
+	return
+}
+
 func resume() {
 	var date BackupID = 0
 
@@ -244,6 +304,8 @@ func doresume(date BackupID, name string) (fail error) {
 
 			if Check(*hdr, true) != OK {
 				backup.Add(hdr.Name)
+			} else {
+				backup.Forget(hdr.Name)
 			}
 
 		}
