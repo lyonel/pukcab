@@ -227,7 +227,7 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 <div class="submenu">
 {{if not isserver}}<a class="label" href="/backups/">&#9733;</a>{{end}}
 <a class="label" href="/backups/*">All</a>
-<a class="label" href="/new/">Start new...</a>
+<a class="label" href="/new/">New...</a>
 </div>
 {{$me := hostname}}
 {{$count := len .Backups}}
@@ -271,7 +271,7 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 {{template "FOOTER" .}}{{end}}
 
 {{define "NEW"}}{{template "HEADER" .}}
-<div class="submenu"><a href="/start/">Start backup</a></div>
+<div class="submenu"><a href="/start/">Start</a></div>
 <table class="report"><tbody>
 <tr><th class="rowtitle">Name</th><td>{{hostname}}</td></tr>
 {{if .Server}}
