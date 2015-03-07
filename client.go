@@ -128,7 +128,7 @@ func dobackup(name string, schedule string, full bool) (fail error) {
 	return
 }
 
-func getmetadata(backup *Backup, files ...string) (fail error) {
+func processmetadata(backup *Backup, action func(tar.Header), files ...string) (fail error) {
 	args := []string{"metadata"}
 	if backup.Date != 0 {
 		args = append(args, "-date", fmt.Sprintf("%d", backup.Date))
@@ -183,6 +183,7 @@ func getmetadata(backup *Backup, files ...string) (fail error) {
 			hdr.Xattrs["backup.files"] = fmt.Sprintf("%d", header.Files)
 			hdr.Xattrs["backup.schedule"] = header.Schedule
 			backup.AddMeta(hdr)
+			action(*hdr)
 		default:
 			if len(hdr.Xattrs["backup.type"]) > 0 {
 				hdr.Typeflag = hdr.Xattrs["backup.type"][0]
@@ -192,6 +193,7 @@ func getmetadata(backup *Backup, files ...string) (fail error) {
 			}
 
 			backup.AddMeta(hdr)
+			action(*hdr)
 		}
 	}
 
@@ -202,6 +204,10 @@ func getmetadata(backup *Backup, files ...string) (fail error) {
 	}
 
 	return
+}
+
+func getmetadata(backup *Backup, files ...string) (fail error) {
+	return processmetadata(backup, func(tar.Header) {}, files...)
 }
 
 func resume() {
@@ -403,16 +409,11 @@ func list() {
 		verbose = true
 	}
 
-	if err := getmetadata(backup, flag.Args()...); err != nil {
-		failure.Println(err)
-		log.Fatal(err)
-	}
-
 	first := true
 	var size int64 = 0
 	var files int64 = 0
 	var missing int64 = 0
-	backup.ForEachMeta(func(hdr tar.Header) {
+	if err := processmetadata(backup, func(hdr tar.Header) {
 		switch hdr.Typeflag {
 		case tar.TypeXGlobalHeader:
 			if !short && !first {
@@ -464,7 +465,10 @@ func list() {
 				}
 			}
 		}
-	})
+	}, flag.Args()...); err != nil {
+		failure.Println(err)
+		log.Fatal(err)
+	}
 	if files > 0 {
 		fmt.Print("Complete: ")
 		if files > 0 && missing > 0 {
@@ -554,11 +558,6 @@ func verify() {
 	backup := NewBackup(cfg)
 	backup.Init(date, name)
 
-	if err := getmetadata(backup, flag.Args()...); err != nil {
-		failure.Println(err)
-		log.Fatal(err)
-	}
-
 	first := true
 	var size int64 = 0
 	var files int64 = 0
@@ -566,7 +565,7 @@ func verify() {
 	var modified int64 = 0
 	var deleted int64 = 0
 	var errors int64 = 0
-	backup.ForEachMeta(func(hdr tar.Header) {
+	if err := processmetadata(backup, func(hdr tar.Header) {
 		switch hdr.Typeflag {
 		case tar.TypeXGlobalHeader:
 			if !first {
@@ -617,7 +616,10 @@ func verify() {
 				fmt.Printf("%s %s\n", status, hdr.Name)
 			}
 		}
-	})
+	}, flag.Args()...); err != nil {
+		failure.Println(err)
+		log.Fatal(err)
+	}
 	if files > 0 {
 		fmt.Println("Size:    ", Bytes(uint64(size)))
 		fmt.Println("Files:   ", files)
