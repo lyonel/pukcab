@@ -221,7 +221,14 @@ const (
 func Check(hdr tar.Header, quick bool) (result Status) {
 	result = Unknown
 
-	if hdr.Typeflag == '?' || hdr.Name == "" {
+	switch hdr.Typeflag {
+	case '?':
+		return Missing
+	case tar.TypeXHeader, tar.TypeXGlobalHeader:
+		return OK
+	}
+
+	if hdr.Name == "" {
 		return Missing
 	}
 
