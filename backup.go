@@ -23,7 +23,7 @@ type Backup struct {
 
 	include, exclude, ignore []string
 
-	metadata map[string]tar.Header
+	metadata []tar.Header
 }
 
 func NewBackup(cfg Config) (backup *Backup) {
@@ -182,29 +182,18 @@ func (b *Backup) ForEach(action func(string)) {
 }
 
 func (b *Backup) AddMeta(files ...*tar.Header) {
-	if b.metadata == nil {
-		b.metadata = make(map[string]tar.Header)
-	}
 	for _, f := range files {
 		if f != nil {
 			b.backupset[f.Name] = struct{}{}
-			b.metadata[f.Name] = *f
+			b.metadata = append(b.metadata, *f)
 		}
 	}
 }
 
-func (b *Backup) Meta(file string) tar.Header {
-	return b.metadata[file]
-}
-
-func (b *Backup) Check(file string, quick bool) Status {
-	return Check(b.Meta(file), quick)
-}
-
 func (b *Backup) CheckAll(quick bool) (result Status) {
-	for file, hdr := range b.metadata {
+	for _, hdr := range b.metadata {
 		if Check(hdr, quick) == OK {
-			b.Forget(file)
+			b.Forget(hdr.Name)
 		} else {
 			result = Modified
 		}
