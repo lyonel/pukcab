@@ -150,6 +150,11 @@ func (b *Backup) Start(name string, schedule string) {
 	}
 }
 
+func (b *Backup) Init(date BackupID, name string) {
+	b.Name, b.Date = name, date
+	b.backupset = make(map[string]struct{})
+}
+
 func (b *Backup) Ignore(files ...string) {
 	b.ignore = append(b.ignore, files...)
 }

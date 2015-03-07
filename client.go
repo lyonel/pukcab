@@ -215,70 +215,27 @@ func doresume(date BackupID, name string) (fail error) {
 	info.Printf("Resuming backup: date=%d\n", date)
 
 	backup := NewBackup(cfg)
-
-	cmd := remotecommand("metadata", "-name", name, "-date", fmt.Sprintf("%d", date))
-
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		failure.Println("Backend error:", err)
-		log.Println(cmd.Args, err)
+	backup.Init(date, name)
+	if err := getmetadata(backup); err != nil {
 		return err
 	}
 
-	if err := cmd.Start(); err != nil {
-		failure.Println("Backend error:", err)
-		log.Println(cmd.Args, err)
-		return err
+	if !backup.Finished.IsZero() && backup.Finished.Unix() != 0 {
+		failure.Printf("Backup set date=%d is already complete\n", backup.Date)
+		log.Printf("Backup set date=%d is already complete\n", backup.Date)
+		return nil
 	}
 
-	tr := tar.NewReader(stdout)
-	for {
-		hdr, err := tr.Next()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			failure.Println("Backend error:", err)
-			log.Println(err)
+	info.Print("Determining files to backup... ")
+	if date == 0 { // force retrieving the file list
+		if err := getmetadata(backup); err != nil {
 			return err
 		}
-
-		switch hdr.Typeflag {
-		case tar.TypeXGlobalHeader:
-			backup.Name = hdr.Name
-			backup.Schedule = hdr.Linkname
-			backup.Date = BackupID(hdr.ModTime.Unix())
-			hdr.ChangeTime = time.Unix(int64(hdr.Uid), 0)
-			if hdr.ChangeTime.Unix() != 0 {
-				failure.Printf("Error: backup set date=%d is already complete\n", backup.Date)
-				log.Printf("Error: backup set date=%d is already complete\n", backup.Date)
-				return nil
-			}
-			info.Print("Determining files to backup... ")
-		default:
-			if len(hdr.Xattrs["backup.type"]) > 0 {
-				hdr.Typeflag = hdr.Xattrs["backup.type"][0]
-			}
-			if s, err := strconv.ParseInt(hdr.Xattrs["backup.size"], 0, 0); err == nil {
-				hdr.Size = s
-			}
-
-			if Check(*hdr, true) != OK {
-				backup.Add(hdr.Name)
-			} else {
-				backup.Forget(hdr.Name)
-			}
-
-		}
 	}
 
-	if err := cmd.Wait(); err != nil {
-		failure.Println("Backend error:", err)
-		log.Println(cmd.Args, err)
-		return err
-	}
-
+	backup.CheckAll(true)
 	info.Println("done.")
+
 	info.Printf("Resuming backup: date=%d files=%d\n", backup.Date, backup.Count())
 	log.Printf("Resuming backup: date=%d files=%d\n", backup.Date, backup.Count())
 	dumpfiles(backup.Count(), backup)
