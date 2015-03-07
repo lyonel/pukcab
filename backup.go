@@ -201,6 +201,12 @@ func (b *Backup) CheckAll(quick bool) (result Status) {
 	return
 }
 
+func (b *Backup) ForEachMeta(action func(tar.Header)) {
+	for _, h := range b.metadata {
+		action(h)
+	}
+}
+
 type Status int
 
 const (

@@ -175,6 +175,14 @@ func getmetadata(backup *Backup, files ...string) (fail error) {
 			}
 			backup.Name, backup.Schedule, backup.Date, backup.Finished =
 				header.Name, header.Schedule, header.Date, header.Finished
+			hdr.Name, hdr.Linkname, hdr.ModTime, hdr.ChangeTime, hdr.Size =
+				header.Name, header.Schedule, time.Unix(int64(header.Date), 0), header.Finished, header.Size
+			if hdr.Xattrs == nil {
+				hdr.Xattrs = make(map[string]string)
+			}
+			hdr.Xattrs["backup.files"] = fmt.Sprintf("%d", header.Files)
+			hdr.Xattrs["backup.schedule"] = header.Schedule
+			backup.AddMeta(hdr)
 		default:
 			if len(hdr.Xattrs["backup.type"]) > 0 {
 				hdr.Typeflag = hdr.Xattrs["backup.type"][0]
@@ -388,43 +396,23 @@ func list() {
 		name = ""
 	}
 
-	args := []string{"metadata"}
+	backup := NewBackup(cfg)
+	backup.Init(date, name)
+
 	if date != 0 {
-		args = append(args, "-date", fmt.Sprintf("%d", date))
 		verbose = true
 	}
-	if name != "" {
-		args = append(args, "-name", name)
-	}
-	args = append(args, flag.Args()...)
-	cmd := remotecommand(args...)
 
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		fmt.Println("Backend error:", err)
-		log.Fatal(cmd.Args, err)
+	if err := getmetadata(backup, flag.Args()...); err != nil {
+		failure.Println(err)
+		log.Fatal(err)
 	}
 
-	if err := cmd.Start(); err != nil {
-		fmt.Println("Backend error:", err)
-		log.Fatal(cmd.Args, err)
-	}
-
-	tr := tar.NewReader(stdout)
 	first := true
 	var size int64 = 0
 	var files int64 = 0
 	var missing int64 = 0
-	for {
-		hdr, err := tr.Next()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			fmt.Println("Backend error:", err)
-			log.Fatal(err)
-		}
-
+	backup.ForEachMeta(func(hdr tar.Header) {
 		switch hdr.Typeflag {
 		case tar.TypeXGlobalHeader:
 			if !short && !first {
@@ -435,39 +423,30 @@ func list() {
 			files = 0
 			missing = 0
 
-			var header BackupInfo
-			dec := gob.NewDecoder(tr)
-			if err := dec.Decode(&header); err != nil {
-				fmt.Println("Protocol error:", err)
-				log.Fatal(err)
-			}
-
 			if !short {
-				fmt.Println("Date:    ", header.Date)
-				fmt.Println("Name:    ", header.Name)
-				fmt.Println("Schedule:", header.Schedule)
-				fmt.Println("Started: ", time.Unix(int64(header.Date), 0))
-				if header.Finished.Unix() != 0 {
-					fmt.Println("Finished:", header.Finished)
-					fmt.Println("Duration:", header.Finished.Sub(time.Unix(int64(header.Date), 0)))
+				fmt.Println("Date:    ", hdr.ModTime.Unix())
+				fmt.Println("Name:    ", hdr.Name)
+				fmt.Println("Schedule:", hdr.Xattrs["backup.schedule"])
+				fmt.Println("Started: ", hdr.ModTime)
+				if !hdr.ChangeTime.IsZero() && hdr.ChangeTime.Unix() != 0 {
+					fmt.Println("Finished:", hdr.ChangeTime)
+					fmt.Println("Duration:", hdr.ChangeTime.Sub(hdr.ModTime))
 				}
-				if header.Files > 0 {
-					fmt.Println("Size:    ", Bytes(uint64(header.Size)))
-					fmt.Println("Files:   ", header.Files)
+				if hdr.Size > 0 {
+					fmt.Println("Size:    ", Bytes(uint64(hdr.Size)))
+					fmt.Println("Files:   ", hdr.Xattrs["backup.files"])
 				}
 			} else {
-				fmt.Print(header.Date, " ", header.Name, " ", header.Schedule)
-				if header.Finished.Unix() != 0 {
-					fmt.Print(" ", header.Finished.Format("Mon Jan 2 15:04"))
+				fmt.Print(hdr.ModTime.Unix(), " ", hdr.Name, " ", hdr.Xattrs["backup.schedule"])
+				if !hdr.ChangeTime.IsZero() && hdr.ChangeTime.Unix() != 0 {
+					fmt.Print(" ", hdr.ChangeTime.Format("Mon Jan 2 15:04"))
 				}
 				fmt.Println()
 			}
 		default:
 			files++
-			if s, err := strconv.ParseInt(hdr.Xattrs["backup.size"], 0, 0); err == nil {
-				size += s
-			}
-			if hdr.Xattrs["backup.type"] == "?" {
+			size += hdr.Size
+			if hdr.Typeflag == '?' {
 				missing++
 			}
 			if verbose {
@@ -485,7 +464,7 @@ func list() {
 				}
 			}
 		}
-	}
+	})
 	if files > 0 {
 		fmt.Print("Complete: ")
 		if files > 0 && missing > 0 {
@@ -493,11 +472,6 @@ func list() {
 		} else {
 			fmt.Println("yes")
 		}
-	}
-
-	if err := cmd.Wait(); err != nil {
-		fmt.Println("Backend error:", err)
-		log.Fatal(cmd.Args, err)
 	}
 }
 
