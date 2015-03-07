@@ -197,9 +197,9 @@ func (b *Backup) Check(file string, quick bool) Status {
 }
 
 func (b *Backup) CheckAll(quick bool) (result Status) {
-	for file := range b.backupset {
-		if Check(b.metadata[file], quick) == OK {
-			delete(b.backupset, file)
+	for file, hdr := range b.metadata {
+		if Check(hdr, quick) == OK {
+			b.Forget(file)
 		} else {
 			result = Modified
 		}
@@ -221,9 +221,8 @@ const (
 func Check(hdr tar.Header, quick bool) (result Status) {
 	result = Unknown
 
-	if hdr.Typeflag == '?' {
-		result = Missing
-		return
+	if hdr.Typeflag == '?' || hdr.Name == "" {
+		return Missing
 	}
 
 	if fi, err := os.Lstat(hdr.Name); err == nil {

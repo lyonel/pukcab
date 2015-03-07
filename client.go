@@ -108,58 +108,11 @@ func dobackup(name string, schedule string, full bool) (fail error) {
 	files := backup.Count()
 
 	if !full {
-		cmd = remotecommand("metadata", "-name", name, "-date", fmt.Sprintf("%d", backup.Date))
-
-		stdout, err := cmd.StdoutPipe()
-		if err != nil {
-			failure.Println("Backend error:", err)
-			log.Println(cmd.Args, err)
+		if err := getmetadata(backup); err != nil {
 			return err
 		}
-
-		if err := cmd.Start(); err != nil {
-			failure.Println("Backend error:", err)
-			log.Println(cmd.Args, err)
-			return err
-		}
-
-		tr := tar.NewReader(stdout)
-		for {
-			hdr, err := tr.Next()
-			if err == io.EOF {
-				break
-			}
-			if err != nil {
-				failure.Println("Backend error:", err)
-				log.Println(err)
-				return err
-			}
-
-			switch hdr.Typeflag {
-			case tar.TypeXGlobalHeader:
-				info.Print("Determining files to backup... ")
-			default:
-				if len(hdr.Xattrs["backup.type"]) > 0 {
-					hdr.Typeflag = hdr.Xattrs["backup.type"][0]
-				}
-				if s, err := strconv.ParseInt(hdr.Xattrs["backup.size"], 0, 0); err == nil {
-					hdr.Size = s
-				}
-
-				switch Check(*hdr, true) {
-				case OK:
-					backup.Forget(hdr.Name)
-				}
-
-			}
-		}
-
-		if err := cmd.Wait(); err != nil {
-			failure.Println("Backend error:", err)
-			log.Println(cmd.Args, err)
-			return err
-		}
-
+		info.Print("Determining files to backup... ")
+		backup.CheckAll(true)
 		backuptype := "incremental"
 		if files == backup.Count() {
 			backuptype = "full"
@@ -175,8 +128,16 @@ func dobackup(name string, schedule string, full bool) (fail error) {
 	return
 }
 
-func getmetadata(backup *Backup) (fail error) {
-	cmd := remotecommand("metadata", "-name", backup.Name, "-date", fmt.Sprintf("%d", backup.Date))
+func getmetadata(backup *Backup, files ...string) (fail error) {
+	args := []string{"metadata"}
+	if backup.Date != 0 {
+		args = append(args, "-date", fmt.Sprintf("%d", backup.Date))
+	}
+	if backup.Name != "" {
+		args = append(args, "-name", backup.Name)
+	}
+	args = append(args, files...)
+	cmd := remotecommand(args...)
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
