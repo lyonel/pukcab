@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -263,6 +264,23 @@ func webstart(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/backups/", http.StatusFound)
 }
 
+func webdryrun(w http.ResponseWriter, r *http.Request) {
+	setDefaults()
+
+	backup := NewBackup(cfg)
+	backup.Start(defaultName, "dry-run")
+
+	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
+
+	files := []string{}
+	backup.ForEach(func(f string) { files = append(files, f) })
+	sort.Strings(files)
+
+	for _, f := range files {
+		fmt.Fprintln(w, f)
+	}
+}
+
 func web() {
 	listen := ":8080"
 	flag.StringVar(&listen, "listen", listen, "Address to listen to")
@@ -295,6 +313,7 @@ func web() {
 	http.HandleFunc("/delete/", webdelete)
 	http.HandleFunc("/new/", webnew)
 	http.HandleFunc("/start/", webstart)
+	http.HandleFunc("/dryrun/", webdryrun)
 	if err := http.ListenAndServe(listen, nil); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		log.Fatal("Could no start web interface: ", err)

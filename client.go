@@ -554,8 +554,6 @@ func verify() {
 	backup := NewBackup(cfg)
 	backup.Init(date, name)
 
-	fmt.Println(date, name)
-
 	if err := getmetadata(backup, flag.Args()...); err != nil {
 		failure.Println(err)
 		log.Fatal(err)
