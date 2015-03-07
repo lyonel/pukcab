@@ -545,28 +545,22 @@ func verify() {
 	flag.Var(&date, "date", "Backup set")
 	flag.Var(&date, "d", "-date")
 
+	if date == 0 {
+		date = BackupID(time.Now().Unix())
+	}
+
 	Setup()
 
-	args := []string{"metadata"}
-	args = append(args, "-date", fmt.Sprintf("%d", date))
-	if name != "" {
-		args = append(args, "-name", name)
-	}
-	args = append(args, flag.Args()...)
-	cmd := remotecommand(args...)
+	backup := NewBackup(cfg)
+	backup.Init(date, name)
 
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		fmt.Println("Backend error:", err)
-		log.Fatal(cmd.Args, err)
+	fmt.Println(date, name)
+
+	if err := getmetadata(backup, flag.Args()...); err != nil {
+		failure.Println(err)
+		log.Fatal(err)
 	}
 
-	if err := cmd.Start(); err != nil {
-		fmt.Println("Backend error:", err)
-		log.Fatal(cmd.Args, err)
-	}
-
-	tr := tar.NewReader(stdout)
 	first := true
 	var size int64 = 0
 	var files int64 = 0
@@ -574,16 +568,7 @@ func verify() {
 	var modified int64 = 0
 	var deleted int64 = 0
 	var errors int64 = 0
-	for {
-		hdr, err := tr.Next()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			fmt.Println("Backend error:", err)
-			log.Fatal(err)
-		}
-
+	backup.ForEachMeta(func(hdr tar.Header) {
 		switch hdr.Typeflag {
 		case tar.TypeXGlobalHeader:
 			if !first {
@@ -610,7 +595,7 @@ func verify() {
 
 			size += hdr.Size
 
-			switch Check(*hdr, false) {
+			switch Check(hdr, false) {
 			case OK:
 				status = ""
 			case Modified:
@@ -634,18 +619,13 @@ func verify() {
 				fmt.Printf("%s %s\n", status, hdr.Name)
 			}
 		}
-	}
+	})
 	if files > 0 {
 		fmt.Println("Size:    ", Bytes(uint64(size)))
 		fmt.Println("Files:   ", files)
 		fmt.Println("Modified:", modified)
 		fmt.Println("Deleted: ", deleted)
 		fmt.Println("Missing: ", missing)
-	}
-
-	if err := cmd.Wait(); err != nil {
-		fmt.Println("Backend error:", err)
-		log.Fatal(cmd.Args, err)
 	}
 }
 
