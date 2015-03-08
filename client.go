@@ -295,13 +295,14 @@ func dumpfiles(files int, backup *Backup) (bytes int64) {
 
 	backup.ForEach(func(f string) {
 		if fi, err := os.Lstat(f); err != nil {
-			log.Println(err)
 			if os.IsNotExist(err) {
 				hdr := &tar.Header{
 					Name:     f,
 					Typeflag: 'X',
 				}
 				tw.WriteHeader(hdr)
+			} else {
+				log.Println(err)
 			}
 		} else {
 			if hdr, err := tar.FileInfoHeader(fi, ""); err == nil {
