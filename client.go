@@ -404,7 +404,7 @@ func list() {
 	}
 
 	if date == 0 && len(flag.Args()) != 0 {
-		date = BackupID(time.Now().Unix())
+		date.Set("now")
 	}
 
 	backup := NewBackup(cfg)
@@ -555,7 +555,7 @@ func verify() {
 	flag.Var(&date, "d", "-date")
 
 	if date == 0 {
-		date = BackupID(time.Now().Unix())
+		date.Set("now")
 	}
 
 	Setup()
@@ -676,7 +676,7 @@ func purge() {
 func archive() {
 	gz := false
 	var output string
-	date = BackupID(time.Now().Unix())
+	date.Set("now")
 
 	flag.StringVar(&name, "name", defaultName, "Backup name")
 	flag.StringVar(&name, "n", defaultName, "-name")
@@ -790,7 +790,7 @@ func expire() {
 }
 
 func restore() {
-	date = BackupID(time.Now().Unix())
+	date.Set("now")
 
 	flag.StringVar(&name, "name", defaultName, "Backup name")
 	flag.StringVar(&name, "n", defaultName, "-name")
