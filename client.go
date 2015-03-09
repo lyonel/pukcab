@@ -403,6 +403,10 @@ func list() {
 		name = ""
 	}
 
+	if date == 0 && len(flag.Args()) != 0 {
+		date = BackupID(time.Now().Unix())
+	}
+
 	backup := NewBackup(cfg)
 	backup.Init(date, name)
 
