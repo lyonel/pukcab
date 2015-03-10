@@ -95,6 +95,8 @@ func IsNodump(fi os.FileInfo, file string) bool {
 
 func Fstype(t uint64) string {
 	switch t & 0xffffffff {
+	case 0:
+		return "none"
 	case 0xEF53:
 		return "ext4"
 	case 0x4d44:
