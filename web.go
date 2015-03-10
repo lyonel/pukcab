@@ -199,18 +199,6 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func webtools(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
-
-	report := &ConfigReport{
-		Report: Report{
-			Title: programName + " on " + defaultName,
-		},
-		Config: cfg,
-	}
-	pages.ExecuteTemplate(w, "TOOLS", report)
-}
-
 func webdelete(w http.ResponseWriter, r *http.Request) {
 	date = 0
 	name = ""
@@ -360,7 +348,8 @@ func web() {
 	http.HandleFunc("/backups/", webinfo)
 	http.HandleFunc("/config/", webconfig)
 	if cfg.IsServer() {
-		http.HandleFunc("/tools/", webtools)
+		http.HandleFunc("/tools/", webdf)
+		http.HandleFunc("/tools/df/", webdf)
 	}
 	http.HandleFunc("/", webhome)
 	http.HandleFunc("/about/", webhome)
@@ -368,7 +357,6 @@ func web() {
 	http.HandleFunc("/new/", webnew)
 	http.HandleFunc("/start/", webstart)
 	http.HandleFunc("/dryrun/", webdryrun)
-	http.HandleFunc("/tools/df/", webdf)
 	if err := http.ListenAndServe(listen, nil); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		log.Fatal("Could no start web interface: ", err)
