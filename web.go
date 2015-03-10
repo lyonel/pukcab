@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"runtime"
 	"sort"
 	"strconv"
@@ -275,12 +276,23 @@ func webstart(w http.ResponseWriter, r *http.Request) {
 
 func webdf(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
+	catalog := cfg.Catalog
+	vault := cfg.Vault
+
+	if pw, err := Getpwnam(cfg.User); err == nil {
+		if !filepath.IsAbs(cfg.Catalog) {
+			catalog = filepath.Join(pw.Dir, cfg.Catalog)
+		}
+		if !filepath.IsAbs(cfg.Vault) {
+			vault = filepath.Join(pw.Dir, cfg.Vault)
+		}
+	}
 
 	var cstat, vstat syscall.Statfs_t
-	if err := syscall.Statfs(cfg.Catalog, &cstat); err != nil {
+	if err := syscall.Statfs(catalog, &cstat); err != nil {
 		log.Println(err)
 	}
-	if err := syscall.Statfs(cfg.Vault, &vstat); err != nil {
+	if err := syscall.Statfs(vault, &vstat); err != nil {
 		log.Println(err)
 	}
 	if cstat.Fsid == vstat.Fsid {
