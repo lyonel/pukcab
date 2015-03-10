@@ -14,6 +14,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -42,6 +43,14 @@ type ConfigReport struct {
 type BackupsReport struct {
 	Report
 	Backups []BackupInfo
+}
+
+type StorageReport struct {
+	Report
+	VaultFS, CatalogFS                         string
+	VaultCapacity, VaultBytes, VaultFree       int64
+	CatalogCapacity, CatalogBytes, CatalogFree int64
+	VaultUsed, CatalogUsed                     float64
 }
 
 func stylesheets(w http.ResponseWriter, r *http.Request) {
@@ -264,6 +273,39 @@ func webstart(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/backups/", http.StatusFound)
 }
 
+func webdf(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
+
+	var cstat, vstat syscall.Statfs_t
+	if err := syscall.Statfs(cfg.Catalog, &cstat); err != nil {
+		log.Println(err)
+	}
+	if err := syscall.Statfs(cfg.Vault, &vstat); err != nil {
+		log.Println(err)
+	}
+	if cstat.Fsid == vstat.Fsid {
+		cstat.Bsize = 0
+	}
+
+	report := &StorageReport{
+		Report: Report{
+			Title: "Storage",
+		},
+		VaultCapacity:   vstat.Bsize * int64(vstat.Blocks),
+		VaultBytes:      vstat.Bsize * int64(vstat.Blocks-vstat.Bavail),
+		VaultFree:       vstat.Bsize * int64(vstat.Bavail),
+		VaultUsed:       100 - 100*float64(vstat.Bavail)/float64(vstat.Blocks),
+		VaultFS:         Fstype(uint64(vstat.Type)),
+		CatalogCapacity: cstat.Bsize * int64(cstat.Blocks),
+		CatalogBytes:    cstat.Bsize * int64(cstat.Blocks-vstat.Bavail),
+		CatalogFree:     cstat.Bsize * int64(cstat.Bavail),
+		CatalogUsed:     100 - 100*float64(cstat.Bavail)/float64(cstat.Blocks),
+		CatalogFS:       Fstype(uint64(vstat.Type)),
+	}
+
+	pages.ExecuteTemplate(w, "DF", report)
+}
+
 func webdryrun(w http.ResponseWriter, r *http.Request) {
 	setDefaults()
 
@@ -314,6 +356,7 @@ func web() {
 	http.HandleFunc("/new/", webnew)
 	http.HandleFunc("/start/", webstart)
 	http.HandleFunc("/dryrun/", webdryrun)
+	http.HandleFunc("/tools/df/", webdf)
 	if err := http.ListenAndServe(listen, nil); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		log.Fatal("Could no start web interface: ", err)

@@ -167,6 +167,12 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 <a href="/backups">Backups</a>
 {{if isserver}}<a href="/tools">Tools</a>{{end}}
 </div>{{end}}
+{{define "TOOLSMENU"}}
+<div class="submenu">
+<a class="label" href="/tools/vacuum">Vacuum</a>
+<a class="label" href="/tools/fsck">Check storage</a>
+<a class="label" href="/tools/df">Storage report</a>
+</div>{{end}}
 {{define "HEADER"}}<!DOCTYPE html>
 <html>
 <head>
@@ -293,13 +299,28 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 {{template "FOOTER" .}}{{end}}
 
 {{define "TOOLS"}}{{template "HEADER" .}}
-<div class="submenu">
-<a class="label" href="/tools/vacuum">Vacuum</a>
-<a class="label" href="/tools/fsck">Check storage</a>
-</div>
+{{template "TOOLSMENU"}}
 <table class="report"><tbody>
 </tbody></table>
 {{template "FOOTER" .}}{{end}}
+
+{{define "DF"}}{{template "HEADER" .}}
+{{template "TOOLSMENU"}}
+<table class="report"><tbody>
+{{if .VaultCapacity}}<tr><th class="rowtitle">Storage{{if .CatalogCapacity}} (vault){{end}}</th><td>{{.VaultCapacity | bytes}}</td></tr>{{end}}
+{{if .VaultFS}}<tr><th class="rowtitle">Filesystem</th><td>{{.VaultFS}}</td></tr>{{end}}
+{{if .VaultBytes}}<tr><th class="rowtitle">Used</th><td>{{printf "%.1f" .VaultUsed}}%</td></tr>{{end}}
+{{if .VaultFree}}<tr><th class="rowtitle">Free</th><td>{{.VaultFree | bytes}}</td></tr>{{end}}
+{{if .CatalogCapacity}}
+<tr><th class="rowtitle">Storage (catalog)</th><td>{{.CatalogCapacity | bytes}}</td></tr>
+{{if .CatalogFS}}<tr><th class="rowtitle">Filesystem</th><td>{{.CatalogFS}}</td></tr>{{end}}
+{{if .CatalogBytes}}<tr><th class="rowtitle">Used</th><td>{{printf "%.1f" .CatalogUsed}}%</td></tr>{{end}}
+{{if .CatalogFree}}<tr><th class="rowtitle">Free</th><td>{{.CatalogFree | bytes}}</td></tr>{{end}}
+{{end}}
+</td></tr>
+</tbody></table>
+{{template "FOOTER" .}}{{end}}
+
 `
 
 var pages = template.New("webpages")
