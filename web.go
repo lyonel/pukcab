@@ -262,7 +262,7 @@ func webstart(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/backups/", http.StatusFound)
 }
 
-func webdf(w http.ResponseWriter, r *http.Request) {
+func webtools(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 	catalog := cfg.Catalog
 	vault := cfg.Vault
@@ -289,7 +289,7 @@ func webdf(w http.ResponseWriter, r *http.Request) {
 
 	report := &StorageReport{
 		Report: Report{
-			Title: "Storage",
+			Title: "Tools",
 		},
 		VaultCapacity:   vstat.Bsize * int64(vstat.Blocks),
 		VaultBytes:      vstat.Bsize * int64(vstat.Blocks-vstat.Bavail),
@@ -348,8 +348,7 @@ func web() {
 	http.HandleFunc("/backups/", webinfo)
 	http.HandleFunc("/config/", webconfig)
 	if cfg.IsServer() {
-		http.HandleFunc("/tools/", webdf)
-		http.HandleFunc("/tools/df/", webdf)
+		http.HandleFunc("/tools/", webtools)
 	}
 	http.HandleFunc("/", webhome)
 	http.HandleFunc("/about/", webhome)

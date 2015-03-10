@@ -171,7 +171,6 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 <div class="submenu">
 <a class="label" href="/tools/vacuum">Vacuum</a>
 <a class="label" href="/tools/fsck">Check storage</a>
-<a class="label" href="/tools/df">Storage report</a>
 </div>{{end}}
 {{define "HEADER"}}<!DOCTYPE html>
 <html>
