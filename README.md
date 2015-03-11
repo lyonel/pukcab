@@ -408,9 +408,9 @@ Default value
 In `pukcab`, a retention schedule is associated with each backup when it's created and is used when expiring old backups. It is a free-form text string but common values include `daily`, `weekly`, `monthly`, etc.
 
 Syntax
->  `--listen`[=][*schedule*]:*port*
+>  `--listen`[=][*schedule*]:*host*
 
->  `-l` [*schedule*]:*port*
+>  `-l` [*host*]:*port*
 
 Default value
 > `localhost:8080`
