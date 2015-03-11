@@ -46,7 +46,7 @@ This package ensures a system can act as a pukcab server.
 %{__rm} -rf %{buildroot}
 
 %pre server
-useradd -r -m -d "%{_localstatedir}/pukcab" pukcab || true
+id pukcab || useradd -r -m -d "%{_localstatedir}/pukcab" pukcab || true
 
 %files
 %defattr(-,root,root, 0555)
