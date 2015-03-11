@@ -338,7 +338,7 @@ func webdryrun(w http.ResponseWriter, r *http.Request) {
 }
 
 func web() {
-	listen := ":8080"
+	listen := "localhost:8080"
 	flag.StringVar(&listen, "listen", listen, "Address to listen to")
 	flag.StringVar(&listen, "l", listen, "-listen")
 	Setup()
