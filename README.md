@@ -405,10 +405,10 @@ Default value
 >  `false`
 
 #### listen
-In `pukcab`, a retention schedule is associated with each backup when it's created and is used when expiring old backups. It is a free-form text string but common values include `daily`, `weekly`, `monthly`, etc.
+Force the built-in web server to listen for connections on a different address/port.
 
 Syntax
->  `--listen`[=][*schedule*]:*host*
+>  `--listen`[=][*host*]:*port*
 
 >  `-l` [*host*]:*port*
 
