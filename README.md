@@ -119,6 +119,7 @@ server="backupserver.localdomain.net"
 **maintenance** | 
 [delete][], [purge][]     | delete a backup
 [expire][]                | apply retention schedule to old backups
+[vacuum][]                | vault and catalog clean-up
 **utilities** |
 [config][], [cfg][]       | display `pukcab`'s configuration
 [info][], [list][]        | list backups and files
@@ -208,6 +209,17 @@ Notes
  * on a [backup client](#client), the [name][] option is chosen automatically if not specified
  * the [schedule][] and [expiration][] are chosen automatically if not specified
  
+### vacuum
+This command initiates clean-up of the catalog and vault to save disk space.
+
+Syntax
+>  `pukcab vacuum`
+
+Notes
+
+ * can only be run on the server
+ * the clean-up may take a while and delay new backups
+
 ### config
 This command displays the current configuration.
 
@@ -423,6 +435,7 @@ Sending files... done
 [delete]: #delete
 [purge]: #delete
 [expire]: #expire
+[vacuum]: #vacuum
 [config]: #config
 [cfg]: #config
 [info]: #info
