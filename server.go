@@ -651,3 +651,15 @@ func df() {
 		fmt.Printf("Compression factor: %.1f\n", float64(size)/(float64(vstat.Bsize)*float64(vstat.Blocks-vstat.Bavail)))
 	}
 }
+
+func dbmaintenance() {
+	SetupServer()
+	cfg.ServerOnly()
+
+	if err := opencatalog(); err != nil {
+		fmt.Fprintln(os.Stderr, "Catalog error")
+		log.Fatal(err)
+	}
+
+	vacuum()
+}

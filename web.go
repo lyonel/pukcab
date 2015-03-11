@@ -306,6 +306,20 @@ func webtools(w http.ResponseWriter, r *http.Request) {
 	pages.ExecuteTemplate(w, "DF", report)
 }
 
+func webvacuum(w http.ResponseWriter, r *http.Request) {
+	args := []string{"vacuum"}
+	cmd := remotecommand(args...)
+
+	if err := cmd.Start(); err != nil {
+		log.Println(cmd.Args, err)
+		http.Error(w, "Backend error: "+err.Error(), http.StatusServiceUnavailable)
+		return
+	}
+
+	go cmd.Wait()
+
+	http.Redirect(w, r, "/tools/", http.StatusFound)
+}
 func webdryrun(w http.ResponseWriter, r *http.Request) {
 	setDefaults()
 
@@ -349,6 +363,7 @@ func web() {
 	http.HandleFunc("/config/", webconfig)
 	if cfg.IsServer() {
 		http.HandleFunc("/tools/", webtools)
+		http.HandleFunc("/tools/vacuum", webvacuum)
 	}
 	http.HandleFunc("/", webhome)
 	http.HandleFunc("/about/", webhome)

@@ -153,6 +153,8 @@ func main() {
 		data()
 	case "df":
 		df()
+	case "vacuum":
+		dbmaintenance()
 	case "expirebackup":
 		expirebackup()
 	case "metadata":
