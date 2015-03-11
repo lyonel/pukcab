@@ -9,6 +9,7 @@
  * incremental/full backups
  * data de-duplication
  * data compression
+ * (optional) web interface
 
 ## Requirements
 ### Backup server
@@ -125,6 +126,7 @@ server="backupserver.localdomain.net"
 [info][], [list][]        | list backups and files
 [ping][], [test][]        | check server connectivity
 [register][]              | register to backup server
+[web][]                   | starts the built-in web interface
 
 ### backup
 This command launches a new backup:
@@ -258,6 +260,17 @@ Notes
 
  * to register to the backup server, `pukcab` will ask for the dedicated user's password (set on the server)
  * verbose mode displays detailed information during the registration
+
+### web
+This command starts the built-in web interface.
+
+Syntax
+>  `pukcab web` [ --[listen][]=[_host_]:_port_ ]
+
+Notes
+
+ * by default, `pukcab` listens on `localhost` on port 8080
+ * available features depend on the local system's role (client or server)
 
 ### Options
 `pukcab` is quite flexible with the way options are provided:
@@ -443,6 +456,7 @@ Sending files... done
 [ping]: #ping
 [test]: #ping
 [register]: #register
+[web]: #web
 
 [name]: #name
 [date]: #date
