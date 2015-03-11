@@ -19,7 +19,7 @@ pukcab-${VERSION}.tar.gz:
 	git archive -o $@ --prefix pukcab-${VERSION}/ HEAD
 
 rpm: pukcab-${VERSION}-${OS}-${ARCH}.zip
-	rpmbuild -bb -D "%_rpmdir RPM" -D "%_sourcedir ${PWD}" -D "%_builddir ${PWD}/RPM/BUILD" -D "%_buildrootdir ${PWD}/RPM/BUILDROOT" -D "%VERSION "${VERSION} pukcab.spec
+	rpmbuild -bb -D "%arch ${ARCH}" -D "%_rpmdir RPM" -D "%_sourcedir ${PWD}" -D "%_builddir ${PWD}/RPM/BUILD" -D "%_buildrootdir ${PWD}/RPM/BUILDROOT" -D "%VERSION "${VERSION} pukcab.spec
 
 github:
 	-git push -q git@github.com:/lyonel/pukcab.git
