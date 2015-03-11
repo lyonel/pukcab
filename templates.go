@@ -190,7 +190,6 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 {{define "TOOLSMENU"}}
 <div class="submenu">
 <a class="label" href="/tools/vacuum" onclick="return confirm('This may take a while and cannot be interrupted.\n\nAre you sure?')">Vacuum</a>
-<a class="label" href="/tools/fsck">Check storage</a>
 </div>{{end}}
 {{define "HEADER"}}<!DOCTYPE html>
 <html>
