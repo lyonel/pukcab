@@ -404,7 +404,16 @@ Syntax
 Default value
 >  `false`
 
+#### listen
+In `pukcab`, a retention schedule is associated with each backup when it's created and is used when expiring old backups. It is a free-form text string but common values include `daily`, `weekly`, `monthly`, etc.
 
+Syntax
+>  `--listen`[=][*schedule*]:*port*
+
+>  `-l` [*schedule*]:*port*
+
+Default value
+> `localhost:8080`
 
 #### files
 File names can be specified using the usual shell-like wildcards `*` (matches any number of characters) and `?` (matches exactly one character). The following conventions apply:
