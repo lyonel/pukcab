@@ -1,3 +1,6 @@
+# disable -debuginfo RPM generation
+%global debug_package %{nil}
+
 Summary: Simple Network Backup Utility
 Name: pukcab
 Version: %{VERSION}
