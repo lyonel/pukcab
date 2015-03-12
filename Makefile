@@ -10,6 +10,9 @@ pukcab:
 	go build -o $@
 	strip $@
 
+pukcab.exe:
+	CC=i686-w64-mingw32-gcc CGO_ENABLED=1 GOOS=windows GOARCH=386 go build -tags windows,!linux,!freebsd,!darwin -o $@
+
 release: pukcab-${VERSION}-${OS}-${ARCH}.zip pukcab-${VERSION}.tar.gz
 
 pukcab-${VERSION}-${OS}-${ARCH}.zip: pukcab README.md

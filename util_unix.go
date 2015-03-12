@@ -1,3 +1,7 @@
+// +build linux darwin freebsd openbsd
+// +build !windows
+// +build cgo
+
 package main
 
 import (
