@@ -16,7 +16,7 @@ pukcab.exe:
 release: pukcab-${VERSION}-${OS}-${ARCH}.zip pukcab-${VERSION}.tar.gz
 
 i686 i386 386:
-	$(MAKE) CGO_ENABLED=1 GOARCH=386 ARCH=i686 release
+	$(MAKE) CGO_ENABLED=1 GOARCH=386 ARCH=i686 rpm
 
 
 pukcab-${VERSION}-${OS}-${ARCH}.zip: pukcab README.md
@@ -26,7 +26,7 @@ pukcab-${VERSION}.tar.gz:
 	git archive -o $@ --prefix pukcab-${VERSION}/ HEAD
 
 rpm: pukcab-${VERSION}-${OS}-${ARCH}.zip
-	rpmbuild -bb -D "%arch ${ARCH}" -D "%_rpmdir RPM" -D "%_sourcedir ${PWD}" -D "%_builddir ${PWD}/RPM/BUILD" -D "%_buildrootdir ${PWD}/RPM/BUILDROOT" -D "%VERSION "${VERSION} pukcab.spec
+	rpmbuild -bb --target=${ARCH} -D "%arch ${ARCH}" -D "%_rpmdir RPM" -D "%_sourcedir ${PWD}" -D "%_builddir ${PWD}/RPM/BUILD" -D "%_buildrootdir ${PWD}/RPM/BUILDROOT" -D "%VERSION "${VERSION} pukcab.spec
 
 github:
 	-git push -q git@github.com:/lyonel/pukcab.git
