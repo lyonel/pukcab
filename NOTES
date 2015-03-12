@@ -21,3 +21,8 @@ investigate DAR format for `archive` command (cf. http://dar.linux.free.fr/)
 detect sparse files (esp. /var/log/lastlog)
 
 better handle changing files ("Could not backup  /var/log/messages : 41070  bytes expected but  0  bytes written")
+
+add a new command: analysis
+ * show big files in a backup set
+ * show big directories in a backup set
+ * show often changing files in a backup
