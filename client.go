@@ -266,13 +266,15 @@ func dumpfiles(files int, backup *Backup) (bytes int64) {
 	cmd := remotecommand("submitfiles", "-name", backup.Name, "-date", fmt.Sprintf("%d", backup.Date))
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
-		fmt.Println("Backend error:", err)
-		log.Fatal(cmd.Args, err)
+		failure.Println("Backend error:", err)
+		log.Println(cmd.Args, err)
+		return
 	}
 
 	if err := cmd.Start(); err != nil {
-		fmt.Println("Backend error:", err)
-		log.Fatal(cmd.Args, err)
+		failure.Println("Backend error:", err)
+		log.Println(cmd.Args, err)
+		return
 	}
 
 	tw := tar.NewWriter(stdin)
@@ -339,7 +341,8 @@ func dumpfiles(files int, backup *Backup) (bytes int64) {
 								break
 							}
 							if er != nil {
-								log.Fatal("Could not read ", f, ": ", er)
+								info.Println("Could not read ", f, ": ", er)
+								log.Println("Could not read ", f, ": ", er)
 							}
 							if nr > 0 {
 								nw, ew := tw.Write(buf[0:nr])
@@ -347,13 +350,19 @@ func dumpfiles(files int, backup *Backup) (bytes int64) {
 									if ew == tar.ErrWriteTooLong {
 										break
 									}
-									log.Fatal("Could not send ", f, ": ", ew)
+									failure.Println("Could not send ", f, ": ", ew)
+									log.Println("Could not send ", f, ": ", ew)
+									return
 								} else {
 									written += int64(nw)
 								}
 							}
 						}
 						file.Close()
+
+						if written < hdr.Size { // short write: fill with zeros
+							tw.Write(make([]byte, hdr.Size-written))
+						}
 
 						if written != hdr.Size {
 							log.Println("Could not backup ", f, ":", hdr.Size, " bytes expected but ", written, " bytes written")
@@ -373,8 +382,9 @@ func dumpfiles(files int, backup *Backup) (bytes int64) {
 	stdin.Close()
 
 	if err := cmd.Wait(); err != nil {
-		fmt.Println("Backend error:", err)
-		log.Fatal(cmd.Args, err)
+		failure.Println("Backend error:", err)
+		log.Println(cmd.Args, err)
+		return
 	}
 
 	info.Println("done.")
