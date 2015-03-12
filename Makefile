@@ -1,5 +1,5 @@
 OS:=$(shell uname -s)
-ARCH:=$(shell uname -m)
+ARCH?=$(shell uname -m)
 VERSION:=$(shell git describe --tags --long | cut -d - -f 1,2 | tr - .)
 
 export GOPATH=${PWD}
@@ -14,6 +14,10 @@ pukcab.exe:
 	CC=i686-w64-mingw32-gcc CGO_ENABLED=1 GOOS=windows GOARCH=386 go build -tags windows,!linux,!freebsd,!darwin -o $@
 
 release: pukcab-${VERSION}-${OS}-${ARCH}.zip pukcab-${VERSION}.tar.gz
+
+i686 i386 386:
+	$(MAKE) CGO_ENABLED=1 GOARCH=386 ARCH=i686 release
+
 
 pukcab-${VERSION}-${OS}-${ARCH}.zip: pukcab README.md
 	zip $@ $^
