@@ -186,7 +186,7 @@ func main() {
     version     display version information
     web         start the built-in web server
 `)
-		fmt.Printf("Use \"%s help [command]\" for more information about a command.\n\n", programName)
+		fmt.Printf("\nUse \"%s help [command]\" for more information about a command.\n\n", programName)
 	case "version":
 		Setup()
 		fmt.Printf("%s version %d.%d %s/%s\n", programName, versionMajor, versionMinor, runtime.GOOS, runtime.GOARCH)
