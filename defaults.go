@@ -12,6 +12,7 @@ const defaultCommand = "help"
 const defaultCatalog = "catalog.db"
 const defaultVault = "vault"
 const defaultMaxtries = 10
+const defaultTimeout = 3600
 
 const protocolVersion = 1
 
@@ -21,6 +22,7 @@ var defaultSchedule string = "daily"
 
 var verbose bool = false
 var protocol int = protocolVersion
+var timeout int = defaultTimeout
 
 func setDefaults() {
 	defaultName, _ = os.Hostname()

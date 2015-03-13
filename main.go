@@ -103,6 +103,8 @@ func main() {
 	flag.BoolVar(&verbose, "v", verbose, "-verbose")
 	flag.IntVar(&protocol, "protocol", protocol, "Protocol version")
 	flag.IntVar(&protocol, "p", protocol, "-protocol")
+	flag.IntVar(&timeout, "timeout", timeout, "Backend timeout (in seconds)")
+	flag.IntVar(&timeout, "t", timeout, "-timeout")
 	flag.Usage = usage
 
 	programFile = os.Args[0]

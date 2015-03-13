@@ -57,6 +57,9 @@ func remotecommand(arg ...string) (rcmd *exec.Cmd) {
 		if protocol > 0 {
 			cmd = append(cmd, "-protocol", strconv.Itoa(protocol))
 		}
+		if timeout != defaultTimeout {
+			cmd = append(cmd, "-timeout", strconv.Itoa(timeout))
+		}
 		cmd = append(cmd, arg[1:]...)
 		rcmd = ssh(cmd...)
 	} else {
