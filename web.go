@@ -371,6 +371,9 @@ func web() {
 	http.HandleFunc("/new/", webnew)
 	http.HandleFunc("/start/", webstart)
 	http.HandleFunc("/dryrun/", webdryrun)
+
+	Info(false)
+	Failure(false)
 	if err := http.ListenAndServe(listen, nil); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		log.Fatal("Could no start web interface: ", err)
