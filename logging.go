@@ -37,3 +37,19 @@ func Failure(on bool) {
 		failure = log.New(ioutil.Discard, "", 0)
 	}
 }
+
+type LogStream struct {
+	*log.Logger
+}
+
+func NewLogStream(logger *log.Logger) (stream *LogStream) {
+	stream = &LogStream{
+		Logger: logger,
+	}
+	return
+}
+
+func (l *LogStream) Write(p []byte) (n int, err error) {
+	l.Printf("%s", p)
+	return len(p), nil
+}

@@ -68,7 +68,7 @@ func remotecommand(arg ...string) (rcmd *exec.Cmd) {
 		}
 		rcmd = exec.Command(programFile, arg...)
 	}
-	rcmd.Stderr = os.Stderr
+	rcmd.Stderr = NewLogStream(failure)
 	return rcmd
 }
 
