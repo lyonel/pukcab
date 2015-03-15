@@ -327,7 +327,7 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 <table class="report"><tbody>
 {{if .VaultCapacity}}<tr><th class="rowtitle">Storage{{if .CatalogCapacity}} (vault){{end}}</th><td>{{.VaultCapacity | bytes}}</td></tr>{{end}}
 {{if .VaultFS}}<tr><th class="rowtitle">Filesystem</th><td>{{.VaultFS}}</td></tr>{{end}}
-{{if .VaultBytes}}<tr><th class="rowtitle">Used</th><td><div id="progress"><div id="bar" style="width:{{printf "%.1f" .VaultUsed}}%"></div></div></td></tr>{{end}}
+{{if .VaultBytes}}<tr><th class="rowtitle">Used</th><td><div id="progress" title="{{printf "%.1f" .VaultUsed}}%"><div id="bar" style="width:{{printf "%.1f" .VaultUsed}}%"></div></div></td></tr>{{end}}
 {{if .VaultFree}}<tr><th class="rowtitle">Free</th><td>{{.VaultFree | bytes}}</td></tr>{{end}}
 {{if .CatalogCapacity}}
 <tr><th class="rowtitle">Storage (catalog)</th><td>{{.CatalogCapacity | bytes}}</td></tr>
