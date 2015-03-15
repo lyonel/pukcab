@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"sort"
@@ -175,7 +176,20 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 
 	if err := cmd.Wait(); err != nil {
 		log.Println(cmd.Args, err)
-		http.Error(w, "Backend error: "+err.Error(), http.StatusServiceUnavailable)
+
+		if exiterr, ok := err.(*exec.ExitError); ok {
+			// The program has exited with an exit code != 0
+			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
+				switch status.ExitStatus() {
+				case 2: // retry
+					w.Header().Set("Refresh", "10")
+					http.Error(w, "Busy, retrying.", http.StatusAccepted)
+				default:
+					http.Error(w, "Backend error: "+err.Error(), http.StatusServiceUnavailable)
+				}
+			}
+		}
+
 		return
 	}
 
@@ -230,13 +244,7 @@ func webdelete(w http.ResponseWriter, r *http.Request) {
 	args := []string{"purgebackup", "-name", name, "-date", fmt.Sprintf("%d", date)}
 	cmd := remotecommand(args...)
 
-	if err := cmd.Start(); err != nil {
-		log.Println(cmd.Args, err)
-		http.Error(w, "Backend error: "+err.Error(), http.StatusServiceUnavailable)
-		return
-	}
-
-	go cmd.Wait()
+	go cmd.Run()
 
 	http.Redirect(w, r, "/backups/", http.StatusFound)
 }
@@ -310,13 +318,7 @@ func webvacuum(w http.ResponseWriter, r *http.Request) {
 	args := []string{"vacuum"}
 	cmd := remotecommand(args...)
 
-	if err := cmd.Start(); err != nil {
-		log.Println(cmd.Args, err)
-		http.Error(w, "Backend error: "+err.Error(), http.StatusServiceUnavailable)
-		return
-	}
-
-	go cmd.Wait()
+	go cmd.Run()
 
 	http.Redirect(w, r, "/tools/", http.StatusFound)
 }
@@ -374,6 +376,7 @@ func web() {
 
 	Info(false)
 	Failure(false)
+	timeout = 10
 	if err := http.ListenAndServe(listen, nil); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		log.Fatal("Could no start web interface: ", err)
