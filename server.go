@@ -21,8 +21,6 @@ import (
 	"strings"
 	"syscall"
 	"time"
-
-	"github.com/mattn/go-sqlite3"
 )
 
 func SetupServer() {
@@ -58,8 +56,7 @@ func newbackup() {
 
 	if err := opencatalog(); err != nil {
 		fmt.Println(0)
-		fmt.Fprintln(os.Stderr, "Catalog error")
-		log.Fatal(err)
+		LogExit(err)
 	}
 
 	date = BackupID(time.Now().Unix())
@@ -74,7 +71,7 @@ func newbackup() {
 	//if err != nil {
 	//fmt.Println(0)
 	//fmt.Println(err)
-	//log.Fatal(err)
+	//LogExit(err)
 	//}
 
 	log.Printf("Creating backup set: date=%d name=%q schedule=%q\n", date, name, schedule)
@@ -89,8 +86,7 @@ func newbackup() {
 		}
 		if _, err := tx.Exec("INSERT INTO files (backupid,nameid) VALUES(?,?)", date, nameid(tx, filepath.Clean(f))); err != nil {
 			tx.Rollback()
-			fmt.Fprintln(os.Stderr, "Catalog error")
-			log.Fatal(err)
+			LogExit(err)
 		}
 	}
 	tx.Commit()
@@ -124,8 +120,7 @@ func dumpcatalog(includedata bool) {
 	cfg.ServerOnly()
 
 	if err := opencatalog(); err != nil {
-		fmt.Fprintln(os.Stderr, "Catalog error")
-		log.Fatal(err)
+		LogExit(err)
 	}
 
 	filter := flag.Args()
@@ -152,8 +147,7 @@ func dumpcatalog(includedata bool) {
 		}
 	}
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Catalog error")
-		log.Fatal(err)
+		LogExit(err)
 	}
 
 	if backups, err := stmt.Query(date, name); err == nil {
@@ -171,8 +165,7 @@ func dumpcatalog(includedata bool) {
 				&f,
 				&s,
 			); err != nil {
-				fmt.Fprintln(os.Stderr, "Catalog error")
-				log.Fatal(err)
+				LogExit(err)
 			}
 
 			date = BackupID(d)
@@ -320,8 +313,7 @@ func submitfiles() {
 	}
 
 	if err := opencatalog(); err != nil {
-		fmt.Fprintln(os.Stderr, "Catalog error")
-		log.Fatal(err)
+		LogExit(err)
 	}
 
 	files := 0
@@ -355,8 +347,7 @@ func submitfiles() {
 			break
 		}
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "Catalog error")
-			log.Fatal(err)
+			LogExit(err)
 		}
 
 		// skip fake entries used only for extended attributes and various metadata
@@ -412,8 +403,7 @@ func submitfiles() {
 					tmpfile.Close()
 
 					if err != nil {
-						fmt.Fprintln(os.Stderr, "Catalog error")
-						log.Fatal(err)
+						LogExit(err)
 					}
 
 					hash = EncodeHash(checksum.Sum(nil))
@@ -427,15 +417,11 @@ func submitfiles() {
 
 			}
 			if stmt, err := catalog.Prepare("INSERT OR REPLACE INTO files (hash,backupid,nameid,size,type,linknameid,username,groupname,uid,gid,mode,access,modify,change,devmajor,devminor) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"); err != nil {
-				fmt.Fprintln(os.Stderr, "Catalog error")
-				log.Fatal(err)
+				LogExit(err)
 			} else {
 				for try := 0; try < cfg.Maxtries; try++ {
 					_, err = stmt.Exec(hash, date, nameid(catalog, filepath.Clean(hdr.Name)), hdr.Size, string(hdr.Typeflag), nameid(catalog, filepath.Clean(hdr.Linkname)), hdr.Uname, hdr.Gname, hdr.Uid, hdr.Gid, hdr.Mode, hdr.AccessTime.Unix(), hdr.ModTime.Unix(), hdr.ChangeTime.Unix(), hdr.Devmajor, hdr.Devminor)
-					if e, retry := err.(sqlite3.Error); retry {
-						if e.Code != sqlite3.ErrBusy {
-							break
-						}
+					if busy(err) {
 						log.Println(err, "- retrying", try+1)
 						time.Sleep(time.Duration(1+rand.Intn(10)) * time.Second)
 					} else {
@@ -443,8 +429,7 @@ func submitfiles() {
 					}
 				}
 				if err != nil {
-					fmt.Fprintln(os.Stderr, "Catalog error")
-					log.Fatal(err)
+					LogExit(err)
 				}
 			}
 		}
@@ -464,8 +449,7 @@ func submitfiles() {
 			fmt.Printf("Received %d files for backup %d (%d files to go)\n", files-missing, date, missing)
 		}
 	} else {
-		fmt.Fprintln(os.Stderr, "Catalog error")
-		log.Fatal(err)
+		LogExit(err)
 	}
 }
 
@@ -490,13 +474,11 @@ func purgebackup() {
 	}
 
 	if err := opencatalog(); err != nil {
-		fmt.Fprintln(os.Stderr, "Catalog error")
-		log.Fatal(err)
+		LogExit(err)
 	}
 
 	if r, err := catalog.Exec("DELETE FROM backups WHERE date=? AND name=?", date, name); err != nil {
-		fmt.Fprintln(os.Stderr, "Catalog error")
-		log.Fatal(err)
+		LogExit(err)
 	} else {
 		if n, _ := r.RowsAffected(); n < 1 {
 			fmt.Println("Backup not found.")
@@ -595,8 +577,7 @@ func expirebackup() {
 	}
 
 	if err := opencatalog(); err != nil {
-		fmt.Fprintln(os.Stderr, "Catalog error")
-		log.Fatal(err)
+		LogExit(err)
 	}
 
 	log.Printf("Expiring backups: name=%q schedule=%q date=%d (%v)\n", name, schedule, date, time.Unix(int64(date), 0))
@@ -604,8 +585,7 @@ func expirebackup() {
 	tx, _ := catalog.Begin()
 	if _, err := tx.Exec("DELETE FROM backups WHERE date<? AND ? IN (name,'') AND schedule=?", date, name, schedule); err != nil {
 		tx.Rollback()
-		fmt.Fprintln(os.Stderr, "Catalog error")
-		log.Fatal(err)
+		LogExit(err)
 	}
 	tx.Commit()
 
@@ -621,16 +601,15 @@ func df() {
 	cfg.ServerOnly()
 
 	if err := opencatalog(); err != nil {
-		fmt.Fprintln(os.Stderr, "Catalog error")
-		log.Fatal(err)
+		LogExit(err)
 	}
 
 	var cstat, vstat syscall.Statfs_t
 	if err := syscall.Statfs(cfg.Catalog, &cstat); err != nil {
-		log.Fatal(err)
+		LogExit(err)
 	}
 	if err := syscall.Statfs(cfg.Vault, &vstat); err != nil {
-		log.Fatal(err)
+		LogExit(err)
 	}
 
 	fmt.Println("Filesystem\tSize\tUsed\tAvail\tUse%\tMounted on")
@@ -657,8 +636,7 @@ func dbmaintenance() {
 	cfg.ServerOnly()
 
 	if err := opencatalog(); err != nil {
-		fmt.Fprintln(os.Stderr, "Catalog error")
-		log.Fatal(err)
+		LogExit(err)
 	}
 
 	vacuum()

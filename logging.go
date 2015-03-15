@@ -53,3 +53,15 @@ func (l *LogStream) Write(p []byte) (n int, err error) {
 	l.Printf("%s", p)
 	return len(p), nil
 }
+
+func LogExit(err error) {
+	if dberror(err) {
+		failure.Println("Catalog error.")
+	}
+	log.Print(err)
+	if busy(err) {
+		os.Exit(2)
+	} else {
+		os.Exit(1)
+	}
+}

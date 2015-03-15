@@ -8,7 +8,7 @@ import (
 	"os"
 	"strconv"
 
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/mattn/go-sqlite3"
 )
 
 const schemaVersion = 2
@@ -129,4 +129,16 @@ func nameid(c Catalog, s string) (id int64) {
 	}
 
 	return id
+}
+
+func dberror(err error) (ok bool) {
+	_, ok = err.(sqlite3.Error)
+	return
+}
+
+func busy(err error) bool {
+	if e, ok := err.(sqlite3.Error); ok {
+		return e.Code == sqlite3.ErrBusy
+	}
+	return false
 }
