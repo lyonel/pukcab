@@ -339,6 +339,13 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 </tbody></table>
 {{template "FOOTER" .}}{{end}}
 
+{{define "BUSY"}}{{template "HEADER" .}}
+<div class="submenu">
+<a class="label" href="/">Cancel</a>
+</div>
+<div class="placeholder">Busy, retrying...</div>
+{{template "FOOTER" .}}{{end}}
+
 `
 
 var pages = template.New("webpages")

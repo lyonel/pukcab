@@ -183,7 +183,9 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 				switch status.ExitStatus() {
 				case 2: // retry
 					w.Header().Set("Refresh", "10")
-					http.Error(w, "Busy, retrying.", http.StatusAccepted)
+					w.Header().Set("Content-Type", "text/html; charset=UTF-8")
+					w.WriteHeader(http.StatusAccepted)
+					pages.ExecuteTemplate(w, "BUSY", report)
 				default:
 					http.Error(w, "Backend error: "+err.Error(), http.StatusServiceUnavailable)
 				}
