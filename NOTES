@@ -8,6 +8,7 @@ encrypt vault files
 
 new commands:
  * `auto`: connect to server and wait for orders
+ * `history`: show all changes for given files
 
 check disk space before accepting a new backup
  * fail if <5% disk space available
