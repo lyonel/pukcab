@@ -3,9 +3,6 @@ Improve ping command when checking SSH connections:
  * remote execute /bin/true
  * remote execute pukcab version
 
-backup expiration
- * keep at least 3 backups
-
 encrypt vault files
  * store keys in catalog
 
@@ -26,3 +23,7 @@ add a new command: analysis
  * show big files in a backup set
  * show big directories in a backup set
  * show often changing files in a backup
+
+Windows
+ * investigate if a Windows version would make any sense
+ * use VSS (cf. vssadmin https://technet.microsoft.com/en-us/library/cc754968.aspx)
