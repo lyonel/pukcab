@@ -583,10 +583,12 @@ func expirebackup() {
 	log.Printf("Expiring backups: name=%q schedule=%q date=%d (%v)\n", name, schedule, date, time.Unix(int64(date), 0))
 
 	tx, _ := catalog.Begin()
-	if _, err := tx.Exec("DELETE FROM backups WHERE date<? AND ? IN (name,'') AND schedule=?", date, name, schedule); err != nil {
+	tx.Exec("CREATE TEMPORARY VIEW expendable AS SELECT backups.date FROM backups WHERE backups.finished IS NOT NULL AND backups.date NOT IN (SELECT date FROM backups AS sets WHERE backups.name=sets.name ORDER BY date DESC LIMIT ?)", keep)
+	if _, err := tx.Exec("DELETE FROM backups WHERE date<? AND ? IN (name,'') AND schedule=? AND date IN (SELECT * FROM expendable)", date, name, schedule); err != nil {
 		tx.Rollback()
 		LogExit(err)
 	}
+	tx.Exec("DROP VIEW expendable")
 	tx.Commit()
 
 	vacuum()
