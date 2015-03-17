@@ -23,6 +23,16 @@ import (
 	"time"
 )
 
+type DumpFlags int
+
+const (
+	Short DumpFlags = 1 << iota
+	FullDetails
+	SingleBackup
+	Reverse
+	Data
+)
+
 func SetupServer() {
 	Setup()
 	switchuser()
@@ -107,7 +117,7 @@ func newbackup() {
 	}
 }
 
-func dumpcatalog(includedata bool) {
+func dumpcatalog(what DumpFlags) {
 	details := false
 	date = 0
 
@@ -171,7 +181,7 @@ func dumpcatalog(includedata bool) {
 			date = BackupID(d)
 
 			var header bytes.Buffer
-			if !includedata {
+			if what&Data == 0 {
 				enc := gob.NewEncoder(&header)
 				enc.Encode(BackupInfo{
 					Date:     date,
@@ -232,7 +242,7 @@ func dumpcatalog(includedata bool) {
 							hdr.ChangeTime = time.Unix(change, 0)
 							if filetype == string(tar.TypeReg) || filetype == string(tar.TypeRegA) {
 								hdr.Typeflag = tar.TypeReg
-								if includedata {
+								if what&Data != 0 {
 									hdr.Linkname = hash
 								} else {
 									hdr.Xattrs = make(map[string]string)
@@ -248,12 +258,12 @@ func dumpcatalog(includedata bool) {
 							}
 							for _, f := range filter {
 								if matched, err := regexp.MatchString(f, hdr.Name); err == nil && matched {
-									if includedata && hdr.Typeflag == tar.TypeReg {
+									if what&Data != 0 && hdr.Typeflag == tar.TypeReg {
 										hdr.Size = size
 									}
 									tw.WriteHeader(&hdr)
 
-									if includedata && size > 0 && hash != "" {
+									if what&Data != 0 && size > 0 && hash != "" {
 										if zdata, err := os.Open(filepath.Join(cfg.Vault, hash)); err == nil {
 											gz, _ := gzip.NewReader(zdata)
 											io.Copy(tw, gz)
@@ -277,11 +287,11 @@ func dumpcatalog(includedata bool) {
 }
 
 func metadata() {
-	dumpcatalog(false)
+	dumpcatalog(Short)
 }
 
 func data() {
-	dumpcatalog(true)
+	dumpcatalog(Data)
 }
 
 func toascii(s string) (result string) {
