@@ -118,7 +118,7 @@ func newbackup() {
 }
 
 func dumpcatalog(what DumpFlags) {
-	details := false
+	details := what&FullDetails != 0
 	date = 0
 
 	flag.StringVar(&name, "name", "", "Backup name")
@@ -144,18 +144,17 @@ func dumpcatalog(what DumpFlags) {
 	tw := tar.NewWriter(os.Stdout)
 	defer tw.Close()
 
+	var query string
 	var stmt *sql.Stmt
 	var err error
 	if date != 0 {
-		stmt, err = catalog.Prepare("SELECT date, name, schedule, finished, files, size FROM backups WHERE date<=? AND ? IN ('', name) ORDER BY date DESC LIMIT 1")
+		query = "SELECT date, name, schedule, finished, files, size FROM backups WHERE date<=? AND ? IN ('', name) ORDER BY date DESC LIMIT 1"
 		details = true
 	} else {
-		if name != "" {
-			stmt, err = catalog.Prepare("SELECT date, name, schedule, finished, files, size FROM backups WHERE ? NOT NULL AND name=? ORDER BY date")
-		} else {
-			stmt, err = catalog.Prepare("SELECT date, name, schedule, finished, files, size FROM backups WHERE ? NOT NULL AND ? NOT NULL ORDER BY date")
-		}
+		query = "SELECT date, name, schedule, finished, files, size FROM backups WHERE ? NOT NULL AND ? IN ('', name) ORDER BY date"
 	}
+
+	stmt, err = catalog.Prepare(query)
 	if err != nil {
 		LogExit(err)
 	}
