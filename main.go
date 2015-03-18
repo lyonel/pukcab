@@ -159,6 +159,8 @@ func main() {
 		dbmaintenance()
 	case "expirebackup":
 		expirebackup()
+	case "timeline":
+		timeline()
 	case "metadata":
 		metadata()
 	case "newbackup":

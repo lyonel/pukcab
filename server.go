@@ -148,10 +148,25 @@ func dumpcatalog(what DumpFlags) {
 	var stmt *sql.Stmt
 	var err error
 	if date != 0 {
-		query = "SELECT date, name, schedule, finished, files, size FROM backups WHERE date<=? AND ? IN ('', name) ORDER BY date DESC LIMIT 1"
+		query = "SELECT date, name, schedule, finished, files, size FROM backups WHERE date"
+		if what&Reverse != 0 {
+			query += ">="
+		} else {
+			query += "<="
+		}
+		query += "? AND ? IN ('', name) ORDER BY date"
+		if what&Reverse == 0 {
+			query += " DESC"
+		}
+		if what&SingleBackup != 0 {
+			query += " LIMIT 1"
+		}
 		details = true
 	} else {
 		query = "SELECT date, name, schedule, finished, files, size FROM backups WHERE ? NOT NULL AND ? IN ('', name) ORDER BY date"
+		if what&Reverse == 0 {
+			query += " DESC"
+		}
 	}
 
 	stmt, err = catalog.Prepare(query)
@@ -286,11 +301,15 @@ func dumpcatalog(what DumpFlags) {
 }
 
 func metadata() {
-	dumpcatalog(Short)
+	dumpcatalog(SingleBackup)
 }
 
 func data() {
-	dumpcatalog(Data)
+	dumpcatalog(Data | SingleBackup)
+}
+
+func timeline() {
+	dumpcatalog(FullDetails | Reverse)
 }
 
 func toascii(s string) (result string) {
