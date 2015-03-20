@@ -134,6 +134,8 @@ func main() {
 		expire()
 	case "info", "list":
 		list()
+	case "history", "versions":
+		history()
 	case "config", "cfg":
 		config()
 	case "ping", "test":

@@ -128,8 +128,8 @@ func dobackup(name string, schedule string, full bool) (fail error) {
 	return
 }
 
-func processmetadata(backup *Backup, action func(tar.Header), files ...string) (fail error) {
-	args := []string{"metadata"}
+func process(c string, backup *Backup, action func(tar.Header), files ...string) (fail error) {
+	args := []string{c}
 	if backup.Date != 0 {
 		args = append(args, "-date", fmt.Sprintf("%d", backup.Date))
 	}
@@ -207,7 +207,7 @@ func processmetadata(backup *Backup, action func(tar.Header), files ...string) (
 }
 
 func getmetadata(backup *Backup, files ...string) (fail error) {
-	return processmetadata(backup, func(tar.Header) {}, files...)
+	return process("metadata", backup, func(tar.Header) {}, files...)
 }
 
 func resume() {
@@ -393,6 +393,63 @@ func dumpfiles(files int, backup *Backup) (bytes int64) {
 	return bytes
 }
 
+func history() {
+	date = 0
+	name = ""
+	flag.StringVar(&name, "name", name, "Backup name")
+	flag.StringVar(&name, "n", name, "-name")
+	flag.Var(&date, "date", "Backup set")
+	flag.Var(&date, "d", "-date")
+	Setup()
+
+	if name == "" && !cfg.IsServer() {
+		name = defaultName
+	}
+
+	if name == "*" {
+		name = ""
+	}
+
+	backup := NewBackup(cfg)
+	backup.Init(date, name)
+
+	first := true
+	if err := process("timeline", backup, func(hdr tar.Header) {
+		switch hdr.Typeflag {
+		case tar.TypeXGlobalHeader:
+
+			if !first {
+				fmt.Println()
+			}
+			first = false
+
+			fmt.Print(hdr.ModTime.Unix(), " ", hdr.Name, " ", hdr.Xattrs["backup.schedule"])
+			if !hdr.ChangeTime.IsZero() && hdr.ChangeTime.Unix() != 0 {
+				fmt.Print(" ", hdr.ChangeTime.Format("Mon Jan 2 15:04"))
+			}
+			fmt.Println()
+		default:
+			if hdr.Typeflag != '?' {
+				fmt.Printf("%s %8s %-8s", hdr.FileInfo().Mode(), hdr.Uname, hdr.Gname)
+				if s, err := strconv.ParseUint(hdr.Xattrs["backup.size"], 0, 0); err == nil {
+					fmt.Printf("%8s", Bytes(s))
+				} else {
+					fmt.Printf("%8s", "")
+				}
+				fmt.Printf(" %s", hdr.Name)
+				if hdr.Linkname != "." {
+					fmt.Printf(" ➙ %s\n", hdr.Linkname)
+				} else {
+					fmt.Println()
+				}
+			}
+		}
+	}, flag.Args()...); err != nil {
+		failure.Println(err)
+		log.Fatal(err)
+	}
+}
+
 func list() {
 	date = 0
 	name = ""
@@ -428,7 +485,7 @@ func list() {
 	var size int64 = 0
 	var files int64 = 0
 	var missing int64 = 0
-	if err := processmetadata(backup, func(hdr tar.Header) {
+	if err := process("metadata", backup, func(hdr tar.Header) {
 		switch hdr.Typeflag {
 		case tar.TypeXGlobalHeader:
 			if !short && !first {
@@ -580,7 +637,7 @@ func verify() {
 	var modified int64 = 0
 	var deleted int64 = 0
 	var errors int64 = 0
-	if err := processmetadata(backup, func(hdr tar.Header) {
+	if err := process("metadata", backup, func(hdr tar.Header) {
 		switch hdr.Typeflag {
 		case tar.TypeXGlobalHeader:
 			if !first {
