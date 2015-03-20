@@ -97,7 +97,7 @@ func Hash(filename string) (hash string) {
 	return
 }
 
-func ConvertGlob(filter string) (regex string) {
+func ConvertGlob2(filter string) (regex string) {
 	regex = regexp.QuoteMeta(strings.TrimRight(filter, string(filepath.Separator)))
 	regex = strings.Replace(regex, "\\?", ".", -1)
 	regex = strings.Replace(regex, "\\*", ".*", -1)
@@ -110,6 +110,20 @@ func ConvertGlob(filter string) (regex string) {
 	regex = regex + "(" + string(filepath.Separator) + ".*)?$"
 
 	return
+}
+
+func ConvertGlob(name string, filters ...string) (SQL string) {
+	clauses := []string{}
+
+	for _, f := range filters {
+		f = strings.TrimRight(f, string(filepath.Separator))
+		if len(f) > 0 && f[0] != filepath.Separator {
+			f = "*" + string(filepath.Separator) + f
+		}
+		clauses = append(clauses, name+" GLOB '"+strings.Replace(f, "'", "''", -1)+"'")
+	}
+
+	return strings.Join(clauses, " OR ")
 }
 
 func logn(n, b float64) float64 {

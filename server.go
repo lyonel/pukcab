@@ -16,7 +16,6 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strconv"
 	"strings"
 	"syscall"
@@ -137,9 +136,7 @@ func dumpcatalog(what DumpFlags) {
 	if len(filter) == 0 {
 		filter = append(filter, "*")
 	}
-	for i, f := range filter {
-		filter[i] = ConvertGlob(f)
-	}
+	namefilter := ConvertGlob("names.name", filter...)
 
 	tw := tar.NewWriter(os.Stdout)
 	defer tw.Close()
@@ -219,7 +216,7 @@ func dumpcatalog(what DumpFlags) {
 			}
 
 			if details {
-				if files, err := catalog.Query("SELECT names.name AS name,type,hash,links.name AS linkname,size,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor FROM files,names,names AS links WHERE backupid=? AND nameid=names.id AND linknameid=links.id ORDER BY name", int64(date)); err == nil {
+				if files, err := catalog.Query("SELECT names.name AS name,type,hash,links.name AS linkname,size,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor FROM files,names,names AS links WHERE backupid=? AND nameid=names.id AND linknameid=links.id AND ("+namefilter+") ORDER BY name", int64(date)); err == nil {
 					defer files.Close()
 					for files.Next() {
 						var hdr tar.Header
@@ -270,22 +267,18 @@ func dumpcatalog(what DumpFlags) {
 									hdr.Typeflag = filetype[0]
 								}
 							}
-							for _, f := range filter {
-								if matched, err := regexp.MatchString(f, hdr.Name); err == nil && matched {
-									if what&Data != 0 && hdr.Typeflag == tar.TypeReg {
-										hdr.Size = size
-									}
-									tw.WriteHeader(&hdr)
+							if what&Data != 0 && hdr.Typeflag == tar.TypeReg {
+								hdr.Size = size
+							}
+							tw.WriteHeader(&hdr)
 
-									if what&Data != 0 && size > 0 && hash != "" {
-										if zdata, err := os.Open(filepath.Join(cfg.Vault, hash)); err == nil {
-											gz, _ := gzip.NewReader(zdata)
-											io.Copy(tw, gz)
-											zdata.Close()
-										} else {
-											log.Println(err)
-										}
-									}
+							if what&Data != 0 && size > 0 && hash != "" {
+								if zdata, err := os.Open(filepath.Join(cfg.Vault, hash)); err == nil {
+									gz, _ := gzip.NewReader(zdata)
+									io.Copy(tw, gz)
+									zdata.Close()
+								} else {
+									log.Println(err)
 								}
 							}
 						} else {
