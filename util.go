@@ -97,21 +97,6 @@ func Hash(filename string) (hash string) {
 	return
 }
 
-func ConvertGlob2(filter string) (regex string) {
-	regex = regexp.QuoteMeta(strings.TrimRight(filter, string(filepath.Separator)))
-	regex = strings.Replace(regex, "\\?", ".", -1)
-	regex = strings.Replace(regex, "\\*", ".*", -1)
-
-	if len(regex) > 0 && regex[0] == filepath.Separator {
-		regex = "^" + regex
-	} else {
-		regex = string(filepath.Separator) + regex
-	}
-	regex = regex + "(" + string(filepath.Separator) + ".*)?$"
-
-	return
-}
-
 func ConvertGlob(name string, filters ...string) (SQL string) {
 	clauses := []string{}
 
