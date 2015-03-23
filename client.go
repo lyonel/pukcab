@@ -14,6 +14,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -25,6 +26,10 @@ func backup() {
 	flag.BoolVar(&full, "full", full, "Full backup")
 	flag.BoolVar(&full, "f", full, "-full")
 	Setup()
+
+	if len(flag.Args()) != 0 {
+		failure.Fatal("Too many parameters: ", strings.Join(flag.Args(), " "))
+	}
 
 	if err := dobackup(name, schedule, full); err != nil {
 		failure.Fatal("Backup failure.")
@@ -218,6 +223,10 @@ func resume() {
 	flag.Var(&date, "date", "Backup set")
 	flag.Var(&date, "d", "-date")
 	Setup()
+
+	if len(flag.Args()) != 0 {
+		failure.Fatal("Too many parameters: ", strings.Join(flag.Args(), " "))
+	}
 
 	if err := doresume(date, name); err != nil {
 		failure.Fatal("Backup failure.")
@@ -556,6 +565,10 @@ func list() {
 func ping() {
 	Setup()
 
+	if len(flag.Args()) != 0 {
+		failure.Fatal("Too many parameters: ", strings.Join(flag.Args(), " "))
+	}
+
 	if len(cfg.Server) > 0 {
 		info.Println("Server:", cfg.Server)
 	}
@@ -590,6 +603,10 @@ func ping() {
 func register() {
 	Setup()
 	cfg.ClientOnly()
+
+	if len(flag.Args()) != 0 {
+		failure.Fatal("Too many parameters: ", strings.Join(flag.Args(), " "))
+	}
 
 	if len(cfg.Server) < 1 {
 		fmt.Println("Error registering client: no server configured")
@@ -714,6 +731,10 @@ func purge() {
 
 	Setup()
 
+	if len(flag.Args()) != 0 {
+		failure.Fatal("Too many parameters: ", strings.Join(flag.Args(), " "))
+	}
+
 	if name == "" && !cfg.IsServer() {
 		name = defaultName
 	}
@@ -823,6 +844,10 @@ func expire() {
 
 	if name == "" && !cfg.IsServer() {
 		name = defaultName
+	}
+
+	if len(flag.Args()) != 0 {
+		failure.Fatal("Too many parameters: ", strings.Join(flag.Args(), " "))
 	}
 
 	info.Printf("Expiring backups for %q, schedule %q\n", name, schedule)
