@@ -530,6 +530,7 @@ func list() {
 				} else {
 					fmt.Printf("%8s", "")
 				}
+				fmt.Print(" ", DisplayTime(hdr.ModTime))
 				fmt.Printf(" %s", hdr.Name)
 				if hdr.Linkname != "." {
 					fmt.Printf(" ➙ %s\n", hdr.Linkname)
