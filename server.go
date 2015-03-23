@@ -160,10 +160,7 @@ func dumpcatalog(what DumpFlags) {
 		}
 		details = true
 	} else {
-		query = "SELECT date, name, schedule, finished, files, size FROM backups WHERE ? NOT NULL AND ? IN ('', name) ORDER BY date"
-		if what&Reverse == 0 {
-			query += " DESC"
-		}
+		query = "SELECT date, name, schedule, finished, files, size FROM backups WHERE ? NOT NULL AND ? IN ('', name) ORDER BY date DESC"
 	}
 
 	stmt, err = catalog.Prepare(query)
