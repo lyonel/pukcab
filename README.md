@@ -50,6 +50,7 @@ name2 = "text value"
 name3 = [ "list", "of", "text", "values" ]
 ...
 ```
+
 Notes
 
  * text values must be enclosed in `"`
@@ -123,6 +124,7 @@ server="backupserver.localdomain.net"
 [vacuum][]                | vault and catalog clean-up
 **utilities** |
 [config][], [cfg][]       | display `pukcab`'s configuration
+[history][], [versions][] | list history for files
 [info][], [list][]        | list backups and files
 [ping][], [test][]        | check server connectivity
 [register][]              | register to backup server
@@ -227,6 +229,17 @@ This command displays the current configuration.
 
 Syntax
 >  `pukcab config`
+
+### history
+This command shows the different versions stored in backups for given files. Backup sets can be filtered by name and/or date and files.
+
+Syntax
+>  `pukcab history` [ --[name][]=_name_ ] [ --[date][]=_date_ ] [ _[FILES](#files)_... ]
+
+Notes
+
+ * if [date][] is specified, the command lists only history after that date
+ * if [name][] is not specified, the command lists all backups, regardless of their name
 
 ### info
 This command lists the backup sets stored on the server. Backup sets can be filtered by name and/or date and files.
@@ -461,6 +474,8 @@ Sending files... done
 [config]: #config
 [cfg]: #config
 [info]: #info
+[history]: #history
+[versions]: #history
 [list]: #info
 [ping]: #ping
 [test]: #ping
