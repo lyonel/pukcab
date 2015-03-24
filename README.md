@@ -239,7 +239,7 @@ Syntax
 Notes
 
  * if [date][] is specified, the command lists only history after that date
- * if [name][] is not specified, the command lists all backups, regardless of their name
+ * on server, if [name][] is not specified, the command lists all backups, regardless of their name
 
 ### info
 This command lists the backup sets stored on the server. Backup sets can be filtered by name and/or date and files.
@@ -250,7 +250,7 @@ Syntax
 Notes
 
  * if [date][] is specified, the command lists only details about the corresponding backup
- * if [name][] is not specified, the command lists all backups, regardless of their name
+ * on server, if [name][] is not specified, the command lists all backups, regardless of their name
  * verbose mode lists the individual [files][]
 
 ### ping
