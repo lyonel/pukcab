@@ -122,6 +122,8 @@ func dumpcatalog(what DumpFlags) {
 
 	flag.StringVar(&name, "name", "", "Backup name")
 	flag.StringVar(&name, "n", "", "-name")
+	flag.StringVar(&schedule, "schedule", "", "Backup schedule")
+	flag.StringVar(&schedule, "r", "", "-schedule")
 	flag.Var(&date, "date", "Backup set")
 	flag.Var(&date, "d", "-date")
 
@@ -151,7 +153,7 @@ func dumpcatalog(what DumpFlags) {
 		} else {
 			query += "<="
 		}
-		query += "? AND ? IN ('', name) ORDER BY date"
+		query += "? AND ? IN ('', name) AND ? IN ('', schedule) ORDER BY date"
 		if what&Reverse == 0 {
 			query += " DESC"
 		}
@@ -160,7 +162,7 @@ func dumpcatalog(what DumpFlags) {
 		}
 		details = true
 	} else {
-		query = "SELECT date, name, schedule, finished, files, size FROM backups WHERE ? NOT NULL AND ? IN ('', name) ORDER BY date"
+		query = "SELECT date, name, schedule, finished, files, size FROM backups WHERE ? NOT NULL AND ? IN ('', name) AND ? IN ('', schedule) ORDER BY date"
 	}
 
 	stmt, err = catalog.Prepare(query)
@@ -168,7 +170,7 @@ func dumpcatalog(what DumpFlags) {
 		LogExit(err)
 	}
 
-	if backups, err := stmt.Query(date, name); err == nil {
+	if backups, err := stmt.Query(date, name, schedule); err == nil {
 		defer backups.Close()
 		for backups.Next() {
 			var finished SQLInt
