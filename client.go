@@ -141,6 +141,9 @@ func process(c string, backup *Backup, action func(tar.Header), files ...string)
 	if backup.Name != "" {
 		args = append(args, "-name", backup.Name)
 	}
+	if backup.Schedule != "" {
+		args = append(args, "-schedule", backup.Schedule)
+	}
 	args = append(args, files...)
 	cmd := remotecommand(args...)
 
@@ -405,8 +408,11 @@ func dumpfiles(files int, backup *Backup) (bytes int64) {
 func history() {
 	date = 0
 	name = ""
+	schedule = ""
 	flag.StringVar(&name, "name", name, "Backup name")
 	flag.StringVar(&name, "n", name, "-name")
+	flag.StringVar(&schedule, "schedule", schedule, "Backup schedule")
+	flag.StringVar(&schedule, "r", schedule, "-schedule")
 	flag.Var(&date, "date", "Backup set")
 	flag.Var(&date, "d", "-date")
 	Setup()
@@ -421,6 +427,7 @@ func history() {
 
 	backup := NewBackup(cfg)
 	backup.Init(date, name)
+	backup.Schedule = schedule
 
 	first := true
 	if err := process("timeline", backup, func(hdr tar.Header) {
