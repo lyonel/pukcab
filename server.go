@@ -57,12 +57,6 @@ func newbackup() {
 		log.Fatal("Client did not provide a backup name")
 	}
 
-	if schedule == "" {
-		fmt.Println(0)
-		fmt.Fprintln(os.Stderr, "Missing backup schedule")
-		log.Fatal("Client did not provide a backup schedule")
-	}
-
 	if err := opencatalog(); err != nil {
 		fmt.Println(0)
 		LogExit(err)
@@ -76,12 +70,6 @@ func newbackup() {
 		time.Sleep(1 * time.Second)
 		date = BackupID(time.Now().Unix())
 	}
-
-	//if err != nil {
-	//fmt.Println(0)
-	//fmt.Println(err)
-	//LogExit(err)
-	//}
 
 	log.Printf("Creating backup set: date=%d name=%q schedule=%q\n", date, name, schedule)
 
