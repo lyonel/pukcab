@@ -132,12 +132,13 @@ func nameid(c Catalog, s string) (id int64) {
 }
 
 func last(c Catalog, name string, schedule string) (id BackupID) {
-	c.QueryRow("SELECT MAX(date) FROM backups WHERE finished AND ? IN ('', name) AND ? IN ('', schedule)", name, schedule).Scan(&id)
-	return
+	var date SQLInt
+	c.QueryRow("SELECT MAX(date) FROM backups WHERE finished AND ? IN ('', name) AND ? IN ('', schedule)", name, schedule).Scan(&date)
+	return BackupID(date)
 }
 
 func reschedule(backup BackupID, name string, s string) (schedule string) {
-	if s != "" {
+	if s != "auto" && s != "" {
 		return s
 	}
 

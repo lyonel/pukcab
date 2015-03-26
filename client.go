@@ -21,8 +21,8 @@ import (
 func backup() {
 	flag.StringVar(&name, "name", defaultName, "Backup name")
 	flag.StringVar(&name, "n", defaultName, "-name")
-	flag.StringVar(&schedule, "schedule", defaultSchedule, "Backup schedule")
-	flag.StringVar(&schedule, "r", defaultSchedule, "-schedule")
+	flag.StringVar(&schedule, "schedule", "auto", "Backup schedule")
+	flag.StringVar(&schedule, "r", "auto", "-schedule")
 	flag.BoolVar(&full, "full", full, "Full backup")
 	flag.BoolVar(&full, "f", full, "-full")
 	Setup()
@@ -37,6 +37,9 @@ func backup() {
 }
 
 func dobackup(name string, schedule string, full bool) (fail error) {
+	if schedule == "" {
+		schedule = "auto"
+	}
 	info.Printf("Starting backup: name=%q schedule=%q\n", name, schedule)
 	log.Printf("Starting backup: name=%q schedule=%q\n", name, schedule)
 
