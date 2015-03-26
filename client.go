@@ -21,8 +21,8 @@ import (
 func backup() {
 	flag.StringVar(&name, "name", defaultName, "Backup name")
 	flag.StringVar(&name, "n", defaultName, "-name")
-	flag.StringVar(&schedule, "schedule", "auto", "Backup schedule")
-	flag.StringVar(&schedule, "r", "auto", "-schedule")
+	flag.StringVar(&schedule, "schedule", "", "Backup schedule")
+	flag.StringVar(&schedule, "r", "", "-schedule")
 	flag.BoolVar(&full, "full", full, "Full backup")
 	flag.BoolVar(&full, "f", full, "-full")
 	Setup()
@@ -37,18 +37,23 @@ func backup() {
 }
 
 func dobackup(name string, schedule string, full bool) (fail error) {
-	if schedule == "" {
-		schedule = "auto"
-	}
 	info.Printf("Starting backup: name=%q schedule=%q\n", name, schedule)
 	log.Printf("Starting backup: name=%q schedule=%q\n", name, schedule)
 
 	backup := NewBackup(cfg)
-	backup.Start(name, schedule)
 
 	info.Print("Sending file list... ")
 
-	cmd := remotecommand("newbackup", "-name", name, "-schedule", schedule, "-full="+strconv.FormatBool(full))
+	cmdline := []string{"newbackup", "-name", name, "-full=" + strconv.FormatBool(full)}
+	if schedule != "" {
+		cmdline = append(cmdline, "-schedule", schedule)
+	} else {
+		schedule = defaultSchedule
+	}
+
+	backup.Start(name, schedule)
+
+	cmd := remotecommand(cmdline...)
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		failure.Println("Backend error:", err)
