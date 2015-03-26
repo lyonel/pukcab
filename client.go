@@ -47,8 +47,6 @@ func dobackup(name string, schedule string, full bool) (fail error) {
 	cmdline := []string{"newbackup", "-name", name, "-full=" + strconv.FormatBool(full)}
 	if schedule != "" {
 		cmdline = append(cmdline, "-schedule", schedule)
-	} else {
-		schedule = defaultSchedule
 	}
 
 	backup.Start(name, schedule)
