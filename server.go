@@ -43,8 +43,8 @@ func SetupServer() {
 func newbackup() {
 	flag.StringVar(&name, "name", "", "Backup name")
 	flag.StringVar(&name, "n", "", "-name")
-	flag.StringVar(&schedule, "schedule", defaultSchedule, "Backup schedule")
-	flag.StringVar(&schedule, "r", defaultSchedule, "-schedule")
+	flag.StringVar(&schedule, "schedule", "", "Backup schedule")
+	flag.StringVar(&schedule, "r", "", "-schedule")
 	flag.BoolVar(&full, "full", full, "Full backup")
 	flag.BoolVar(&full, "f", full, "-full")
 
@@ -63,6 +63,7 @@ func newbackup() {
 	}
 
 	date = BackupID(time.Now().Unix())
+	schedule = reschedule(date, name, schedule)
 	for try := 0; try < 3; try++ {
 		if _, err := catalog.Exec("INSERT INTO backups (date,name,schedule) VALUES(?,?,?)", date, name, schedule); err == nil {
 			break

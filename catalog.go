@@ -131,6 +131,41 @@ func nameid(c Catalog, s string) (id int64) {
 	return id
 }
 
+func last(c Catalog, name string, schedule string) (id BackupID) {
+	c.QueryRow("SELECT MAX(date) FROM backups WHERE finished AND ? IN ('', name) AND ? IN ('', schedule)", name, schedule).Scan(&id)
+	return
+}
+
+func reschedule(backup BackupID, name string, s string) (schedule string) {
+	if s != "" {
+		return s
+	}
+
+	schedule = defaultSchedule
+	if schedule != "daily" { // only daily backups get re-scheduled
+		return
+	}
+
+	latest, lastweekly, lastmonthly := last(catalog, name, ""),
+		last(catalog, name, "weekly"),
+		last(catalog, name, "monthly")
+
+	if latest == 0 { // this is our first backup ever
+		return
+	}
+
+	switch {
+	case backup-lastmonthly > 365*24*60*60:
+		return "yearly"
+	case backup-lastweekly > 30*24*60*60:
+		return "monthly"
+	case backup-latest > 7*24*60*60:
+		return "weekly"
+	}
+
+	return
+}
+
 func dberror(err error) (ok bool) {
 	_, ok = err.(sqlite3.Error)
 	return
