@@ -142,6 +142,7 @@ This command launches a new backup:
 Interrupted backups can be resumed with the [#continue continue] command
 
 Syntax
+
 >  `pukcab backup` [ --[full][] ] [ --[name][]=_name_ ] [ --[schedule][]=_schedule_ ]
 
 Note
@@ -152,6 +153,7 @@ Note
 This command continues a previously interrupted backup.
 
 Syntax
+
 >  `pukcab continue` [ --[name][]=_name_ ] [ --[date][]=_date_ ]
 
 Notes
@@ -164,6 +166,7 @@ Notes
 This command restores [files][] as they were at a given [date][].
 
 Syntax
+
 >  `pukcab restore` [ --[name][]=_name_ ] [ --[date][]=_date_ ] [ _[FILES](#files)_... ]
 
 Notes
@@ -176,6 +179,7 @@ Notes
 This command reports [files][] which have changed since a given [date][].
 
 Syntax
+
 >  `pukcab verify` [ --[name][]=_name_ ] [ --[date][]=_date_ ] [ _[FILES](#files)_... ]
 
 Notes
@@ -187,6 +191,7 @@ Notes
 This command discards the backup taken at a given [date][].
 
 Syntax
+
 >  `pukcab delete` [ --[name][]=_name_ ] --[date][]=_date_
 
 Notes
@@ -205,6 +210,7 @@ This command discards backups following a given [schedule][] which are older tha
  `yearly`   | 10 years
 
 Syntax
+
 >  `pukcab expire` [ --[name][]=_name_ ] [ --[schedule][]=_schedule_ ] [ --[age][]=_age_ ] [ --[keep][]=_keep_ ]
 
 Notes
@@ -217,6 +223,7 @@ Notes
 This command initiates clean-up of the catalog and vault to save disk space.
 
 Syntax
+
 >  `pukcab vacuum`
 
 Notes
@@ -228,12 +235,14 @@ Notes
 This command displays the current configuration.
 
 Syntax
+
 >  `pukcab config`
 
 ### history
 This command shows the different versions stored in backups for given files. Backup sets can be filtered by name and/or date and files.
 
 Syntax
+
 >  `pukcab history` [ --[name][]=_name_ ] [ --[date][]=_date_ ] [ _[FILES](#files)_... ]
 
 Notes
@@ -245,6 +254,7 @@ Notes
 This command lists the backup sets stored on the server. Backup sets can be filtered by name and/or date and files.
 
 Syntax
+
 >  `pukcab info` [ --[short][] ] [ --[name][]=_name_ ] [ --[date][]=_date_ ] [ _[FILES](#files)_... ]
 
 Notes
@@ -257,6 +267,7 @@ Notes
 This command allows to check connectivity to the server.
 
 Syntax
+
 >  `pukcab ping`
 
 Notes
@@ -267,6 +278,7 @@ Notes
 This command registers a client's SSH public key to the server.
 
 Syntax
+
 >  `pukcab register`
 
 Notes
@@ -278,6 +290,7 @@ Notes
 This command starts the built-in web interface.
 
 Syntax
+
 >  `pukcab web` [ --[listen][]=[_host_]:_port_ ]
 
 Notes
@@ -332,6 +345,7 @@ The numeric id can be used to unambiguously specify a given backup set but other
  * `today` is interpreted as the beginning of the day (local time)
 
 Syntax
+
 >  `--date`[=]*date*
 
 >  `-d` *date*
@@ -358,17 +372,20 @@ Examples
 In `pukcab`, a name is associated with each backup when it's created. It is a free-form text string.
 
 Syntax
+
 >  `--name`[=]*name*
 
 >  `-n` *name*
 
 Default value
+
 >  current host name (output of the `hostname` command)
 
 #### schedule
 In `pukcab`, a retention schedule is associated with each backup when it's created and is used when expiring old backups. It is a free-form text string but common values include `daily`, `weekly`, `monthly`, etc.
 
 Syntax
+
 >  `--schedule`[=]*schedule*
 
 >  `-r` *schedule*
@@ -384,6 +401,7 @@ Default value (the default value depends on the current day)
 Forces a full backup: `pukcab` will send all files to the server, without checking for changes.
 
 Syntax
+
 >  `--full`[`=true`]
 
 >  `--full=false`
@@ -391,23 +409,27 @@ Syntax
 >  `-f`
 
 Default value
+
 >  `false`
 
 #### keep
 When expiring data, keep at least a certain number of backups (even if they are expired).
 
 Syntax
+
 >  `--keep`[=]*number*
 
 >  `-k` *number*
 
 Default value
+
 >  `3`
 
 #### short
 Display a more concise output.
 
 Syntax
+
 >  `--short`[`=true`]
 
 >  `--short=false`
@@ -415,17 +437,20 @@ Syntax
 >  `-s`
 
 Default value
+
 >  `false`
 
 #### listen
 Force the built-in web server to listen for connections on a different address/port.
 
 Syntax
+
 >  `--listen`[=][*host*]:*port*
 
 >  `-l` [*host*]:*port*
 
 Default value
+
 > `localhost:8080`
 
 #### files

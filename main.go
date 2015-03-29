@@ -182,6 +182,7 @@ func main() {
     backup      perform a new backup
     config      display configuration details
     expire      flush old backups
+    history     display saved data history
     info        display existing backups
     ping        check server connectivity
     purge       delete a backup

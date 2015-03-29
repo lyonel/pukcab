@@ -38,3 +38,9 @@ clean:
 update:
 	git submodule update --init --recursive
 	cd src ; go install github.com/*/*
+
+README.html: README.md
+	./bin/blackfriday-tool -css md.css $^ $@
+
+tools:
+	go get github.com/lyonel/blackfriday-tool
