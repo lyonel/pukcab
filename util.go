@@ -102,10 +102,14 @@ func ConvertGlob(name string, filters ...string) (SQL string) {
 
 	for _, f := range filters {
 		f = strings.TrimRight(f, string(filepath.Separator))
-		if len(f) > 0 && f[0] != filepath.Separator {
-			f = "*" + string(filepath.Separator) + f
+		f = strings.Replace(f, "'", "''", -1)
+		if !filepath.IsAbs(f) {
+			f = filepath.Join("*", f)
 		}
-		clauses = append(clauses, name+" GLOB '"+strings.Replace(f, "'", "''", -1)+"'")
+		clauses = append(clauses, name+" GLOB '"+f+"'")
+		if filepath.Base(f) != "*" {
+			clauses = append(clauses, name+" GLOB '"+filepath.Join(f, "*")+"'")
+		}
 	}
 
 	return strings.Join(clauses, " OR ")
