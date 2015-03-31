@@ -21,6 +21,7 @@ type Config struct {
 	Catalog string
 
 	Maxtries int
+	Debug    bool
 }
 
 var cfg Config
@@ -89,6 +90,7 @@ func Setup() {
 	flag.Parse()
 	Info(verbose)
 	cfg.Load(configFile)
+	Debug(cfg.Debug)
 
 	if protocol > protocolVersion {
 		fmt.Fprintln(os.Stderr, "Unsupported protocol")

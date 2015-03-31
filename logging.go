@@ -3,10 +3,11 @@ package main
 import (
 	"io/ioutil"
 	"log"
+	"log/syslog"
 	"os"
 )
 
-const debugFlags = log.LstdFlags | log.Lshortfile
+const debugFlags = log.Lshortfile
 const debugPrefix = "[DEBUG] "
 const failPrefix = "[ERROR] "
 
@@ -16,10 +17,13 @@ var failure = log.New(os.Stderr, failPrefix, 0)
 
 func Debug(on bool) {
 	if on {
-		debug = log.New(os.Stderr, debugPrefix, debugFlags)
-	} else {
-		debug = log.New(ioutil.Discard, "", 0)
+		var err error
+		if debug, err = syslog.NewLogger(syslog.LOG_NOTICE|syslog.LOG_USER, debugFlags); err == nil {
+			debug.SetPrefix(debugPrefix)
+			return
+		}
 	}
+	debug = log.New(ioutil.Discard, "", 0)
 }
 
 func Info(on bool) {
