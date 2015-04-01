@@ -314,6 +314,7 @@ func dumpfiles(files int, backup *Backup) (bytes int64) {
 	tw.Write(globaldata)
 
 	backup.ForEach(func(f string) {
+		debug.Println("Sending", f)
 		if fi, err := os.Lstat(f); err != nil {
 			if os.IsNotExist(err) {
 				hdr := &tar.Header{

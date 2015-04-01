@@ -96,6 +96,7 @@ func (b *Backup) excluded(f string) bool {
 
 func (b *Backup) addfiles(d string) {
 	b.backupset[d] = struct{}{}
+	debug.Println("Adding", d)
 
 	if contains(b.exclude, d) {
 		return
@@ -107,6 +108,7 @@ func (b *Backup) addfiles(d string) {
 
 		if !IsNodump(f, file) {
 			b.backupset[file] = struct{}{}
+			debug.Println("Adding", file)
 
 			if f.IsDir() && !b.excluded(file) {
 				b.addfiles(file)
