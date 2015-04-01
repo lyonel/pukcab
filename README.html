@@ -233,16 +233,16 @@ server=&quot;backupserver.localdomain.net&quot;
 <h3 id="synopsis">Synopsis</h3>
 
 <blockquote>
-<p><code>pukcab</code> <em><a href="#commands">COMMAND</a></em> [ <em><a href="#options">OPTIONS</a></em>&hellip; ] [ <em><a href="#files">FILES</a></em>&hellip; ]</p>
+<p><code>pukcab</code> <em>COMMAND</em> [ <a href="#options"><em>OPTIONS</em></a> &hellip; ] [ <a href="#files"><em>FILES</em></a> &hellip; ]</p>
 </blockquote>
 
-<h4 id="commands">Commands</h4>
+<p>Available commands are listed below:</p>
 
 <table>
 <thead>
 <tr>
-<th><strong>backup and recovery</strong></th>
-<th>.</th>
+<th>command</th>
+<th></th>
 </tr>
 </thead>
 
@@ -268,7 +268,7 @@ server=&quot;backupserver.localdomain.net&quot;
 </tr>
 
 <tr>
-<td><strong>maintenance</strong></td>
+<td></td>
 <td></td>
 </tr>
 
@@ -288,7 +288,7 @@ server=&quot;backupserver.localdomain.net&quot;
 </tr>
 
 <tr>
-<td><strong>utilities</strong></td>
+<td></td>
 <td></td>
 </tr>
 
@@ -324,7 +324,7 @@ server=&quot;backupserver.localdomain.net&quot;
 </tbody>
 </table>
 
-<h3 id="backup">backup</h3>
+<h3 id="backup"><code>backup</code></h3>
 
 <p>This command launches a new backup:</p>
 
@@ -334,8 +334,7 @@ server=&quot;backupserver.localdomain.net&quot;
 <li>sends that list to the backup server</li>
 <li>computes the list of changes since the last backup (if <code>--full</code> isn&rsquo;t specified)</li>
 <li>sends the files to be includes in the backup</li>
-<li>closes the backup
-Interrupted backups can be resumed with the [#continue continue] command</li>
+<li>closes the backup</li>
 </ul>
 
 <p>Syntax</p>
@@ -344,13 +343,14 @@ Interrupted backups can be resumed with the [#continue continue] command</li>
 <p><code>pukcab backup</code> [ &ndash;<a href="#full">full</a> ] [ &ndash;<a href="#name">name</a>=<em>name</em> ] [ &ndash;<a href="#schedule">schedule</a>=<em>schedule</em> ]</p>
 </blockquote>
 
-<p>Note</p>
+<p>Notes</p>
 
 <ul>
 <li>the <a href="#name">name</a> and <a href="#schedule">schedule</a> options are chosen automatically if not specified</li>
+<li>Interrupted backups can be resumed with the <a href="#continue">continue</a> command</li>
 </ul>
 
-<h3 id="continue">continue</h3>
+<h3 id="continue"><code>continue</code></h3>
 
 <p>This command continues a previously interrupted backup.</p>
 
@@ -368,14 +368,14 @@ Interrupted backups can be resumed with the [#continue continue] command</li>
 <li>only unfinished backups may be resumed</li>
 </ul>
 
-<h3 id="restore">restore</h3>
+<h3 id="restore"><code>restore</code></h3>
 
 <p>This command restores <a href="#files">files</a> as they were at a given <a href="#date">date</a>.</p>
 
 <p>Syntax</p>
 
 <blockquote>
-<p><code>pukcab restore</code> [ &ndash;<a href="#name">name</a>=<em>name</em> ] [ &ndash;<a href="#date">date</a>=<em>date</em> ] [ <em><a href="#files">FILES</a></em>&hellip; ]</p>
+<p><code>pukcab restore</code> [ &ndash;<a href="#name">name</a>=<em>name</em> ] [ &ndash;<a href="#date">date</a>=<em>date</em> ] [ <a href="#files"><em>FILES</em></a> &hellip; ]</p>
 </blockquote>
 
 <p>Notes</p>
@@ -386,14 +386,14 @@ Interrupted backups can be resumed with the [#continue continue] command</li>
 <li>this operation currently requires a working <code>tar</code> system command (usually GNU tar)</li>
 </ul>
 
-<h3 id="verify">verify</h3>
+<h3 id="verify"><code>verify</code></h3>
 
 <p>This command reports <a href="#files">files</a> which have changed since a given <a href="#date">date</a>.</p>
 
 <p>Syntax</p>
 
 <blockquote>
-<p><code>pukcab verify</code> [ &ndash;<a href="#name">name</a>=<em>name</em> ] [ &ndash;<a href="#date">date</a>=<em>date</em> ] [ <em><a href="#files">FILES</a></em>&hellip; ]</p>
+<p><code>pukcab verify</code> [ &ndash;<a href="#name">name</a>=<em>name</em> ] [ &ndash;<a href="#date">date</a>=<em>date</em> ] [ <a href="#files"><em>FILES</em></a> &hellip; ]</p>
 </blockquote>
 
 <p>Notes</p>
@@ -403,7 +403,7 @@ Interrupted backups can be resumed with the [#continue continue] command</li>
 <li>the <a href="#date">date</a> option automatically selects the last backup if not specified</li>
 </ul>
 
-<h3 id="delete">delete</h3>
+<h3 id="delete"><code>delete</code></h3>
 
 <p>This command discards the backup taken at a given <a href="#date">date</a>.</p>
 
@@ -420,7 +420,7 @@ Interrupted backups can be resumed with the [#continue continue] command</li>
 <li>the <a href="#date">date</a> must be specified</li>
 </ul>
 
-<h3 id="expire">expire</h3>
+<h3 id="expire"><code>expire</code></h3>
 
 <p>This command discards backups following a given <a href="#schedule">schedule</a> which are older than a given <a href="#date">age (or date)</a>. Standard retention schedules have pre-defined retention periods:</p>
 
@@ -469,7 +469,7 @@ Interrupted backups can be resumed with the [#continue continue] command</li>
 <li>the <a href="#schedule">schedule</a> and [expiration][] are chosen automatically if not specified</li>
 </ul>
 
-<h3 id="vacuum">vacuum</h3>
+<h3 id="vacuum"><code>vacuum</code></h3>
 
 <p>This command initiates clean-up of the catalog and vault to save disk space.</p>
 
@@ -486,7 +486,7 @@ Interrupted backups can be resumed with the [#continue continue] command</li>
 <li>the clean-up may take a while and delay new backups</li>
 </ul>
 
-<h3 id="config">config</h3>
+<h3 id="config"><code>config</code></h3>
 
 <p>This command displays the current configuration.</p>
 
@@ -496,14 +496,14 @@ Interrupted backups can be resumed with the [#continue continue] command</li>
 <p><code>pukcab config</code></p>
 </blockquote>
 
-<h3 id="history">history</h3>
+<h3 id="history"><code>history</code></h3>
 
 <p>This command shows the different versions stored in backups for given files. Backup sets can be filtered by name and/or date and files.</p>
 
 <p>Syntax</p>
 
 <blockquote>
-<p><code>pukcab history</code> [ &ndash;<a href="#name">name</a>=<em>name</em> ] [ &ndash;<a href="#date">date</a>=<em>date</em> ] [ <em><a href="#files">FILES</a></em>&hellip; ]</p>
+<p><code>pukcab history</code> [ &ndash;<a href="#name">name</a>=<em>name</em> ] [ &ndash;<a href="#date">date</a>=<em>date</em> ] [ <a href="#files"><em>FILES</em></a> &hellip; ]</p>
 </blockquote>
 
 <p>Notes</p>
@@ -513,14 +513,14 @@ Interrupted backups can be resumed with the [#continue continue] command</li>
 <li>on server, if <a href="#name">name</a> is not specified, the command lists all backups, regardless of their name</li>
 </ul>
 
-<h3 id="info">info</h3>
+<h3 id="info"><code>info</code></h3>
 
 <p>This command lists the backup sets stored on the server. Backup sets can be filtered by name and/or date and files.</p>
 
 <p>Syntax</p>
 
 <blockquote>
-<p><code>pukcab info</code> [ &ndash;<a href="#short">short</a> ] [ &ndash;<a href="#name">name</a>=<em>name</em> ] [ &ndash;<a href="#date">date</a>=<em>date</em> ] [ <em><a href="#files">FILES</a></em>&hellip; ]</p>
+<p><code>pukcab info</code> [ &ndash;<a href="#short">short</a> ] [ &ndash;<a href="#name">name</a>=<em>name</em> ] [ &ndash;<a href="#date">date</a>=<em>date</em> ] [ <a href="#files"><em>FILES</em></a> &hellip; ]</p>
 </blockquote>
 
 <p>Notes</p>
@@ -531,7 +531,7 @@ Interrupted backups can be resumed with the [#continue continue] command</li>
 <li>verbose mode lists the individual <a href="#files">files</a></li>
 </ul>
 
-<h3 id="ping">ping</h3>
+<h3 id="ping"><code>ping</code></h3>
 
 <p>This command allows to check connectivity to the server.</p>
 
@@ -547,7 +547,7 @@ Interrupted backups can be resumed with the [#continue continue] command</li>
 <li>verbose mode displays detailed information during the check</li>
 </ul>
 
-<h3 id="register">register</h3>
+<h3 id="register"><code>register</code></h3>
 
 <p>This command registers a client&rsquo;s SSH public key to the server.</p>
 
@@ -564,7 +564,7 @@ Interrupted backups can be resumed with the [#continue continue] command</li>
 <li>verbose mode displays detailed information during the registration</li>
 </ul>
 
-<h3 id="web">web</h3>
+<h3 id="web"><code>web</code></h3>
 
 <p>This command starts the built-in web interface.</p>
 
@@ -581,7 +581,7 @@ Interrupted backups can be resumed with the [#continue continue] command</li>
 <li>available features depend on the local system&rsquo;s role (client or server)</li>
 </ul>
 
-<h3 id="options">Options</h3>
+<h2 id="options">Options</h2>
 
 <p><code>pukcab</code> is quite flexible with the way options are provided:</p>
 
@@ -612,7 +612,7 @@ Interrupted backups can be resumed with the [#continue continue] command</li>
 <p><code>pukcab info --name=test</code></p>
 </blockquote>
 
-<h4 id="general-options">General options</h4>
+<h3 id="general-options">General options</h3>
 
 <p>The following options apply to all commands:</p>
 
@@ -626,7 +626,7 @@ Interrupted backups can be resumed with the [#continue continue] command</li>
 
 <tbody>
 <tr>
-<td><code>-c</code>, <code>--config</code>[=]<em>file</em></td>
+<td><code>-c</code>, <code>--config</code>[<code>=</code>]<em>file</em></td>
 <td>specify a <a href="#configuration">configuration file</a> to use</td>
 </tr>
 
@@ -642,7 +642,7 @@ Interrupted backups can be resumed with the [#continue continue] command</li>
 </tbody>
 </table>
 
-<h4 id="date">date</h4>
+<h3 id="date"><code>date</code></h3>
 
 <p>Dates are an important concept for <code>pukcab</code>.</p>
 
@@ -684,7 +684,7 @@ The numeric id can be used to unambiguously specify a given backup set but other
 <p><code>--date 2015-01-07</code> means <em>on the 7th January 2015 at midnight</em></p>
 </blockquote>
 
-<h4 id="name">name</h4>
+<h3 id="name"><code>name</code></h3>
 
 <p>In <code>pukcab</code>, a name is associated with each backup when it&rsquo;s created. It is a free-form text string.</p>
 
@@ -702,7 +702,7 @@ The numeric id can be used to unambiguously specify a given backup set but other
 <p>current host name (output of the <code>hostname</code> command)</p>
 </blockquote>
 
-<h4 id="schedule">schedule</h4>
+<h3 id="schedule"><code>schedule</code></h3>
 
 <p>In <code>pukcab</code>, a retention schedule is associated with each backup when it&rsquo;s created and is used when expiring old backups. It is a free-form text string but common values include <code>daily</code>, <code>weekly</code>, <code>monthly</code>, etc.</p>
 
@@ -723,7 +723,7 @@ The numeric id can be used to unambiguously specify a given backup set but other
 <li><code>yearly</code> on 1st January</li>
 </ul>
 
-<h4 id="full">full</h4>
+<h3 id="full"><code>full</code></h3>
 
 <p>Forces a full backup: <code>pukcab</code> will send all files to the server, without checking for changes.</p>
 
@@ -743,7 +743,7 @@ The numeric id can be used to unambiguously specify a given backup set but other
 <p><code>false</code></p>
 </blockquote>
 
-<h4 id="keep">keep</h4>
+<h3 id="keep"><code>keep</code></h3>
 
 <p>When expiring data, keep at least a certain number of backups (even if they are expired).</p>
 
@@ -761,7 +761,7 @@ The numeric id can be used to unambiguously specify a given backup set but other
 <p><code>3</code></p>
 </blockquote>
 
-<h4 id="short">short</h4>
+<h3 id="short"><code>short</code></h3>
 
 <p>Display a more concise output.</p>
 
@@ -781,7 +781,7 @@ The numeric id can be used to unambiguously specify a given backup set but other
 <p><code>false</code></p>
 </blockquote>
 
-<h4 id="listen">listen</h4>
+<h3 id="listen"><code>listen</code></h3>
 
 <p>Force the built-in web server to listen for connections on a different address/port.</p>
 
@@ -799,7 +799,7 @@ The numeric id can be used to unambiguously specify a given backup set but other
 <p><code>localhost:8080</code></p>
 </blockquote>
 
-<h4 id="files">files</h4>
+<h3 id="files">Files</h3>
 
 <p>File names can be specified using the usual shell-like wildcards <code>*</code> (matches any number of characters) and <code>?</code> (matches exactly one character). The following conventions apply:</p>
 
@@ -816,7 +816,7 @@ The numeric id can be used to unambiguously specify a given backup set but other
 
 <p><code>*.jpg</code> includes all <code>.jpg</code> files (JPEG images) in all directories</p>
 
-<p><code>/etc/yum.repos.d/*.repo</code> includes all repositories configured in Yum[[br]]</p>
+<p><code>/etc/yum.repos.d/*.repo</code> includes all repositories configured in Yum</p>
 
 <p><code>/lib</code> includes <code>/lib</code> and all the files underneath but not <code>/usr/lib</code>, <code>/var/lib</code>, etc.</p>
 </blockquote>
