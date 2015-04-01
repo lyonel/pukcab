@@ -129,13 +129,13 @@ name1 = number
 name2 = &quot;text value&quot;
 name3 = [ &quot;list&quot;, &quot;of&quot;, &quot;text&quot;, &quot;values&quot; ]
 ...</code></pre>
-<p>Notes</p>
+<p>The default is to read <code>/etc/pukcab.conf</code> then <code>~/.pukcabrc</code> (which means that this user-defined file can override values set in the global configuration file).</p>
+<p>Both client and server use the same configuration file format and location, only the values determine the client or server role (a client will have a <code>server</code> parameter set).</p>
+<h3 id="notes">Notes</h3>
 <ul>
 <li>text values must be enclosed in <code>&quot;</code></li>
 <li>lists of values are enclosed in <code>[</code> and <code>]</code> with comma-separated items</li>
 </ul>
-<p>The default is to read <code>/etc/pukcab.conf</code> then <code>~/.pukcabrc</code> (which means that this user-defined file can override values set in the global configuration file).</p>
-<p>Both client and server use the same configuration file format and location, only the values determine the client or server role (a client will have a <code>server</code> parameter set).</p>
 <h2 id="server">Server</h2>
 <p>The <code>pukcab</code> server contains the data files for all clients (in the <code>vault</code>) and a database of all backup sets (the <code>catalog</code>).</p>
 <table>
@@ -175,14 +175,14 @@ name3 = [ &quot;list&quot;, &quot;of&quot;, &quot;text&quot;, &quot;values&quot;
 </tr>
 </tbody>
 </table>
-<p>Notes</p>
+<h3 id="notes-1">Notes</h3>
 <ul>
 <li><code>vault</code> and <code>catalog</code> paths can be absolute (starting with <code>/</code>) or relative to <code>user</code>'s home directory.</li>
 <li>the <code>vault</code> folder must be able to store many gigabytes of data, spread over thousands of files</li>
 <li>the <code>catalog</code> database may become big and must be located in a folder where <code>user</code> has write access</li>
 <li>the <code>vault</code> folder <strong>must not be used to store anything</strong><a href="#fn6" class="footnoteRef" id="fnref6"><sup>6</sup></a> else than <code>pukcab</code>'s data files; in particular, do <strong>NOT</strong> store the <code>catalog</code> there</li>
 </ul>
-<p>Example:</p>
+<h3 id="example">Example</h3>
 <pre><code>; all backups will be received and stored by the 'backup' user
 user=&quot;backup&quot;
 vault=&quot;/var/local/backup/vault&quot;
@@ -231,7 +231,7 @@ catalog=&quot;/var/local/backup/catalog.db&quot;</code></pre>
 </tr>
 </tbody>
 </table>
-<p>Example:</p>
+<h3 id="example-1">Example</h3>
 <pre><code>user=&quot;backup&quot;
 server=&quot;backupserver.localdomain.net&quot;</code></pre>
 <h2 id="os-dependent-defaults">OS-dependent defaults</h2>
@@ -278,9 +278,7 @@ server=&quot;backupserver.localdomain.net&quot;</code></pre>
 </table>
 <h1 id="usage">Usage</h1>
 <h2 id="synopsis">Synopsis</h2>
-<blockquote>
 <p><code>pukcab</code> <em>command</em> [ <a href="#options"><em>options</em></a> ... ] [ <a href="#files"><em>files</em></a> ... ]</p>
-</blockquote>
 <table>
 <caption>available commands</caption>
 <tbody>
@@ -348,22 +346,24 @@ server=&quot;backupserver.localdomain.net&quot;</code></pre>
 <li>sends the files to be includes in the backup</li>
 <li>closes the backup</li>
 </ul>
-<p>Syntax</p>
-<blockquote>
-<p><code>pukcab backup</code> [ --<a href="#full">full</a> ] [ --<a href="#name">name</a>=<em>name</em> ] [ --<a href="#schedule">schedule</a>=<em>schedule</em> ]</p>
-</blockquote>
-<p>Notes</p>
+<dl>
+<dt>Syntax</dt>
+<dd><code>pukcab backup</code> [ --<a href="#full">full</a> ] [ --<a href="#name">name</a>=<em>name</em> ] [ --<a href="#schedule">schedule</a>=<em>schedule</em> ]
+</dd>
+</dl>
+<h3 id="notes-2">Notes</h3>
 <ul>
 <li>the <a href="#name">name</a> and <a href="#schedule">schedule</a> options are chosen automatically if not specified</li>
-<li>Interrupted backups can be resumed with the <a href="#continue">continue</a> command</li>
+<li>interrupted backups can be resumed with the <a href="#continue">continue</a> command</li>
 </ul>
 <h2 id="continue"><code>continue</code></h2>
 <p>The <code>continue</code> command continues a previously interrupted backup.</p>
-<p>Syntax</p>
-<blockquote>
-<p><code>pukcab continue</code> [ --<a href="#name">name</a>=<em>name</em> ] [ --<a href="#date">date</a>=<em>date</em> ]</p>
-</blockquote>
-<p>Notes</p>
+<dl>
+<dt>Syntax</dt>
+<dd><code>pukcab continue</code> [ --<a href="#name">name</a>=<em>name</em> ] [ --<a href="#date">date</a>=<em>date</em> ]
+</dd>
+</dl>
+<h3 id="notes-3">Notes</h3>
 <ul>
 <li>the <a href="#name">name</a> option is chosen automatically if not specified</li>
 <li>the <a href="#date">date</a> option automatically selects the last unfinished backup</li>
@@ -371,11 +371,12 @@ server=&quot;backupserver.localdomain.net&quot;</code></pre>
 </ul>
 <h2 id="restore"><code>restore</code></h2>
 <p>The <code>restore</code> command restores <a href="#files">files</a> as they were at a given <a href="#date">date</a>.</p>
-<p>Syntax</p>
-<blockquote>
-<p><code>pukcab restore</code> [ --<a href="#name">name</a>=<em>name</em> ] [ --<a href="#date">date</a>=<em>date</em> ] [ <a href="#files"><em>FILES</em></a> ... ]</p>
-</blockquote>
-<p>Notes</p>
+<dl>
+<dt>Syntax</dt>
+<dd><code>pukcab restore</code> [ --<a href="#name">name</a>=<em>name</em> ] [ --<a href="#date">date</a>=<em>date</em> ] [ <a href="#files"><em>FILES</em></a> ... ]
+</dd>
+</dl>
+<h3 id="notes-4">Notes</h3>
 <ul>
 <li>the <a href="#name">name</a> option is chosen automatically if not specified</li>
 <li>the <a href="#date">date</a> option automatically selects the last backup</li>
@@ -383,28 +384,31 @@ server=&quot;backupserver.localdomain.net&quot;</code></pre>
 </ul>
 <h2 id="verify"><code>verify</code></h2>
 <p>The verify command reports <a href="#files">files</a> which have changed since a given <a href="#date">date</a>.</p>
-<p>Syntax</p>
-<blockquote>
-<p><code>pukcab verify</code> [ --<a href="#name">name</a>=<em>name</em> ] [ --<a href="#date">date</a>=<em>date</em> ] [ <a href="#files"><em>FILES</em></a> ... ]</p>
-</blockquote>
-<p>Notes</p>
+<dl>
+<dt>Syntax</dt>
+<dd><code>pukcab verify</code> [ --<a href="#name">name</a>=<em>name</em> ] [ --<a href="#date">date</a>=<em>date</em> ] [ <a href="#files"><em>FILES</em></a> ... ]
+</dd>
+</dl>
+<h3 id="notes-5">Notes</h3>
 <ul>
 <li>the <a href="#name">name</a> option is chosen automatically if not specified</li>
 <li>the <a href="#date">date</a> option automatically selects the last backup if not specified</li>
 </ul>
 <h2 id="delete"><code>delete</code></h2>
 <p>The <code>delete</code> command discards the backup taken at a given <a href="#date">date</a>.</p>
-<p>Syntax</p>
-<blockquote>
-<p><code>pukcab delete</code> [ --<a href="#name">name</a>=<em>name</em> ] --<a href="#date">date</a>=<em>date</em></p>
-</blockquote>
-<p>Notes</p>
+<dl>
+<dt>Syntax</dt>
+<dd><code>pukcab delete</code> [ --<a href="#name">name</a>=<em>name</em> ] --<a href="#date">date</a>=<em>date</em>
+</dd>
+</dl>
+<h3 id="notes-6">Notes</h3>
 <ul>
 <li>the <a href="#name">name</a> option is chosen automatically if not specified</li>
 <li>the <a href="#date">date</a> must be specified</li>
 </ul>
 <h2 id="expire"><code>expire</code></h2>
-<p>The <code>expire</code> command discards backups following a given <a href="#schedule">schedule</a> which are older than a given <a href="#date">age (or date)</a>. Standard retention schedules have pre-defined retention periods:</p>
+<p>The <code>expire</code> command discards backups following a given <a href="#schedule">schedule</a> which are older than a given <a href="#date">age (or date)</a>.</p>
+<p>Standard retention schedules have pre-defined retention periods:</p>
 <table>
 <caption>default retention schedules</caption>
 <thead>
@@ -432,11 +436,12 @@ server=&quot;backupserver.localdomain.net&quot;</code></pre>
 </tr>
 </tbody>
 </table>
-<p>Syntax</p>
-<blockquote>
-<p><code>pukcab expire</code> [ --<a href="#name">name</a>=<em>name</em> ] [ --<a href="#schedule">schedule</a>=<em>schedule</em> ] [ --<a href="#date">age</a>=<em>age</em> ] [ --<a href="#keep">keep</a>=<em>keep</em> ]</p>
-</blockquote>
-<p>Notes</p>
+<dl>
+<dt>Syntax</dt>
+<dd><code>pukcab expire</code> [ --<a href="#name">name</a>=<em>name</em> ] [ --<a href="#schedule">schedule</a>=<em>schedule</em> ] [ --<a href="#date">age</a>=<em>age</em> ] [ --<a href="#keep">keep</a>=<em>keep</em> ]
+</dd>
+</dl>
+<h3 id="notes-7">Notes</h3>
 <ul>
 <li>on the <a href="#server">backup server</a>, the <a href="#name">name</a> option defaults to all backups if not specified</li>
 <li>on a <a href="#client">backup client</a>, the <a href="#name">name</a> option is chosen automatically if not specified</li>
@@ -444,39 +449,43 @@ server=&quot;backupserver.localdomain.net&quot;</code></pre>
 </ul>
 <h2 id="vacuum"><code>vacuum</code></h2>
 <p>The <code>vacuum</code> command initiates clean-up of the catalog and vault to save disk space.</p>
-<p>Syntax</p>
-<blockquote>
-<p><code>pukcab vacuum</code></p>
-</blockquote>
-<p>Notes</p>
+<dl>
+<dt>Syntax</dt>
+<dd><code>pukcab vacuum</code>
+</dd>
+</dl>
+<h3 id="notes-8">Notes</h3>
 <ul>
 <li>can only be run on the server</li>
 <li>the clean-up may take a while and delay new backups</li>
 </ul>
 <h2 id="config"><code>config</code></h2>
 <p>The <code>config</code> command displays the current configuration.</p>
-<p>Syntax</p>
-<blockquote>
-<p><code>pukcab config</code></p>
-</blockquote>
+<dl>
+<dt>Syntax</dt>
+<dd><code>pukcab config</code>
+</dd>
+</dl>
 <h2 id="history"><code>history</code></h2>
 <p>The <code>history</code> command shows the different versions stored in backups for given files. Backup sets can be filtered by name and/or date and files.</p>
-<p>Syntax</p>
-<blockquote>
-<p><code>pukcab history</code> [ --<a href="#name">name</a>=<em>name</em> ] [ --<a href="#date">date</a>=<em>date</em> ] [ <a href="#files"><em>FILES</em></a> ... ]</p>
-</blockquote>
-<p>Notes</p>
+<dl>
+<dt>Syntax</dt>
+<dd><code>pukcab history</code> [ --<a href="#name">name</a>=<em>name</em> ] [ --<a href="#date">date</a>=<em>date</em> ] [ <a href="#files"><em>FILES</em></a> ... ]
+</dd>
+</dl>
+<h3 id="notes-9">Notes</h3>
 <ul>
 <li>if <a href="#date">date</a> is specified, the command lists only history after that date</li>
 <li>on server, if <a href="#name">name</a> is not specified, the command lists all backups, regardless of their name</li>
 </ul>
 <h2 id="info"><code>info</code></h2>
 <p>The <code>info</code> command lists the backup sets stored on the server. Backup sets can be filtered by name and/or date and files.</p>
-<p>Syntax</p>
-<blockquote>
-<p><code>pukcab info</code> [ --<a href="#short">short</a> ] [ --<a href="#name">name</a>=<em>name</em> ] [ --<a href="#date">date</a>=<em>date</em> ] [ <a href="#files"><em>FILES</em></a> ... ]</p>
-</blockquote>
-<p>Notes</p>
+<dl>
+<dt>Syntax</dt>
+<dd><code>pukcab info</code> [ --<a href="#short">short</a> ] [ --<a href="#name">name</a>=<em>name</em> ] [ --<a href="#date">date</a>=<em>date</em> ] [ <a href="#files"><em>FILES</em></a> ... ]
+</dd>
+</dl>
+<h3 id="notes-10">Notes</h3>
 <ul>
 <li>if <a href="#date">date</a> is specified, the command lists only details about the corresponding backup</li>
 <li>on server, if <a href="#name">name</a> is not specified, the command lists all backups, regardless of their name</li>
@@ -484,32 +493,35 @@ server=&quot;backupserver.localdomain.net&quot;</code></pre>
 </ul>
 <h2 id="ping"><code>ping</code></h2>
 <p>The <code>ping</code> command allows to check connectivity to the server.</p>
-<p>Syntax</p>
-<blockquote>
-<p><code>pukcab ping</code></p>
-</blockquote>
-<p>Notes</p>
+<dl>
+<dt>Syntax</dt>
+<dd><code>pukcab ping</code>
+</dd>
+</dl>
+<h3 id="notes-11">Notes</h3>
 <ul>
 <li>verbose mode displays detailed information during the check</li>
 </ul>
 <h2 id="register"><code>register</code></h2>
 <p>The <code>register</code> command registers a client's SSH public key to the server.</p>
-<p>Syntax</p>
-<blockquote>
-<p><code>pukcab register</code></p>
-</blockquote>
-<p>Notes</p>
+<dl>
+<dt>Syntax</dt>
+<dd><code>pukcab register</code>
+</dd>
+</dl>
+<h3 id="notes-12">Notes</h3>
 <ul>
 <li>to register to the backup server, <code>pukcab</code> will ask for the dedicated user's password (set on the server)</li>
 <li>verbose mode displays detailed information during the registration</li>
 </ul>
 <h2 id="web"><code>web</code></h2>
 <p>The <code>web</code> command starts the built-in web interface.</p>
-<p>Syntax</p>
-<blockquote>
-<p><code>pukcab web</code> [ --<a href="#listen">listen</a>=[<em>host</em>]:<em>port</em> ]</p>
-</blockquote>
-<p>Notes</p>
+<dl>
+<dt>Syntax</dt>
+<dd><code>pukcab web</code> [ --<a href="#listen">listen</a>=[<em>host</em>]:<em>port</em> ]
+</dd>
+</dl>
+<h3 id="notes-13">Notes</h3>
 <ul>
 <li>by default, <code>pukcab</code> listens on <code>localhost</code> on port 8080</li>
 <li>available features depend on the local system's role (client or server)</li>
@@ -564,125 +576,108 @@ pukcab info --name=test</code></pre>
 <li><code>now</code> or <code>latest</code> are interpreted as the current time</li>
 <li><code>today</code> is interpreted as the beginning of the day (local time)</li>
 </ul>
-<p>Syntax</p>
-<blockquote>
-<p><code>--date</code>[=]<em>date</em></p>
-</blockquote>
-<blockquote>
-<p><code>-d</code> <em>date</em></p>
-</blockquote>
-<p>Examples</p>
-<blockquote>
-<p><code>--date 1422577319</code> means <em>on the 30th January 2015 at 01:21:59 CET</em></p>
-</blockquote>
-<blockquote>
-<p><code>--date 0</code>, <code>--date now</code> and <code>--date latest</code> mean <em>now</em></p>
-</blockquote>
-<blockquote>
-<p><code>--date today</code> means <em>today at 00:00</em></p>
-</blockquote>
-<blockquote>
-<p><code>--date 1</code> means <em>yesterday same time</em></p>
-</blockquote>
-<blockquote>
-<p><code>--date 7</code> means <em>last week</em></p>
-</blockquote>
-<blockquote>
-<p><code>--date -48h</code> and <code>--date 48h</code> both mean <em>2 days ago</em></p>
-</blockquote>
-<blockquote>
-<p><code>--date 2h30m</code> means <em>2 hours and 30 minutes ago</em></p>
-</blockquote>
-<blockquote>
-<p><code>--date 2015-01-07</code> means <em>on the 7th January 2015 at midnight</em></p>
-</blockquote>
+<dl>
+<dt>Syntax</dt>
+<dd><p><code>--date</code>[=]<em>date</em></p>
+</dd>
+<dd><p><code>-d</code> <em>date</em></p>
+</dd>
+</dl>
+<h3 id="examples">Examples</h3>
+<ul>
+<li><code>--date 1422577319</code> means <em>on the 30th January 2015 at 01:21:59 CET</em></li>
+<li><code>--date 0</code>, <code>--date now</code> and <code>--date latest</code> mean <em>now</em></li>
+<li><code>--date today</code> means <em>today at 00:00</em></li>
+<li><code>--date 1</code> means <em>yesterday same time</em></li>
+<li><code>--date 7</code> means <em>last week</em></li>
+<li><code>--date -48h</code> and <code>--date 48h</code> both mean <em>2 days ago</em></li>
+<li><code>--date 2h30m</code> means <em>2 hours and 30 minutes ago</em></li>
+<li><code>--date 2015-01-07</code> means <em>on the 7th January 2015 at midnight</em></li>
+</ul>
 <h2 id="name"><code>name</code></h2>
 <p>In <code>pukcab</code>, a name is associated with each backup when it's created. It is a free-form text string.</p>
-<p>Syntax</p>
-<blockquote>
-<p><code>--name</code>[=]<em>name</em></p>
-</blockquote>
-<blockquote>
-<p><code>-n</code> <em>name</em></p>
-</blockquote>
-<p>Default value</p>
-<blockquote>
-<p>current host name (output of the <code>hostname</code> command)</p>
-</blockquote>
+<dl>
+<dt>Syntax</dt>
+<dd><p><code>--name</code>[=]<em>name</em></p>
+</dd>
+<dd><p><code>-n</code> <em>name</em></p>
+</dd>
+<dt>Default value</dt>
+<dd><p>current host name (output of the <code>hostname</code> command)</p>
+</dd>
+</dl>
 <h2 id="schedule"><code>schedule</code></h2>
 <p>In <code>pukcab</code>, a retention schedule is associated with each backup when it's created and is used when expiring old backups. It is a free-form text string but common values include <code>daily</code>, <code>weekly</code>, <code>monthly</code>, etc.</p>
-<p>Syntax</p>
-<blockquote>
-<p><code>--schedule</code>[=]<em>schedule</em></p>
-</blockquote>
-<blockquote>
-<p><code>-r</code> <em>schedule</em></p>
-</blockquote>
-<p>Default value (the default value depends on the current day)</p>
-<ul>
-<li><code>daily</code> from Monday to Saturday</li>
-<li><code>weekly</code> on Sunday</li>
-<li><code>monthly</code> on the 1st of the month</li>
-<li><code>yearly</code> on 1st January</li>
-</ul>
+<dl>
+<dt>Syntax</dt>
+<dd><p><code>--schedule</code>[=]<em>schedule</em></p>
+</dd>
+<dd><p><code>-r</code> <em>schedule</em></p>
+</dd>
+<dt>Default value</dt>
+<dd><p>(the default value depends on the current day)</p>
+</dd>
+<dd><p><code>daily</code> from Monday to Saturday</p>
+</dd>
+<dd><p><code>weekly</code> on Sunday</p>
+</dd>
+<dd><p><code>monthly</code> on the 1st of the month</p>
+</dd>
+<dd><p><code>yearly</code> on 1st January</p>
+</dd>
+</dl>
 <h2 id="full"><code>full</code></h2>
 <p>Forces a full backup: <code>pukcab</code> will send all files to the server, without checking for changes.</p>
-<p>Syntax</p>
-<blockquote>
-<p><code>--full</code>[<code>=true</code>]</p>
-</blockquote>
-<blockquote>
-<p><code>--full=false</code></p>
-</blockquote>
-<blockquote>
-<p><code>-f</code></p>
-</blockquote>
-<p>Default value</p>
-<blockquote>
-<p><code>false</code></p>
-</blockquote>
+<dl>
+<dt>Syntax</dt>
+<dd><p><code>--full</code>[<code>=true</code>]</p>
+</dd>
+<dd><p><code>--full=false</code></p>
+</dd>
+<dd><p><code>-f</code></p>
+</dd>
+<dt>Default value</dt>
+<dd><p><code>false</code></p>
+</dd>
+</dl>
 <h2 id="keep"><code>keep</code></h2>
 <p>When expiring data, keep at least a certain number of backups (even if they are expired).</p>
-<p>Syntax</p>
-<blockquote>
-<p><code>--keep</code>[=]<em>number</em></p>
-</blockquote>
-<blockquote>
-<p><code>-k</code> <em>number</em></p>
-</blockquote>
-<p>Default value</p>
-<blockquote>
-<p><code>3</code></p>
-</blockquote>
+<dl>
+<dt>Syntax</dt>
+<dd><p><code>--keep</code>[=]<em>number</em></p>
+</dd>
+<dd><p><code>-k</code> <em>number</em></p>
+</dd>
+<dt>Default value</dt>
+<dd><p><code>3</code></p>
+</dd>
+</dl>
 <h2 id="short"><code>short</code></h2>
 <p>Display a more concise output.</p>
-<p>Syntax</p>
-<blockquote>
-<p><code>--short</code>[<code>=true</code>]</p>
-</blockquote>
-<blockquote>
-<p><code>--short=false</code></p>
-</blockquote>
-<blockquote>
-<p><code>-s</code></p>
-</blockquote>
-<p>Default value</p>
-<blockquote>
-<p><code>false</code></p>
-</blockquote>
+<dl>
+<dt>Syntax</dt>
+<dd><p><code>--short</code>[<code>=true</code>]</p>
+</dd>
+<dd><p><code>--short=false</code></p>
+</dd>
+<dd><p><code>-s</code></p>
+</dd>
+<dt>Default value</dt>
+<dd><p><code>false</code></p>
+</dd>
+</dl>
 <h2 id="listen"><code>listen</code></h2>
 <p>Force the built-in web server to listen for connections on a different address/port.</p>
-<p>Syntax</p>
-<blockquote>
-<p><code>--listen</code>[=][<em>host</em>]:<em>port</em></p>
-</blockquote>
-<blockquote>
-<p><code>-l</code> [<em>host</em>]:<em>port</em></p>
-</blockquote>
-<p>Default value</p>
-<blockquote>
-<p><code>localhost:8080</code></p>
-</blockquote>
+<dl>
+<dt>Syntax</dt>
+<dd><p><code>--listen</code>[=][<em>host</em>]:<em>port</em></p>
+</dd>
+<dd><p><code>-l</code> [<em>host</em>]:<em>port</em></p>
+</dd>
+<dt>Default value</dt>
+<dd><p><code>localhost:8080</code></p>
+</dd>
+</dl>
 <h2 id="files">Files</h2>
 <p>File names can be specified using the usual shell-like wildcards <code>*</code> (matches any number of characters) and <code>?</code> (matches exactly one character). The following conventions apply:</p>
 <ul>
@@ -690,20 +685,14 @@ pukcab info --name=test</code></pre>
 <li>file names not starting with a slash ('<code>/</code>') are relative</li>
 <li>specifying a directory name also selects all the files underneath</li>
 </ul>
-<p>Examples</p>
-<blockquote>
-<p><code>/home</code> includes <code>/home/john</code>, <code>/home/dave</code>, etc. and all the files they contain (i.e. all users' home directories)</p>
-</blockquote>
-<blockquote>
-<p><code>*.jpg</code> includes all <code>.jpg</code> files (JPEG images) in all directories</p>
-</blockquote>
-<blockquote>
-<p><code>/etc/yum.repos.d/*.repo</code> includes all repositories configured in Yum</p>
-</blockquote>
-<blockquote>
-<p><code>/lib</code> includes <code>/lib</code> and all the files underneath but not <code>/usr/lib</code>, <code>/var/lib</code>, etc.</p>
-</blockquote>
-<h1 id="examples">Examples</h1>
+<h3 id="examples-1">Examples</h3>
+<ul>
+<li><code>/home</code> includes <code>/home/john</code>, <code>/home/dave</code>, etc. and all the files they contain (i.e. all users' home directories)</li>
+<li><code>*.jpg</code> includes all <code>.jpg</code> files (JPEG images) in all directories</li>
+<li><code>/etc/yum.repos.d/*.repo</code> includes all repositories configured in Yum</li>
+<li><code>/lib</code> includes <code>/lib</code> and all the files underneath but not <code>/usr/lib</code>, <code>/var/lib</code>, etc.</li>
+</ul>
+<h1 id="examples-2">Examples</h1>
 <h2 id="launch-a-new-backup---default-options">Launch a new backup - default options</h2>
 <pre><code>[root@myserver ~]# pukcab backup --verbose
 Starting backup: name=&quot;myserver&quot; schedule=&quot;daily&quot;

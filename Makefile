@@ -45,5 +45,5 @@ update:
 	pandoc -t html5 --self-contained --css md.css -o $@ $<
 
 .md.pdf:
-	pandoc -V version="${VERSION}" --smart --chapters --toc -o $@ $<
+	pandoc -V version="${VERSION}" --smart --chapters --toc --toc-depth=2 -o $@ $<
 

@@ -99,14 +99,14 @@ name3 = [ "list", "of", "text", "values" ]
 ...
 ~~~~~~~~~~~~~~~~~~~
 
+The default is to read `/etc/pukcab.conf` then `~/.pukcabrc` (which means that this user-defined file can override values set in the global configuration file).
+
+Both client and server use the same configuration file format and location, only the values determine the client or server role (a client will have a `server` parameter set).
+
 ### Notes
 
  * text values must be enclosed in `"`
  * lists of values are enclosed in `[` and `]` with comma-separated items
-
-The default is to read `/etc/pukcab.conf` then `~/.pukcabrc` (which means that this user-defined file can override values set in the global configuration file).
-
-Both client and server use the same configuration file format and location, only the values determine the client or server role (a client will have a `server` parameter set).
 
 Server
 ------
@@ -293,7 +293,9 @@ Syntax
 `expire`
 --------
 
-The `expire` command discards backups following a given [schedule] which are older than a given [age (or date)](#date). Standard retention schedules have pre-defined retention periods:
+The `expire` command discards backups following a given [schedule] which are older than a given [age (or date)](#date).
+
+Standard retention schedules have pre-defined retention periods:
 
 :default retention schedules
 
