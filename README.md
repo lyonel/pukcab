@@ -1,6 +1,4 @@
-# Pukcab
-
-## Features
+# Features
  * lightweight (just 1 binary to be installed on both the client and the server)
  * easy to install (only 1 username with SSH connectivity is required to set up a server)
  * flexible configuration
@@ -11,17 +9,17 @@
  * data compression
  * (optional) web interface
 
-## Requirements
-### Backup server
+# Requirements
+## Backup server
  * SSH server
  * dedicated user (recommended)
  * disk space
 
-### Clients
+## Clients
  * SSH client
  * functional `tar` command (tested with [GNU tar](http://www.gnu.org/software/tar/), should work with [BSD (libarchive) tar](http://www.libarchive.org/) and [Jörg Schilling's star](http://sourceforge.net/projects/s-tar/))
 
-## Installation
+# Installation
 Just copy the `pukcab` binary into your path (`/usr/bin/pukcab` will be just fine) on the backup server and each client.
 
 On the backup server
@@ -40,7 +38,7 @@ On the clients (if using a password to register clients)
 1. [create SSH keys][] for the user which will launch the backup (most probably `root`)
 1. [register][] to the backup server
 
-## Configuration
+# Configuration
 `pukcab` is configured with a simple [INI-like text file](https://en.wikipedia.org/wiki/INI_file):
 
 ```
@@ -60,12 +58,12 @@ The default is to read `/etc/pukcab.conf` then `~/.pukcabrc` (which means that t
 
 Both client and server use the same configuration file format and location, only the values determine the client or server role (a client will have a `server` parameter set).
 
-### Server
+## Server
 parameter | type | default | description
 ----------|------|---------|-------------------------------
-`user`    | text | none    | **mandatory** specifies the user name `pukcab` will run under
-`vault`   | text |`"vault"`| specifies the folder where all archive files will be created
-`catalog` | text |`"catalog.db"`| specifies the name of the catalog database
+`user`    | text | none    | **mandatory** user name `pukcab` will run under
+`vault`   | text |`"vault"`| folder where all archive files will be created
+`catalog` | text |`"catalog.db"`| name of the catalog database
 `maxtries`|number| `10`    | number of retries in case of concurrent client accesses
 
 Notes
@@ -84,14 +82,14 @@ vault="/var/local/backup/vault"
 catalog="/var/local/backup/catalog.db"
 ```
 
-### Client
+## Client
 parameter | type | default   | description
 ----------|------|-----------|-------------------------------
-`user`    | text | none      | **mandatory** specifies the user name `pukcab` will use to connect to the backup server
-`server`  | text | none      | **mandatory** specifies the backup server to connect to
-`port`    |number| 22        | specifies the TCP port to use to connect to the backup server
-`include` | list | cf. below | specifies filesystems/folders/files to include in the backup
-`exclude` | list | cf. below | specifies filesystems/folders/files to exclude from the backup
+`user`    | text | none      | **mandatory** user name to use to connect
+`server`  | text | none      | **mandatory** backup server
+`port`    |number| 22        | TCP port to use on the backup server
+`include` | list | cf. below | filesystems / folders / files to include in the backup
+`exclude` | list | cf. below | filesystems / folders / files to exclude from the backup
 
 Some default values depend on the platform:
 
@@ -107,8 +105,8 @@ user="backup"
 server="backupserver.localdomain.net"
 ```
 
-## Usage
-### Synopsis
+# Usage
+
 > `pukcab` _COMMAND_ [ [_OPTIONS_][] ... ] [ [_FILES_][] ... ]
 
 Available commands are listed below:
@@ -131,7 +129,7 @@ Available commands are listed below:
 | [register][]              | register to backup server               |
 | [web][]                   | starts the built-in web interface       |
 
-### `backup`
+## `backup`
 This command launches a new backup:
 
  * creates a new backup set (and the corresponding date/id) on the [backup server](#server)
@@ -150,7 +148,7 @@ Notes
  * the [name][] and [schedule][] options are chosen automatically if not specified
  * Interrupted backups can be resumed with the [continue][] command
 
-### `continue`
+## `continue`
 This command continues a previously interrupted backup.
 
 Syntax
@@ -163,7 +161,7 @@ Notes
  * the [date][] option automatically selects the last unfinished backup
  * only unfinished backups may be resumed
 
-### `restore`
+## `restore`
 This command restores [files][] as they were at a given [date][].
 
 Syntax
@@ -176,7 +174,7 @@ Notes
  * the [date][] option automatically selects the last backup
  * this operation currently requires a working `tar` system command (usually GNU tar)
  
-### `verify`
+## `verify`
 This command reports [files][] which have changed since a given [date][].
 
 Syntax
@@ -188,7 +186,7 @@ Notes
  * the [name][] option is chosen automatically if not specified
  * the [date][] option automatically selects the last backup if not specified
  
-### `delete`
+## `delete`
 This command discards the backup taken at a given [date][].
 
 Syntax
@@ -200,7 +198,7 @@ Notes
  * the [name][] option is chosen automatically if not specified
  * the [date][] must be specified
  
-### `expire`
+## `expire`
 This command discards backups following a given [schedule][] which are older than a given [age (or date)](#date). Standard retention schedules have pre-defined retention periods:
 
  schedule   | retention period
@@ -220,7 +218,7 @@ Notes
  * on a [backup client](#client), the [name][] option is chosen automatically if not specified
  * the [schedule][] and [expiration][] are chosen automatically if not specified
  
-### `vacuum`
+## `vacuum`
 This command initiates clean-up of the catalog and vault to save disk space.
 
 Syntax
@@ -232,14 +230,14 @@ Notes
  * can only be run on the server
  * the clean-up may take a while and delay new backups
 
-### `config`
+## `config`
 This command displays the current configuration.
 
 Syntax
 
 >  `pukcab config`
 
-### `history`
+## `history`
 This command shows the different versions stored in backups for given files. Backup sets can be filtered by name and/or date and files.
 
 Syntax
@@ -251,7 +249,7 @@ Notes
  * if [date][] is specified, the command lists only history after that date
  * on server, if [name][] is not specified, the command lists all backups, regardless of their name
 
-### `info`
+## `info`
 This command lists the backup sets stored on the server. Backup sets can be filtered by name and/or date and files.
 
 Syntax
@@ -264,7 +262,7 @@ Notes
  * on server, if [name][] is not specified, the command lists all backups, regardless of their name
  * verbose mode lists the individual [files][]
 
-### `ping`
+## `ping`
 This command allows to check connectivity to the server.
 
 Syntax
@@ -275,7 +273,7 @@ Notes
 
  * verbose mode displays detailed information during the check
 
-### `register`
+## `register`
 This command registers a client's SSH public key to the server.
 
 Syntax
@@ -287,7 +285,7 @@ Notes
  * to register to the backup server, `pukcab` will ask for the dedicated user's password (set on the server)
  * verbose mode displays detailed information during the registration
 
-### `web`
+## `web`
 This command starts the built-in web interface.
 
 Syntax
@@ -299,7 +297,7 @@ Notes
  * by default, `pukcab` listens on `localhost` on port 8080
  * available features depend on the local system's role (client or server)
 
-## Options
+# Options
 `pukcab` is quite flexible with the way options are provided:
 
  * options can be provided in any order
@@ -325,7 +323,6 @@ This means that the following lines are all equivalent:
 
 > `pukcab info --name=test`
 
-### General options
 The following options apply to all commands:
 
 option                      | description
@@ -334,7 +331,7 @@ option                      | description
 `-v`, `--verbose`[`=true`]  | display more detailed information
 `-h`, `--help`              | display online help
 
-### `date`
+## `date`
 
 Dates are an important concept for `pukcab`.
 
@@ -370,7 +367,7 @@ Examples
  
  > `--date 2015-01-07` means *on the 7th January 2015 at midnight*
 
-### `name`
+## `name`
 
 In `pukcab`, a name is associated with each backup when it's created. It is a free-form text string.
 
@@ -384,7 +381,7 @@ Default value
 
 >  current host name (output of the `hostname` command)
 
-### `schedule`
+## `schedule`
 
 In `pukcab`, a retention schedule is associated with each backup when it's created and is used when expiring old backups. It is a free-form text string but common values include `daily`, `weekly`, `monthly`, etc.
 
@@ -401,7 +398,7 @@ Default value (the default value depends on the current day)
  * `monthly` on the 1st of the month
  * `yearly` on 1st January
 
-### `full`
+## `full`
 
 Forces a full backup: `pukcab` will send all files to the server, without checking for changes.
 
@@ -417,7 +414,7 @@ Default value
 
 >  `false`
 
-### `keep`
+## `keep`
 
 When expiring data, keep at least a certain number of backups (even if they are expired).
 
@@ -431,7 +428,7 @@ Default value
 
 >  `3`
 
-### `short`
+## `short`
 
 Display a more concise output.
 
@@ -447,7 +444,7 @@ Default value
 
 >  `false`
 
-### `listen`
+## `listen`
 
 Force the built-in web server to listen for connections on a different address/port.
 
@@ -461,7 +458,7 @@ Default value
 
 > `localhost:8080`
 
-### Files
+## Files
 
 File names can be specified using the usual shell-like wildcards `*` (matches any number of characters) and `?` (matches exactly one character). The following conventions apply:
 
@@ -480,8 +477,8 @@ Examples
 >  `/lib` includes `/lib` and all the files underneath but not `/usr/lib`, `/var/lib`, etc.
  
 
-## Examples
-### Launch a new backup - default options
+# Examples
+## Launch a new backup - default options
 ```
 [root@myserver ~]# pukcab backup --verbose
 Starting backup: name="myserver" schedule="daily"

@@ -40,7 +40,8 @@ update:
 	cd src ; go install github.com/*/*
 
 README.html: README.md
-	./bin/blackfriday-tool -css md.css $^ $@
+	pandoc -V title="Pukcab ${VERSION}" -t html5 --self-contained --css md.css -o $@ $^
 
-tools:
-	go get github.com/lyonel/blackfriday-tool
+README.pdf: README.md
+	pandoc -V title="Pukcab ${VERSION}" --chapters --toc -o $@ $^
+
