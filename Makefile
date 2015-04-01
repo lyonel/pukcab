@@ -6,6 +6,8 @@ export GOPATH=${PWD}
 
 .PHONY: pukcab clean update release
 
+.SUFFIXES: .md .pdf .html
+
 pukcab:
 	go build -o $@
 	strip $@
@@ -39,9 +41,9 @@ update:
 	git submodule update --init --recursive
 	cd src ; go install github.com/*/*
 
-README.html: README.md
-	pandoc -V title="Pukcab ${VERSION}" -t html5 --self-contained --css md.css -o $@ $^
+.md.html: md.css
+	pandoc -t html5 --self-contained --css md.css -o $@ $<
 
-README.pdf: README.md
-	pandoc -V title="Pukcab ${VERSION}" --chapters --toc -o $@ $^
+.md.pdf:
+	pandoc -V version="${VERSION}" --smart --chapters --toc -o $@ $<
 
