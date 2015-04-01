@@ -99,7 +99,7 @@ name3 = [ "list", "of", "text", "values" ]
 ...
 ~~~~~~~~~~~~~~~~~~~
 
-Notes
+### Notes
 
  * text values must be enclosed in `"`
  * lists of values are enclosed in `[` and `]` with comma-separated items
@@ -123,14 +123,14 @@ parameter   type   default         description
 `maxtries` number  `10`            number of retries in case of concurrent client accesses
 ---------- ------ ------------     -------------------------------
 
-Notes
+### Notes
 
  * `vault` and `catalog` paths can be absolute (starting with `/`) or relative to `user`'s home directory.
  * the `vault` folder must be able to store many gigabytes of data, spread over thousands of files
  * the `catalog` database may become big and must be located in a folder where `user` has write access
  * the `vault` folder **must not be used to store anything**^[`pukcab` will *silently* delete anything you may store there] else than `pukcab`'s data files; in particular, do **NOT** store the `catalog` there
 
-Example:
+### Example
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ; all backups will be received and stored by the 'backup' user
@@ -153,7 +153,7 @@ parameter      type      default          description
 `exclude`      list     [OS-dependent]    filesystems / folders / files to exclude from the backup
 ----------    ------    --------------    ----------------------------------------------------------
 
-Example:
+### Example
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 user="backup"
@@ -191,7 +191,7 @@ Usage
 Synopsis
 --------
 
-> `pukcab` _command_ [ [_options_] ... ] [ [_files_] ... ]
+`pukcab` _command_ [ [_options_] ... ] [ [_files_] ... ]
 
 :available commands
 
@@ -225,12 +225,12 @@ The `backup` command launches a new backup:
 
 Syntax
 
->  `pukcab backup` [ --[full] ] [ --[name]=_name_ ] [ --[schedule]=_schedule_ ]
+:   `pukcab backup` [ --[full] ] [ --[name]=_name_ ] [ --[schedule]=_schedule_ ]
 
-Notes
+### Notes
 
  * the [name] and [schedule] options are chosen automatically if not specified
- * Interrupted backups can be resumed with the [continue] command
+ * interrupted backups can be resumed with the [continue] command
 
 `continue`
 ----------
@@ -239,9 +239,9 @@ The `continue` command continues a previously interrupted backup.
 
 Syntax
 
->  `pukcab continue` [ --[name]=_name_ ] [ --[date]=_date_ ]
+:   `pukcab continue` [ --[name]=_name_ ] [ --[date]=_date_ ]
 
-Notes
+### Notes
 
  * the [name] option is chosen automatically if not specified
  * the [date] option automatically selects the last unfinished backup
@@ -254,9 +254,9 @@ The `restore` command restores [files] as they were at a given [date].
 
 Syntax
 
->  `pukcab restore` [ --[name]=_name_ ] [ --[date]=_date_ ] [ [_FILES_] ... ]
+:   `pukcab restore` [ --[name]=_name_ ] [ --[date]=_date_ ] [ [_FILES_] ... ]
 
-Notes
+### Notes
 
  * the [name] option is chosen automatically if not specified
  * the [date] option automatically selects the last backup
@@ -269,9 +269,9 @@ The verify command reports [files] which have changed since a given [date].
 
 Syntax
 
->  `pukcab verify` [ --[name]=_name_ ] [ --[date]=_date_ ] [ [_FILES_] ... ]
+:   `pukcab verify` [ --[name]=_name_ ] [ --[date]=_date_ ] [ [_FILES_] ... ]
 
-Notes
+### Notes
 
  * the [name] option is chosen automatically if not specified
  * the [date] option automatically selects the last backup if not specified
@@ -283,9 +283,9 @@ The `delete` command discards the backup taken at a given [date].
 
 Syntax
 
->  `pukcab delete` [ --[name]=_name_ ] --[date]=_date_
+:   `pukcab delete` [ --[name]=_name_ ] --[date]=_date_
 
-Notes
+### Notes
 
  * the [name] option is chosen automatically if not specified
  * the [date] must be specified
@@ -306,9 +306,9 @@ The `expire` command discards backups following a given [schedule] which are old
 
 Syntax
 
->  `pukcab expire` [ --[name]=_name_ ] [ --[schedule]=_schedule_ ] [ --[age]=_age_ ] [ --[keep]=_keep_ ]
+:   `pukcab expire` [ --[name]=_name_ ] [ --[schedule]=_schedule_ ] [ --[age]=_age_ ] [ --[keep]=_keep_ ]
 
-Notes
+### Notes
 
  * on the [backup server](#server), the [name] option defaults to all backups if not specified
  * on a [backup client](#client), the [name] option is chosen automatically if not specified
@@ -321,9 +321,9 @@ The `vacuum` command initiates clean-up of the catalog and vault to save disk sp
 
 Syntax
 
->  `pukcab vacuum`
+:   `pukcab vacuum`
 
-Notes
+### Notes
 
  * can only be run on the server
  * the clean-up may take a while and delay new backups
@@ -335,7 +335,7 @@ The `config` command displays the current configuration.
 
 Syntax
 
->  `pukcab config`
+:   `pukcab config`
 
 `history`
 ---------
@@ -344,9 +344,9 @@ The `history` command shows the different versions stored in backups for given f
 
 Syntax
 
->  `pukcab history` [ --[name]=_name_ ] [ --[date]=_date_ ] [ [_FILES_] ... ]
+:   `pukcab history` [ --[name]=_name_ ] [ --[date]=_date_ ] [ [_FILES_] ... ]
 
-Notes
+### Notes
 
  * if [date] is specified, the command lists only history after that date
  * on server, if [name] is not specified, the command lists all backups, regardless of their name
@@ -358,9 +358,9 @@ The `info` command lists the backup sets stored on the server. Backup sets can b
 
 Syntax
 
->  `pukcab info` [ --[short] ] [ --[name]=_name_ ] [ --[date]=_date_ ] [ [_FILES_] ... ]
+:   `pukcab info` [ --[short] ] [ --[name]=_name_ ] [ --[date]=_date_ ] [ [_FILES_] ... ]
 
-Notes
+### Notes
 
  * if [date] is specified, the command lists only details about the corresponding backup
  * on server, if [name] is not specified, the command lists all backups, regardless of their name
@@ -373,9 +373,9 @@ The `ping` command allows to check connectivity to the server.
 
 Syntax
 
->  `pukcab ping`
+:   `pukcab ping`
 
-Notes
+### Notes
 
  * verbose mode displays detailed information during the check
 
@@ -386,9 +386,9 @@ The `register` command registers a client's SSH public key to the server.
 
 Syntax
 
->  `pukcab register`
+:   `pukcab register`
 
-Notes
+### Notes
 
  * to register to the backup server, `pukcab` will ask for the dedicated user's password (set on the server)
  * verbose mode displays detailed information during the registration
@@ -400,9 +400,9 @@ The `web` command starts the built-in web interface.
 
 Syntax
 
->  `pukcab web` [ --[listen]=[_host_]:_port_ ]
+:   `pukcab web` [ --[listen]=[_host_]:_port_ ]
 
-Notes
+### Notes
 
  * by default, `pukcab` listens on `localhost` on port 8080
  * available features depend on the local system's role (client or server)
@@ -457,27 +457,20 @@ The numeric id can be used to unambiguously specify a given backup set but other
 
 Syntax
 
->  `--date`[=]*date*
+:   `--date`[=]*date*
 
->  `-d` *date*
+:   `-d` *date*
 
-Examples
+### Examples
 
- > `--date 1422577319` means *on the 30th January 2015 at 01:21:59 CET*
-
- > `--date 0`, `--date now` and `--date latest` mean *now*
-
- > `--date today` means *today at 00:00*
-
- > `--date 1` means *yesterday same time*
-
- > `--date 7` means *last week*
-
- > `--date -48h` and `--date 48h` both mean *2 days ago*
-
- > `--date 2h30m` means *2 hours and 30 minutes ago*
-
- > `--date 2015-01-07` means *on the 7th January 2015 at midnight*
+ * `--date 1422577319` means *on the 30th January 2015 at 01:21:59 CET*
+ * `--date 0`, `--date now` and `--date latest` mean *now*
+ * `--date today` means *today at 00:00*
+ * `--date 1` means *yesterday same time*
+ * `--date 7` means *last week*
+ * `--date -48h` and `--date 48h` both mean *2 days ago*
+ * `--date 2h30m` means *2 hours and 30 minutes ago*
+ * `--date 2015-01-07` means *on the 7th January 2015 at midnight*
 
 `name`
 ------
@@ -486,13 +479,13 @@ In `pukcab`, a name is associated with each backup when it's created. It is a fr
 
 Syntax
 
->  `--name`[=]*name*
+:   `--name`[=]*name*
 
->  `-n` *name*
+:   `-n` *name*
 
 Default value
 
->  current host name (output of the `hostname` command)
+:   current host name (output of the `hostname` command)
 
 `schedule`
 ----------
@@ -501,16 +494,21 @@ In `pukcab`, a retention schedule is associated with each backup when it's creat
 
 Syntax
 
->  `--schedule`[=]*schedule*
+:   `--schedule`[=]*schedule*
 
->  `-r` *schedule*
+:   `-r` *schedule*
 
-Default value (the default value depends on the current day)
+Default value
 
- * `daily` from Monday to Saturday
- * `weekly` on Sunday
- * `monthly` on the 1st of the month
- * `yearly` on 1st January
+:   (the default value depends on the current day)
+
+:   `daily` from Monday to Saturday
+
+:   `weekly` on Sunday
+
+:   `monthly` on the 1st of the month
+
+:   `yearly` on 1st January
 
 `full`
 ------
@@ -519,15 +517,15 @@ Forces a full backup: `pukcab` will send all files to the server, without checki
 
 Syntax
 
->  `--full`[`=true`]
+:   `--full`[`=true`]
 
->  `--full=false`
+:   `--full=false`
 
->  `-f`
+:   `-f`
 
 Default value
 
->  `false`
+:   `false`
 
 `keep`
 ------
@@ -536,13 +534,13 @@ When expiring data, keep at least a certain number of backups (even if they are 
 
 Syntax
 
->  `--keep`[=]*number*
+:   `--keep`[=]*number*
 
->  `-k` *number*
+:   `-k` *number*
 
 Default value
 
->  `3`
+:   `3`
 
 `short`
 -------
@@ -551,15 +549,15 @@ Display a more concise output.
 
 Syntax
 
->  `--short`[`=true`]
+:   `--short`[`=true`]
 
->  `--short=false`
+:   `--short=false`
 
->  `-s`
+:   `-s`
 
 Default value
 
->  `false`
+:   `false`
 
 `listen`
 --------
@@ -568,13 +566,13 @@ Force the built-in web server to listen for connections on a different address/p
 
 Syntax
 
->  `--listen`[=][*host*]:*port*
+:   `--listen`[=][*host*]:*port*
 
->  `-l` [*host*]:*port*
+:   `-l` [*host*]:*port*
 
 Default value
 
-> `localhost:8080`
+:   `localhost:8080`
 
 Files
 -----
@@ -585,15 +583,12 @@ File names can be specified using the usual shell-like wildcards `*` (matches an
  * file names not starting with a slash ('`/`') are relative
  * specifying a directory name also selects all the files underneath
 
-Examples
+### Examples
 
->  `/home` includes `/home/john`, `/home/dave`, etc. and all the files they contain (i.e. all users' home directories)
-
->  `*.jpg` includes all `.jpg` files (JPEG images) in all directories
-
->  `/etc/yum.repos.d/*.repo` includes all repositories configured in Yum
-
->  `/lib` includes `/lib` and all the files underneath but not `/usr/lib`, `/var/lib`, etc.
+ * `/home` includes `/home/john`, `/home/dave`, etc. and all the files they contain (i.e. all users' home directories)
+ * `*.jpg` includes all `.jpg` files (JPEG images) in all directories
+ * `/etc/yum.repos.d/*.repo` includes all repositories configured in Yum
+ * `/lib` includes `/lib` and all the files underneath but not `/usr/lib`, `/var/lib`, etc.
 
 
 Examples
