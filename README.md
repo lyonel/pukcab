@@ -109,28 +109,29 @@ server="backupserver.localdomain.net"
 
 ## Usage
 ### Synopsis
-> `pukcab` _[COMMAND](#commands)_ [ _[OPTIONS](#options)_... ] [ _[FILES](#files)_... ]
+> `pukcab` _COMMAND_ [ [_OPTIONS_][] ... ] [ [_FILES_][] ... ]
 
-#### Commands
-**backup and recovery**   | .
---------------------------|---------------------------------------
-[backup][], [save][]      | take a new backup
-[continue][], [resume][]  | continue a partial backup
-[restore][]               | restore files
-[verify][], [check][]     | verify files in a backup
-**maintenance** | 
-[delete][], [purge][]     | delete a backup
-[expire][]                | apply retention schedule to old backups
-[vacuum][]                | vault and catalog clean-up
-**utilities** |
-[config][], [cfg][]       | display `pukcab`'s configuration
-[history][], [versions][] | list history for files
-[info][], [list][]        | list backups and files
-[ping][], [test][]        | check server connectivity
-[register][]              | register to backup server
-[web][]                   | starts the built-in web interface
+Available commands are listed below:
 
-### backup
+| command                   |                                         |
+|---------------------------|-----------------------------------------|
+| [backup][], [save][]      | take a new backup                       |
+| [continue][], [resume][]  | continue a partial backup               |
+| [restore][]               | restore files                           |
+| [verify][], [check][]     | verify files in a backup                |
+|                           |                                         |
+| [delete][], [purge][]     | delete a backup                         |
+| [expire][]                | apply retention schedule to old backups |
+| [vacuum][]                | vault and catalog clean-up              |
+|                           |                                         |
+| [config][], [cfg][]       | display `pukcab`'s configuration        |
+| [history][], [versions][] | list history for files                  |
+| [info][], [list][]        | list backups and files                  |
+| [ping][], [test][]        | check server connectivity               |
+| [register][]              | register to backup server               |
+| [web][]                   | starts the built-in web interface       |
+
+### `backup`
 This command launches a new backup:
 
  * creates a new backup set (and the corresponding date/id) on the [backup server](#server)
@@ -139,17 +140,17 @@ This command launches a new backup:
  * computes the list of changes since the last backup (if `--full` isn't specified)
  * sends the files to be includes in the backup
  * closes the backup
-Interrupted backups can be resumed with the [#continue continue] command
 
 Syntax
 
 >  `pukcab backup` [ --[full][] ] [ --[name][]=_name_ ] [ --[schedule][]=_schedule_ ]
 
-Note
+Notes
 
  * the [name][] and [schedule][] options are chosen automatically if not specified
+ * Interrupted backups can be resumed with the [continue][] command
 
-### continue
+### `continue`
 This command continues a previously interrupted backup.
 
 Syntax
@@ -162,12 +163,12 @@ Notes
  * the [date][] option automatically selects the last unfinished backup
  * only unfinished backups may be resumed
 
-### restore
+### `restore`
 This command restores [files][] as they were at a given [date][].
 
 Syntax
 
->  `pukcab restore` [ --[name][]=_name_ ] [ --[date][]=_date_ ] [ _[FILES](#files)_... ]
+>  `pukcab restore` [ --[name][]=_name_ ] [ --[date][]=_date_ ] [ [_FILES_][] ... ]
 
 Notes
 
@@ -175,19 +176,19 @@ Notes
  * the [date][] option automatically selects the last backup
  * this operation currently requires a working `tar` system command (usually GNU tar)
  
-### verify
+### `verify`
 This command reports [files][] which have changed since a given [date][].
 
 Syntax
 
->  `pukcab verify` [ --[name][]=_name_ ] [ --[date][]=_date_ ] [ _[FILES](#files)_... ]
+>  `pukcab verify` [ --[name][]=_name_ ] [ --[date][]=_date_ ] [ [_FILES_][] ... ]
 
 Notes
 
  * the [name][] option is chosen automatically if not specified
  * the [date][] option automatically selects the last backup if not specified
  
-### delete
+### `delete`
 This command discards the backup taken at a given [date][].
 
 Syntax
@@ -199,7 +200,7 @@ Notes
  * the [name][] option is chosen automatically if not specified
  * the [date][] must be specified
  
-### expire
+### `expire`
 This command discards backups following a given [schedule][] which are older than a given [age (or date)](#date). Standard retention schedules have pre-defined retention periods:
 
  schedule   | retention period
@@ -219,7 +220,7 @@ Notes
  * on a [backup client](#client), the [name][] option is chosen automatically if not specified
  * the [schedule][] and [expiration][] are chosen automatically if not specified
  
-### vacuum
+### `vacuum`
 This command initiates clean-up of the catalog and vault to save disk space.
 
 Syntax
@@ -231,31 +232,31 @@ Notes
  * can only be run on the server
  * the clean-up may take a while and delay new backups
 
-### config
+### `config`
 This command displays the current configuration.
 
 Syntax
 
 >  `pukcab config`
 
-### history
+### `history`
 This command shows the different versions stored in backups for given files. Backup sets can be filtered by name and/or date and files.
 
 Syntax
 
->  `pukcab history` [ --[name][]=_name_ ] [ --[date][]=_date_ ] [ _[FILES](#files)_... ]
+>  `pukcab history` [ --[name][]=_name_ ] [ --[date][]=_date_ ] [ [_FILES_][] ... ]
 
 Notes
 
  * if [date][] is specified, the command lists only history after that date
  * on server, if [name][] is not specified, the command lists all backups, regardless of their name
 
-### info
+### `info`
 This command lists the backup sets stored on the server. Backup sets can be filtered by name and/or date and files.
 
 Syntax
 
->  `pukcab info` [ --[short][] ] [ --[name][]=_name_ ] [ --[date][]=_date_ ] [ _[FILES](#files)_... ]
+>  `pukcab info` [ --[short][] ] [ --[name][]=_name_ ] [ --[date][]=_date_ ] [ [_FILES_][] ... ]
 
 Notes
 
@@ -263,7 +264,7 @@ Notes
  * on server, if [name][] is not specified, the command lists all backups, regardless of their name
  * verbose mode lists the individual [files][]
 
-### ping
+### `ping`
 This command allows to check connectivity to the server.
 
 Syntax
@@ -274,7 +275,7 @@ Notes
 
  * verbose mode displays detailed information during the check
 
-### register
+### `register`
 This command registers a client's SSH public key to the server.
 
 Syntax
@@ -286,7 +287,7 @@ Notes
  * to register to the backup server, `pukcab` will ask for the dedicated user's password (set on the server)
  * verbose mode displays detailed information during the registration
 
-### web
+### `web`
 This command starts the built-in web interface.
 
 Syntax
@@ -298,7 +299,7 @@ Notes
  * by default, `pukcab` listens on `localhost` on port 8080
  * available features depend on the local system's role (client or server)
 
-### Options
+## Options
 `pukcab` is quite flexible with the way options are provided:
 
  * options can be provided in any order
@@ -324,16 +325,17 @@ This means that the following lines are all equivalent:
 
 > `pukcab info --name=test`
 
-#### General options
+### General options
 The following options apply to all commands:
 
-option                    | description
---------------------------|------------------------------------------------
-`-c`, `--config`[=]_file_ | specify a [configuration file](#configuration) to use
-`-v`, `--verbose`[`=true`]| display more detailed information
-`-h`, `--help`            | display online help
+option                      | description
+----------------------------|------------------------------------------------
+`-c`, `--config`[`=`]_file_ | specify a [configuration file](#configuration) to use
+`-v`, `--verbose`[`=true`]  | display more detailed information
+`-h`, `--help`              | display online help
 
-#### date
+### `date`
+
 Dates are an important concept for `pukcab`.
 
 All backup sets are identified by a unique numeric id and correspond to a set of files at a given point in time (the backup id is actually a [UNIX timestamp](https://en.wikipedia.org/wiki/Unix_time)).
@@ -368,7 +370,8 @@ Examples
  
  > `--date 2015-01-07` means *on the 7th January 2015 at midnight*
 
-#### name
+### `name`
+
 In `pukcab`, a name is associated with each backup when it's created. It is a free-form text string.
 
 Syntax
@@ -381,7 +384,8 @@ Default value
 
 >  current host name (output of the `hostname` command)
 
-#### schedule
+### `schedule`
+
 In `pukcab`, a retention schedule is associated with each backup when it's created and is used when expiring old backups. It is a free-form text string but common values include `daily`, `weekly`, `monthly`, etc.
 
 Syntax
@@ -397,7 +401,8 @@ Default value (the default value depends on the current day)
  * `monthly` on the 1st of the month
  * `yearly` on 1st January
 
-#### full
+### `full`
+
 Forces a full backup: `pukcab` will send all files to the server, without checking for changes.
 
 Syntax
@@ -412,7 +417,8 @@ Default value
 
 >  `false`
 
-#### keep
+### `keep`
+
 When expiring data, keep at least a certain number of backups (even if they are expired).
 
 Syntax
@@ -425,7 +431,8 @@ Default value
 
 >  `3`
 
-#### short
+### `short`
+
 Display a more concise output.
 
 Syntax
@@ -440,7 +447,8 @@ Default value
 
 >  `false`
 
-#### listen
+### `listen`
+
 Force the built-in web server to listen for connections on a different address/port.
 
 Syntax
@@ -453,7 +461,8 @@ Default value
 
 > `localhost:8080`
 
-#### files
+### Files
+
 File names can be specified using the usual shell-like wildcards `*` (matches any number of characters) and `?` (matches exactly one character). The following conventions apply:
 
  * file names starting with a slash ('`/`') are absolute
@@ -466,7 +475,7 @@ Examples
 
 >  `*.jpg` includes all `.jpg` files (JPEG images) in all directories
 
->  `/etc/yum.repos.d/*.repo` includes all repositories configured in Yum[[br]]
+>  `/etc/yum.repos.d/*.repo` includes all repositories configured in Yum
 
 >  `/lib` includes `/lib` and all the files underneath but not `/usr/lib`, `/var/lib`, etc.
  
@@ -485,6 +494,8 @@ Sending files... done
 [root@myserver ~]#
 ```
 
+[_OPTIONS_]: #options
+[_FILES_]: #files
 [backup]: #backup
 [continue]: #continue
 [resume]: #continue
