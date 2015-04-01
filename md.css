@@ -230,6 +230,9 @@ table {
     word-break: normal;
     word-break: keep-all;
 }
+table caption {
+    display: none;
+}
 table th { font-weight: bold }
 table th,
 table td {
