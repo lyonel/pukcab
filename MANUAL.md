@@ -142,6 +142,8 @@ catalog="/var/local/backup/catalog.db"
 Client
 ------
 
+The client configuration mainly focuses on what to include in the backup and what to exclude from it.
+
 :client configuration
 
 parameter      type      default          description
@@ -149,9 +151,31 @@ parameter      type      default          description
 `user`         text     *none*            user name to use to connect (*mandatory*)
 `server`       text     *none*            backup server (*mandatory*)
 `port`        number    `22`              TCP port to use on the backup server
-`include`      list     [OS-dependent]    filesystems / folders / files to include in the backup
-`exclude`      list     [OS-dependent]    filesystems / folders / files to exclude from the backup
+`include`      list     [OS-dependent]    what to include in the backup
+`exclude`      list     [OS-dependent]    what to exclude from the backup
 ----------    ------    --------------    ----------------------------------------------------------
+
+### `includ`ing / `exclud`ing items
+
+When taking a backup, `pukcab` goes through several steps to determine what should be backed up
+
+ 1. get all mounted filesystems
+ 1. include everything that is listed in `include`
+ 1. exclude everything that is listed in `exclude`
+
+To select stuff to be included or excluded, you can use the following formats:
+
+:`include`/`exclude` filters
+
+format           matches                                               examples
+------------     ---------------------------------------------------   -----------------------------------------------
+*type*           mounted filesystems of that type                      `"ext4"`, `"btrfs"`, `"procfs"`, `"tmpfs"`, `"hfs"`
+`/`*path*        *path* and anything under it                          `"/usr/tmp"`, `"/var/tmp"`, `"/tmp"`
+*pattern*        files matching *pattern*[^shellpattern]               `".*.swp"`, `"*.part"`, `"*.tmp"`
+`./`*name*       directories containing something named *name*         `"./.nobackup"`
+------------     ---------------------------------------------------   -----------------------------------------------
+
+[^shellpattern]: Shell patterns include at least one `*` or `?` special character, with their usual meaning
 
 ### Example
 
@@ -600,6 +624,14 @@ Launch a new backup - default options
 -------------------------------------
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[root@myserver ~]# pukcab backup
+[root@myserver ~]#
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Launch a new backup - verbose mode
+-------------------------------------
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 [root@myserver ~]# pukcab backup --verbose
 Starting backup: name="myserver" schedule="daily"
 Sending file list... done.
@@ -610,6 +642,95 @@ Incremental backup: date=1422549975 files=35
 Sending files... done
 [root@myserver ~]#
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Verify last backup - default options
+-------------------------------------
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[root@myserver ~]# pukcab verify
+Name:     myserver
+Schedule: daily
+Date:     1427941113 ( 2015-04-02 04:18:33 +0200 CEST )
+Size:     1.6GiB
+Files:    50350
+Modified: 10
+Deleted:  0
+Missing:  0
+[root@myserver ~]#
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Verify last backup - verbose mode
+-------------------------------------
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[root@myserver ~]# pukcab verify --verbose
+Name:     myserver
+Schedule: daily
+Date:     1427941113 ( 2015-04-02 04:18:33 +0200 CEST )
+m /var/lib/chrony
+M /var/lib/chrony/drift
+M /var/log/cron
+M /var/log/journal/5331b849b3844782aab45e85bd890883/system.journal
+M /var/log/journal/5331b849b3844782aab45e85bd890883/user-1001.journal
+M /var/log/maillog
+M /var/log/messages
+M /var/log/secure
+M /var/spool/anacron/cron.daily
+m /var/tmp
+Size:     1.6GiB
+Files:    50350
+Modified: 10
+Deleted:  0
+Missing:  0
+[root@myserver ~]#
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Find and recover a deleted file
+-------------------------------
+
+Let's pretend we want to recover a source RPM for `netatalk` that was deleted a while ago...
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[root@myserver ~]# pukcab history netatalk\*.src.rpm
+1422764854 myserver monthly Sun Feb 1 05:38
+-rw-rw-r--  support support   1.8MiB Oct 30 17:30 /home/support/Downloads/netatalk-3.1.6-0.0.4.fc21.src.rpm
+-rw-rw-r--  support support   1.7MiB Dec  2 19:59 /home/support/Downloads/netatalk-3.1.7-0.1.fc21.src.rpm
+
+1424572858 myserver weekly Sun Feb 22 03:59
+
+1425177758 myserver monthly Sun Mar 1 03:59
+
+1425782947 myserver weekly Sun Mar 8 04:16
+
+1426387616 myserver weekly Sun Mar 15 04:39
+
+1426817749 myserver daily Fri Mar 20 03:31
+
+1426904886 myserver daily Sat Mar 21 04:24
+
+1426990487 myserver weekly Sun Mar 22 03:28
+
+1427076410 myserver daily Mon Mar 23 04:00
+
+1427165785 myserver daily Tue Mar 24 04:42
+
+1427249388 myserver daily Wed Mar 25 03:24
+[root@myserver ~]#
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We found it! Let's restore it in-place
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[root@myserver ~]# cd /
+[root@myserver ~]# pukcab restore -d 1422764854 netatalk-3.1.7-0.1.fc21.src.rpm
+[root@myserver ~]# cd /home/support/Downloads
+[root@myserver ~]# ls -l netatalk-3.1.7-0.1.fc21.src.rpm
+-rw-rw-r-- 1 support support 1804762 Dec  2 19:59 netatalk-3.1.7-0.1.fc21.src.rpm
+[root@myserver ~]#
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Troubleshooting
+===============
 
 [_OPTIONS_]: #options
 [_FILES_]: #files
