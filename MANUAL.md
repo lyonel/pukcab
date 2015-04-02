@@ -2,8 +2,29 @@
 % Lyonel Vincent (<lyonel@ezix.org>)
 % March 2015
 
+Introduction
+============
+
+`pukcab` is a lightweight, single-binary backup system for UNIX / Linux systems that stores de-duplicated, compressed and incremental backups on a remote server using just an SSH connection.
+
+De-duplication happens not only between incremental backups of the same system but also between different systems. For example, it allows you to perform full backups of systems running the same OS with only minimal disk space for each additional system^[Basically, only configuration files and user data require disk space.].
+
+Intended use
+------------
+
+`pukcab` doesn't compare to professional-grade backup systems, *don't expect it to be able to backup thousands of systems or dozens of terabytes of data*.
+
+It is, however, perfectly suitable for home users, hobbyists, UNIX / Linux enthusiasts or small tech-savy shops who want a flexible, yet dead-easy to setup and operate backup system with no bigger expenses than just a Linux box with a few terabytes of storage.
+
+Little to no configuration should ever be required to satisfy most needs:
+
+ * just run `pukcab backup` every night on your systems
+ * full-system backups should be preferred, thanks to sensible OS-dependent default exclusions
+ * automatic daily/weekly/monthly/yearly retention policies should keep enough backups around
+
 Features
-========
+--------
+
  * lightweight (just 1 binary to be installed on both the client and the server)
  * easy to install (only 1 username with SSH connectivity is required to set up a server)
  * flexible configuration
