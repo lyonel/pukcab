@@ -42,7 +42,7 @@ Little to no configuration should ever be required to satisfy most needs:
  * [Linux for x86-64](http://ezix.org/download/?package=x86-64.linux.pukcab.ezix.org) (Fedora, Debian, Ubuntu, Red Hat, ...)
  * [Linux for i686 (32bit)](http://ezix.org/download/?package=i686.linux.pukcab.ezix.org) (Fedora, Debian, Ubuntu, Red Hat, ...)
  * [Linux RPMs](http://ezix.org/download/?package=rpm.pukcab.ezix.org) (Fedora, CentOS, Red Hat, ...)
- * [Mac OS X (64bit)]http://ezix.org/download/?package=osx.pukcab.ezix.org) (Mavericks, Yosemite, ...) -- **beta**
+ * [Mac OS X (64bit)](http://ezix.org/download/?package=osx.pukcab.ezix.org) (Mavericks, Yosemite, ...) -- **beta**
 
 
 
