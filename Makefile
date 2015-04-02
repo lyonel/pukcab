@@ -1,6 +1,7 @@
 OS:=$(shell uname -s)
 ARCH?=$(shell uname -m)
 VERSION:=$(shell git describe --tags --long | cut -d - -f 1,2 | tr - .)
+PANDOC:=pandoc -V title="Pukcab ${VERSION}" -V date="`date +%F`" --smart
 
 export GOPATH=${PWD}
 
@@ -42,8 +43,8 @@ update:
 	cd src ; go install github.com/*/*
 
 .md.html: md.css
-	pandoc -t html5 --self-contained --css md.css -o $@ $<
+	${PANDOC} -t html5 --self-contained --css md.css -o $@ $<
 
 .md.pdf:
-	pandoc -V version="${VERSION}" --smart --chapters --toc --toc-depth=2 -o $@ $<
+	${PANDOC} --chapters --toc --toc-depth=2 -o $@ $<
 
