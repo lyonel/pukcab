@@ -32,17 +32,17 @@ Little to no configuration should ever be required to satisfy most needs:
 
 ## Documentation
 
- * [http://ezix.org/project/raw-attachment/wiki/Pukcab/MANUAL.pdf](User's Manual)
- * [http://ezix.org/software/files/Pukcab-MANUAL.html](HTML version)
+ * [User's Manual](http://ezix.org/project/raw-attachment/wiki/Pukcab/MANUAL.pdf)
+ * [HTML version](http://ezix.org/software/files/Pukcab-MANUAL.html)
 
 ## Download
 
- * [http://ezix.org/download/?package=pukcab.ezix.org](all platforms) (source code -- you will need a [http://golang.org Go] environment to compile)
- * [http://ezix.org/download/?package=arm.linux.pukcab.ezix.org](Linux for ARM) (Raspberry Pi and the like)
- * [http://ezix.org/download/?package=x86-64.linux.pukcab.ezix.org](Linux for x86-64) (Fedora, Debian, Ubuntu, Red Hat, ...)
- * [http://ezix.org/download/?package=i686.linux.pukcab.ezix.org](Linux for i686 (32bit)) (Fedora, Debian, Ubuntu, Red Hat, ...)
- * [http://ezix.org/download/?package=rpm.pukcab.ezix.org](Linux RPMs) (Fedora, CentOS, Red Hat, ...)
- * [http://ezix.org/download/?package=osx.pukcab.ezix.org](Mac OS X (64bit)) (Mavericks, Yosemite, ...) -- **beta**
+ * [all platforms](http://ezix.org/download/?package=pukcab.ezix.org) (source code -- you will need a [Go](http://golang.org Go) environment to compile)
+ * [Linux for ARM](http://ezix.org/download/?package=arm.linux.pukcab.ezix.org) (Raspberry Pi and the like)
+ * [Linux for x86-64](http://ezix.org/download/?package=x86-64.linux.pukcab.ezix.org) (Fedora, Debian, Ubuntu, Red Hat, ...)
+ * [Linux for i686 (32bit)](http://ezix.org/download/?package=i686.linux.pukcab.ezix.org) (Fedora, Debian, Ubuntu, Red Hat, ...)
+ * [Linux RPMs](http://ezix.org/download/?package=rpm.pukcab.ezix.org) (Fedora, CentOS, Red Hat, ...)
+ * [Mac OS X (64bit)]http://ezix.org/download/?package=osx.pukcab.ezix.org) (Mavericks, Yosemite, ...) -- **beta**
 
 
 
