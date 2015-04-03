@@ -1,9 +1,29 @@
+#TOC {
+    background-color: #F2F2F2;
+    position: fixed;
+    font-size: .8em;
+    width: 20em;
+    left: 0px;
+    top: 0px;
+    border-right: 1px solid #DDD;
+    border-bottom: 0px none;
+    z-index: 1000;
+    padding: 1.25em 1em;
+    height: 100%;
+    overflow: auto;
+}
+#TOC ul {
+    list-style-type: none;
+}
+
 body {
     -ms-text-size-adjust: 100%;
     -webkit-text-size-adjust: 100%;
     color: #333;
     font-family: "Helvetica Neue", Helvetica, "Segoe UI", Arial, freesans, sans-serif;
     word-wrap: break-word;
+    padding-left: 17em;
+    padding-right: 0px;
 }
 a { background: transparent }
 a:active,
