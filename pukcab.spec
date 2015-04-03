@@ -53,7 +53,7 @@ id pukcab || useradd -r -m -d "%{_localstatedir}/pukcab" pukcab || true
 
 %files
 %defattr(-,root,root, 0555)
-%doc README.md
+%doc MANUAL.html
 %config(noreplace) %ghost %{_sysconfdir}/%{name}.conf
 %{_bindir}/*
 
