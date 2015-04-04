@@ -641,16 +641,14 @@ File names can be specified using the usual shell-like wildcards `*` (matches an
 Examples
 ========
 
-Launch a new backup - default options
--------------------------------------
+(@) Launch a new backup - default options
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 [root@myserver ~]# pukcab backup
 [root@myserver ~]#
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Launch a new backup - verbose mode
--------------------------------------
+(@) Launch a new backup - verbose mode
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 [root@myserver ~]# pukcab backup --verbose
@@ -664,8 +662,7 @@ Sending files... done
 [root@myserver ~]#
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Verify last backup - default options
--------------------------------------
+(@) Verify last backup - default options
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 [root@myserver ~]# pukcab verify
@@ -680,8 +677,7 @@ Missing:  0
 [root@myserver ~]#
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Verify last backup - verbose mode
--------------------------------------
+(@) Verify last backup - verbose mode
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 [root@myserver ~]# pukcab verify --verbose
@@ -706,8 +702,7 @@ Missing:  0
 [root@myserver ~]#
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Find and recover a deleted file
--------------------------------
+(@) Find and recover a deleted file
 
 Let's pretend we want to recover a source RPM for `netatalk` that was deleted a while ago...
 
@@ -750,9 +745,6 @@ We found it! Let's restore it in-place
 [root@myserver ~]#
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Troubleshooting
-===============
-
 [_OPTIONS_]: #options
 [_FILES_]: #files
 [backup]: #backup
@@ -785,6 +777,7 @@ Troubleshooting
 [keep]: #keep
 [files]: #files
 [age]: #date
+[expiration]: #date
 [listen]: #listen
 
 [create SSH keys]: https://en.wikipedia.org/wiki/Ssh-keygen
