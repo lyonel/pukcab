@@ -22,7 +22,7 @@ i686 i386 386:
 	$(MAKE) CGO_ENABLED=1 GOARCH=386 ARCH=i686 rpm
 
 
-pukcab-${VERSION}-${OS}-${ARCH}.zip: pukcab MANUAL.pdf MANUAL.html
+pukcab-${VERSION}-${OS}-${ARCH}.zip: pukcab MANUAL.html
 	zip $@ $^
 
 pukcab-${VERSION}.tar.gz:
