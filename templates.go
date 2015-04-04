@@ -134,6 +134,10 @@ tr.monthly {
 tr.yearly {
     background-color: #ffc;
 }
+tr.total td.total {
+    border-radius: 0;
+    border-top: 1px solid #ccc;
+}
 
 .rowtitle {
     text-align: right;
@@ -269,12 +273,12 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 	</tr>
     {{end}}
 {{end}}
-<tr>
+<tr class="total">
 <td></td>
 <td></td>
 <td></td>
-<td></td>
-<td>{{if .Size}}{{.Size | bytes}}{{end}}</td>
+<td>Total</td>
+<td class="total"{{if .Files}}title="{{.Files}} files"{{end}}>{{if .Size}}{{.Size | bytes}}{{end}}</td>
 </tr>
 </tbody>
 </table>
