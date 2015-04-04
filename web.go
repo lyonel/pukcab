@@ -44,6 +44,7 @@ type ConfigReport struct {
 
 type BackupsReport struct {
 	Report
+	BackupInfo
 	Backups []BackupInfo
 }
 
@@ -169,6 +170,7 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 			} else {
 				if date == 0 || header.Date == date {
 					report.Backups = append(report.Backups, header)
+					report.Size += header.Size
 				}
 			}
 		}

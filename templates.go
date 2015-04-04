@@ -268,9 +268,16 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
         <td {{if .Files}}title="{{.Files}} files"{{end}}>{{if .Size}}{{.Size | bytes}}{{end}}</td>
 	</tr>
     {{end}}
+{{end}}
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>{{if .Size}}{{.Size | bytes}}{{end}}</td>
+</tr>
 </tbody>
 </table>
-{{end}}
     {{if not $count}}<div class="placeholder">empty list</div>{{end}}
 {{template "FOOTER" .}}{{end}}
 
