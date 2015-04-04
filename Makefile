@@ -5,7 +5,7 @@ PANDOC:=pandoc -V title="Pukcab ${VERSION}" -V date="`date +%F`" --smart --toc -
 
 export GOPATH=${PWD}
 
-.PHONY: pukcab clean update release
+.PHONY: pukcab clean update release doc
 
 .SUFFIXES: .md .pdf .html
 
@@ -48,3 +48,4 @@ update:
 .md.pdf:
 	${PANDOC} -o $@ $<
 
+doc: MANUAL.html MANUAL.pdf

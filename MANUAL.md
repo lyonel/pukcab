@@ -1,5 +1,5 @@
 % Pukcab User's Guide
-% Lyonel Vincent (<lyonel@ezix.org>)
+%
 % March 2015
 
 Introduction
@@ -58,9 +58,9 @@ To run a `pukcab` backup server, you will need:
  * scalable filesystem
  * enough memory or swap space (running without swap space is *not* recommended)
 
-The "scalable filesystem" requirement might seem surprising but, to store backups, you will need a modern filesystem that can gracefully handle thousand and thousand of files per directory, sometimes big, sometimes small.
+The "scalable filesystem" requirement might seem surprising but, to store backups, you will need a modern filesystem that can gracefully handle thousands and thousands of files per directory, sometimes big, sometimes small.
 
-On Linux, XFS, ext4 and Btrfs are known to work.
+On Linux, XFS, ext4 and Btrfs are known to work. FAT, NTFS or HFS cannot and must not be used.
 
 Clients
 -------
@@ -76,7 +76,7 @@ Installation
 
 Just copy the `pukcab` binary[^RPM] into your path (`/usr/bin/pukcab` will be just fine) on the backup server and each client.
 
-OS              Platform                  Packages
+OS              Platform       Width      Packages
 --------     -------------   ---------    ------------------------------------------------------------------------
 Linux        x86-64            64-bit       [ZIP](http://ezix.org/download/?package=x86-64.linux.pukcab.ezix.org)
 Linux        i686              32-bit       [ZIP](http://ezix.org/download/?package=i686.linux.pukcab.ezix.org)
@@ -92,20 +92,20 @@ On the backup server
 --------------------
 
 1. create a dedicated user -- this user does not need specific privileges (i.e. do *NOT* use `root`)
-2. allow key-based SSH login for that user (**mandatory**)
-2. *optional*: allow password-based SSH login and set a password for the dedicated user (if you want to be able to register new clients using that password)
+2. allow key-based SSH login for that user
+3. *optional*: allow password-based SSH login and set a password for the dedicated user (if you want to be able to register new clients using that password)
 
 On the clients (manual)
 ----------------------------------------
 
 1. [create SSH keys] for the user which will launch the backup (most probably `root`)
-1. add the user's public key to the dedicated user's `authorized_keys` on the backup server
+2. add the user's public key to the dedicated user's `authorized_keys` on the backup server
 
 On the clients (password registration)
 ----------------------------------------
 
 1. [create SSH keys] for the user which will launch the backup (most probably `root`)
-1. [register] to the backup server
+2. [register] to the backup server
 
 Configuration
 =============
