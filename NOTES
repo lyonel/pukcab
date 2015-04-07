@@ -27,3 +27,7 @@ add a new command: analysis
 Windows
  * investigate if a Windows version would make any sense
  * use VSS (cf. vssadmin https://technet.microsoft.com/en-us/library/cc754968.aspx)
+
+`web` command
+ * allow FTP access
+ * allow WebDAV access
