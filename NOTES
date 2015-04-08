@@ -31,3 +31,5 @@ Windows
 `web` command
  * allow FTP access
  * allow WebDAV access
+
+use even partial/failed backups when taking a new backup
