@@ -384,7 +384,7 @@ func dumpfiles(files int, backup *Backup) (bytes int64) {
 						}
 
 						if written != hdr.Size {
-							log.Println("Could not backup ", f, ":", hdr.Size, " bytes expected but ", written, " bytes written")
+							log.Println("Could not backup ", f, ": size changed during backup")
 						}
 						bytes += written
 					}
