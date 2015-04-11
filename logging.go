@@ -17,6 +17,10 @@ var failure = log.New(os.Stderr, failPrefix, 0)
 
 func Debug(on bool) {
 	if on {
+		arg0 := os.Args[0]
+		os.Args[0] = programFile
+		defer func() { os.Args[0] = arg0 }()
+
 		var err error
 		if debug, err = syslog.NewLogger(syslog.LOG_NOTICE|syslog.LOG_USER, debugFlags); err == nil {
 			debug.SetPrefix(debugPrefix)
