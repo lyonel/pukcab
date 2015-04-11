@@ -177,7 +177,6 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := cmd.Wait(); err != nil {
-		log.Println(cmd.Args, err)
 
 		if exiterr, ok := err.(*exec.ExitError); ok {
 			// The program has exited with an exit code != 0
@@ -189,9 +188,12 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 					w.WriteHeader(http.StatusAccepted)
 					pages.ExecuteTemplate(w, "BUSY", report)
 				default:
+					log.Println(cmd.Args, err)
 					http.Error(w, "Backend error: "+err.Error(), http.StatusServiceUnavailable)
 				}
 			}
+		} else {
+			log.Println(cmd.Args, err)
 		}
 
 		return
