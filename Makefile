@@ -21,6 +21,13 @@ release: pukcab-${VERSION}-${OS}-${ARCH}.zip pukcab-${VERSION}.tar.gz
 i686 i386 386:
 	$(MAKE) CGO_ENABLED=1 GOARCH=386 ARCH=i686 rpm
 
+arm5 armv5 armv5l:
+	$(MAKE) GOARM=5 ARCH=armv5l rpm
+
+arm7 armv7 armv7l:
+	$(MAKE) GOARM=7 ARCH=armv7l rpm
+
+arm: arm5 arm7
 
 pukcab-${VERSION}-${OS}-${ARCH}.zip: pukcab MANUAL.html
 	zip $@ $^
