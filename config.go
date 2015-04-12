@@ -13,6 +13,7 @@ import (
 type Config struct {
 	Server  string
 	User    string
+	Command string
 	Port    int
 	Include []string
 	Exclude []string
@@ -49,6 +50,9 @@ func (cfg *Config) Load(filename string) {
 	}
 	if len(cfg.Catalog) < 1 {
 		cfg.Catalog = defaultCatalog
+	}
+	if len(cfg.Command) < 1 {
+		cfg.Command = programName
 	}
 
 	if cfg.Maxtries < 1 {

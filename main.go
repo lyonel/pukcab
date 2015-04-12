@@ -66,6 +66,9 @@ func config() {
 	if cfg.User != "" {
 		fmt.Printf("user = %q\n", cfg.User)
 	}
+	if cfg.Command != programName {
+		fmt.Printf("command = %q\n", cfg.Command)
+	}
 	if cfg.IsServer() {
 		fmt.Println("# server-side configuration")
 		if cfg.Catalog != "" {

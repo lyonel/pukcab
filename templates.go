@@ -231,6 +231,7 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 <tr><th class="rowtitle">Role</th><td>client</td></tr>
 <tr><th class="rowtitle">Server</th><td>{{.Server}}</td></tr>
 {{if .Port}}<tr><th class="rowtitle">Port</th><td>{{.Port}}</td></tr>{{end}}
+{{if .Command}}<tr><th class="rowtitle">Command</th><td>{{.Command}}</td></tr>{{end}}
 {{else}}
 <tr><th class="rowtitle">Role</th><td>server</td></tr>
 {{if .Vault}}<tr><th class="rowtitle">Vault</th><td><tt>{{.Vault}}</tt></td></tr>{{end}}
