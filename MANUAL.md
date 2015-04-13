@@ -172,7 +172,7 @@ parameter      type      default          description
 `user`         text     *none*            user name to use to connect (*mandatory*)
 `server`       text     *none*            backup server (*mandatory*)
 `port`        number    `22`              TCP port to use on the backup server
-`command       text     `"pukcab"`        command to use on the backup server
+`command`      text     `"pukcab"`        command to use on the backup server
 `include`      list     [OS-dependent]    what to include in the backup
 `exclude`      list     [OS-dependent]    what to exclude from the backup
 ----------    ------    --------------    ----------------------------------------------------------
