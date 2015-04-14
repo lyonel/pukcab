@@ -90,16 +90,14 @@ func newbackup() {
 	tx.Commit()
 
 	fmt.Println(date)
+
+	if !full {
+		catalog.Exec("INSERT OR REPLACE INTO files (backupid,hash,type,nameid,linknameid,size,birth,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor) SELECT ?,hash,type,nameid,linknameid,size,birth,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor FROM files WHERE type!='?' AND backupid IN (SELECT date FROM backups WHERE date<? AND name=?) AND nameid IN (SELECT nameid FROM files WHERE backupid=?) GROUP BY nameid ORDER BY backupid", date, date, name, date)
+	}
+
 	var previous SQLInt
 	if err := catalog.QueryRow("SELECT MAX(date) AS previous FROM backups WHERE finished AND name=?", name).Scan(&previous); err == nil {
-		if !full {
-			_, err = catalog.Exec("WITH previous AS (SELECT * FROM files WHERE backupid=? AND nameid IN (SELECT nameid FROM files WHERE backupid=?)) INSERT OR REPLACE INTO files (backupid,hash,type,nameid,linknameid,size,birth,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor) SELECT ?,hash,type,nameid,linknameid,size,birth,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor FROM previous", previous, date, date)
-		}
-		if err == nil {
-			fmt.Println(int64(previous))
-		} else {
-			fmt.Println(0) // no previous backup
-		}
+		fmt.Println(int64(previous))
 	} else {
 		fmt.Println(0) // no previous backup
 	}
