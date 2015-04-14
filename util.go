@@ -115,11 +115,11 @@ func ConvertGlob(name string, filters ...string) (SQL string) {
 	return strings.Join(clauses, " OR ")
 }
 
-func human(s uint64, base float64, sizes []string) string {
+func human(s uint64, base float32, sizes []string) string {
 	if s < 10 {
 		return fmt.Sprintf("%d%s", s, sizes[0])
 	}
-	val := float64(s)
+	val := float32(s)
 	suffix := 0
 
 	for val >= base {

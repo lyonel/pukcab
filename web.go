@@ -34,7 +34,7 @@ type AboutReport struct {
 	CPUs          int
 	Goroutines    int
 	Bytes, Memory int64
-	Load          float64
+	Load          float32
 }
 
 type ConfigReport struct {
@@ -53,7 +53,7 @@ type StorageReport struct {
 	VaultFS, CatalogFS                         string
 	VaultCapacity, VaultBytes, VaultFree       int64
 	CatalogCapacity, CatalogBytes, CatalogFree int64
-	VaultUsed, CatalogUsed                     float64
+	VaultUsed, CatalogUsed                     float32
 }
 
 func stylesheets(w http.ResponseWriter, r *http.Request) {
@@ -308,12 +308,12 @@ func webtools(w http.ResponseWriter, r *http.Request) {
 		VaultCapacity:   int64(vstat.Bsize) * int64(vstat.Blocks),
 		VaultBytes:      int64(vstat.Bsize) * int64(vstat.Blocks-vstat.Bavail),
 		VaultFree:       int64(vstat.Bsize) * int64(vstat.Bavail),
-		VaultUsed:       100 - 100*float64(vstat.Bavail)/float64(vstat.Blocks),
+		VaultUsed:       100 - 100*float32(vstat.Bavail)/float32(vstat.Blocks),
 		VaultFS:         Fstype(uint64(vstat.Type)),
 		CatalogCapacity: int64(cstat.Bsize) * int64(cstat.Blocks),
 		CatalogBytes:    int64(cstat.Bsize) * int64(cstat.Blocks-vstat.Bavail),
 		CatalogFree:     int64(cstat.Bsize) * int64(cstat.Bavail),
-		CatalogUsed:     100 - 100*float64(cstat.Bavail)/float64(cstat.Blocks),
+		CatalogUsed:     100 - 100*float32(cstat.Bavail)/float32(cstat.Blocks),
 		CatalogFS:       Fstype(uint64(vstat.Type)),
 	}
 

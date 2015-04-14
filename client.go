@@ -569,7 +569,7 @@ func list() {
 	if files > 0 {
 		fmt.Print("Complete: ")
 		if files > 0 && missing > 0 {
-			fmt.Printf("%.1f%% (%d files missing)\n", 100*float64(files-missing)/float64(files), missing)
+			fmt.Printf("%.1f%% (%d files missing)\n", 100*float32(files-missing)/float32(files), missing)
 		} else {
 			fmt.Println("yes")
 		}

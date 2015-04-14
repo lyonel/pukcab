@@ -13,6 +13,8 @@ func (i *SQLInt) Scan(src interface{}) error {
 	switch s := src.(type) {
 	case int64:
 		*i = SQLInt(s)
+	case float32:
+		*i = SQLInt(s)
 	case float64:
 		*i = SQLInt(s)
 	case bool:
