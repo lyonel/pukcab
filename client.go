@@ -407,7 +407,7 @@ func dumpfiles(files int, backup *Backup) (bytes int64) {
 	}
 
 	info.Println("done.")
-	info.Println(Bytes(uint64(float64(bytes)/time.Since(backup.Started).Seconds())) + "/s")
+	info.Println(Bytes(uint64(float32(bytes)/float32(time.Since(backup.Started).Seconds()))) + "/s")
 
 	return bytes
 }
