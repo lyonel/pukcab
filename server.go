@@ -92,7 +92,7 @@ func newbackup() {
 	fmt.Println(date)
 
 	if !full {
-		catalog.Exec("INSERT OR REPLACE INTO files (backupid,hash,type,nameid,linknameid,size,birth,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor) SELECT ?,hash,type,nameid,linknameid,size,birth,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor FROM files WHERE type!='?' AND backupid IN (SELECT date FROM backups WHERE date<? AND name=?) AND nameid IN (SELECT nameid FROM files WHERE backupid=?) GROUP BY nameid ORDER BY backupid", date, date, name, date)
+		catalog.Exec("WITH previousbackups AS (SELECT date FROM backups WHERE name=? AND date<?), newfiles AS (SELECT nameid from files where backupid=?), previous AS (SELECT MAX(backupid) AS backupid,nameid FROM files WHERE type!='?' AND nameid IN newfiles AND backupid IN previousbackups GROUP BY nameid) INSERT OR REPLACE INTO files (backupid,hash,type,nameid,linknameid,size,birth,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor) SELECT ?,hash,type,previous.nameid,linknameid,size,birth,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor FROM previous,files WHERE previous.backupid=files.backupid AND previous.nameid=files.nameid", name, date, date, date)
 	}
 
 	var previous SQLInt
