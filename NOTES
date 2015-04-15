@@ -9,6 +9,10 @@ encrypt vault files
 new commands:
  * `auto`: connect to server and wait for orders
  * `fsck`: check catalog/vault consistency (server only)
+ * `analysis`
+   - show big files in a backup set
+   - show big directories in a backup set
+   - show often changing files in a backup
 
 check disk space before accepting a new backup
  * fail if <5% disk space available
@@ -20,11 +24,6 @@ detect sparse files (esp. /var/log/lastlog)
 
 better handle changing files ("Could not backup  /var/log/messages : 41070  bytes expected but  0  bytes written")
 
-add a new command: analysis
- * show big files in a backup set
- * show big directories in a backup set
- * show often changing files in a backup
-
 Windows
  * investigate if a Windows version would make any sense
  * use VSS (cf. vssadmin https://technet.microsoft.com/en-us/library/cc754968.aspx)
@@ -33,4 +32,3 @@ Windows
  * allow FTP access
  * allow WebDAV access
 
-use even partial/failed backups when taking a new backup
