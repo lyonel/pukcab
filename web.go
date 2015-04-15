@@ -34,7 +34,7 @@ type AboutReport struct {
 	CPUs          int
 	Goroutines    int
 	Bytes, Memory int64
-	Load          float32
+	Load          float64
 }
 
 type ConfigReport struct {

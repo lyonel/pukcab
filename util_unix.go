@@ -123,7 +123,7 @@ func ExitCode(s *os.ProcessState) int {
 	}
 }
 
-func LoadAvg() (result float32) {
+func LoadAvg() (result float64) {
 
 	C.getloadavg((*C.double)(unsafe.Pointer(&result)), 1)
 
