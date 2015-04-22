@@ -654,3 +654,118 @@ func dbmaintenance() {
 
 	vacuum()
 }
+
+func fsck(fix bool) {
+	if tx, err := catalog.Begin(); err == nil {
+		info.Println("#0: [catalog] checking integrity")
+		result, err := tx.Exec("PRAGMA integrity_check")
+		if err != nil {
+			tx.Rollback()
+			LogExit(err)
+		}
+
+		info.Println("#1: [catalog] checking orphan files")
+		if fix {
+			result, err = tx.Exec("DELETE FROM files WHERE backupid NOT IN (SELECT date FROM backups)")
+			if err != nil {
+				tx.Rollback()
+				LogExit(err)
+			}
+			if n, _ := result.RowsAffected(); n > 0 {
+				fmt.Printf("%d orphan files deleted\n", n)
+			}
+		} else {
+			var n SQLInt
+			err = tx.QueryRow("SELECT COUNT(*) FROM files WHERE backupid NOT IN (SELECT date FROM backups)").Scan(&n)
+			if err != nil {
+				tx.Rollback()
+				LogExit(err)
+			}
+			info.Printf("%d orphan files\n", n)
+		}
+
+		info.Println("#2: [catalog] checking orphan names")
+		if fix {
+			result, err = tx.Exec("DELETE FROM names WHERE id NOT IN (SELECT nameid FROM files UNION SELECT linknameid FROM files)")
+			if err != nil {
+				tx.Rollback()
+				LogExit(err)
+			}
+			if n, _ := result.RowsAffected(); n > 0 {
+				fmt.Printf("%d orphan names deleted\n", n)
+			}
+		} else {
+			var n SQLInt
+			err = tx.QueryRow("SELECT COUNT(*) FROM names WHERE id NOT IN (SELECT nameid FROM files UNION SELECT linknameid FROM files)").Scan(&n)
+			if err != nil {
+				tx.Rollback()
+				LogExit(err)
+			}
+			info.Printf("%d orphan names\n", n)
+		}
+
+		info.Println("#3: [catalog] checking nameless files")
+		if fix {
+			result, err = tx.Exec("INSERT OR IGNORE INTO names SELECT nameid,'/lost+found/'||nameid FROM files WHERE nameid NOT IN (SELECT id FROM names)")
+			if err != nil {
+				tx.Rollback()
+				LogExit(err)
+			}
+			if n, _ := result.RowsAffected(); n > 0 {
+				fmt.Printf("%d file names recovered\n", n)
+			}
+		} else {
+			var n SQLInt
+			err = tx.QueryRow("SELECT COUNT(*) FROM files WHERE nameid NOT IN (SELECT id FROM names)").Scan(&n)
+			if err != nil {
+				tx.Rollback()
+				LogExit(err)
+			}
+			info.Printf("%d nameless files\n", n)
+		}
+
+		info.Println("#4: [catalog] checking nameless links")
+		if fix {
+			result, err = tx.Exec("INSERT OR IGNORE INTO names SELECT linknameid,'/lost+found/'||linknameid FROM files WHERE linknameid NOT IN (SELECT id FROM names)")
+			if err != nil {
+				tx.Rollback()
+				LogExit(err)
+			}
+			if n, _ := result.RowsAffected(); n > 0 {
+				fmt.Printf("%d link names recovered\n", n)
+			}
+		} else {
+			var n SQLInt
+			err = tx.QueryRow("SELECT COUNT(*) FROM files WHERE linknameid NOT IN (SELECT id FROM names)").Scan(&n)
+			if err != nil {
+				tx.Rollback()
+				LogExit(err)
+			}
+			info.Printf("%d nameless links\n", n)
+		}
+
+		tx.Commit()
+	} else {
+		LogExit(err)
+	}
+}
+
+func dbcheck() {
+	fix := true
+	nofix := false
+
+	flag.BoolVar(&fix, "fix", true, "Fix issues")
+	flag.BoolVar(&fix, "y", true, "-fix")
+	flag.BoolVar(&nofix, "dontfix", false, "Don't fix issues")
+	flag.BoolVar(&nofix, "nofix", false, "-dontfix")
+	flag.BoolVar(&nofix, "N", false, "-dontfix")
+
+	SetupServer()
+	cfg.ServerOnly()
+
+	if err := opencatalog(); err != nil {
+		LogExit(err)
+	}
+
+	fsck(fix && !nofix)
+}
