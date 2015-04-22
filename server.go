@@ -502,6 +502,7 @@ func vacuum() {
 		log.Println("Vacuum...")
 
 		tx.Exec("DELETE FROM files WHERE backupid NOT IN (SELECT date FROM backups)")
+		tx.Exec("DELETE FROM names WHERE id NOT IN (SELECT nameid FROM files UNION SELECT linknameid FROM files)")
 		tx.Exec("VACUUM")
 
 		unused := make(map[string]struct{})
@@ -659,14 +660,14 @@ func fsck(fix bool) {
 	errors := 0
 
 	if tx, err := catalog.Begin(); err == nil {
-		info.Println("#0: [catalog] checking integrity")
+		info.Println("#1: [catalog] checking integrity")
 		result, err := tx.Exec("PRAGMA integrity_check")
 		if err != nil {
 			tx.Rollback()
 			LogExit(err)
 		}
 
-		info.Println("#1: [catalog] checking orphan files")
+		info.Println("#2: [catalog] checking orphan files")
 		if fix {
 			result, err = tx.Exec("DELETE FROM files WHERE backupid NOT IN (SELECT date FROM backups)")
 			if err != nil {
@@ -675,6 +676,7 @@ func fsck(fix bool) {
 			}
 			if n, _ := result.RowsAffected(); n > 0 {
 				fmt.Printf("%d orphan files deleted\n", n)
+				log.Printf("Catalog fix: orphans=%d\n", n)
 			}
 		} else {
 			var n SQLInt
@@ -685,29 +687,7 @@ func fsck(fix bool) {
 			}
 			if n > 0 {
 				fmt.Printf("%d orphan files\n", n)
-			}
-			errors += int(n)
-		}
-
-		info.Println("#2: [catalog] checking orphan names")
-		if fix {
-			result, err = tx.Exec("DELETE FROM names WHERE id NOT IN (SELECT nameid FROM files UNION SELECT linknameid FROM files)")
-			if err != nil {
-				tx.Rollback()
-				LogExit(err)
-			}
-			if n, _ := result.RowsAffected(); n > 0 {
-				fmt.Printf("%d orphan names deleted\n", n)
-			}
-		} else {
-			var n SQLInt
-			err = tx.QueryRow("SELECT COUNT(*) FROM names WHERE id NOT IN (SELECT nameid FROM files UNION SELECT linknameid FROM files)").Scan(&n)
-			if err != nil {
-				tx.Rollback()
-				LogExit(err)
-			}
-			if n > 0 {
-				fmt.Printf("%d orphan names\n", n)
+				log.Printf("Catalog check: orphans=%d\n", n)
 			}
 			errors += int(n)
 		}
@@ -721,6 +701,7 @@ func fsck(fix bool) {
 			}
 			if n, _ := result.RowsAffected(); n > 0 {
 				fmt.Printf("%d file names recovered\n", n)
+				log.Printf("Catalog fix: foundfiles=%d\n", n)
 			}
 		} else {
 			var n SQLInt
@@ -731,6 +712,7 @@ func fsck(fix bool) {
 			}
 			if n > 0 {
 				fmt.Printf("%d nameless files\n", n)
+				log.Printf("Catalog check: lostfiles=%d\n", n)
 			}
 			errors += int(n)
 		}
@@ -744,6 +726,7 @@ func fsck(fix bool) {
 			}
 			if n, _ := result.RowsAffected(); n > 0 {
 				fmt.Printf("%d link names recovered\n", n)
+				log.Printf("Catalog fix: foundlinks=%d\n", n)
 			}
 		} else {
 			var n SQLInt
@@ -754,6 +737,7 @@ func fsck(fix bool) {
 			}
 			if n > 0 {
 				fmt.Printf("%d nameless links\n", n)
+				log.Printf("Catalog check: lostlinks=%d\n", n)
 			}
 			errors += int(n)
 		}
@@ -763,7 +747,6 @@ func fsck(fix bool) {
 		LogExit(err)
 	}
 
-	log.Printf("fsck: errors=%d\n", errors)
 	if !fix && errors > 0 {
 		fmt.Println(errors, "errors found.")
 		os.Exit(1)
