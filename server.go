@@ -656,6 +656,8 @@ func dbmaintenance() {
 }
 
 func fsck(fix bool) {
+	errors := 0
+
 	if tx, err := catalog.Begin(); err == nil {
 		info.Println("#0: [catalog] checking integrity")
 		result, err := tx.Exec("PRAGMA integrity_check")
@@ -681,7 +683,10 @@ func fsck(fix bool) {
 				tx.Rollback()
 				LogExit(err)
 			}
-			info.Printf("%d orphan files\n", n)
+			if n > 0 {
+				fmt.Printf("%d orphan files\n", n)
+			}
+			errors += int(n)
 		}
 
 		info.Println("#2: [catalog] checking orphan names")
@@ -701,7 +706,10 @@ func fsck(fix bool) {
 				tx.Rollback()
 				LogExit(err)
 			}
-			info.Printf("%d orphan names\n", n)
+			if n > 0 {
+				fmt.Printf("%d orphan names\n", n)
+			}
+			errors += int(n)
 		}
 
 		info.Println("#3: [catalog] checking nameless files")
@@ -721,7 +729,10 @@ func fsck(fix bool) {
 				tx.Rollback()
 				LogExit(err)
 			}
-			info.Printf("%d nameless files\n", n)
+			if n > 0 {
+				fmt.Printf("%d nameless files\n", n)
+			}
+			errors += int(n)
 		}
 
 		info.Println("#4: [catalog] checking nameless links")
@@ -741,24 +752,30 @@ func fsck(fix bool) {
 				tx.Rollback()
 				LogExit(err)
 			}
-			info.Printf("%d nameless links\n", n)
+			if n > 0 {
+				fmt.Printf("%d nameless links\n", n)
+			}
+			errors += int(n)
 		}
 
 		tx.Commit()
 	} else {
 		LogExit(err)
 	}
+
+	log.Printf("fsck: errors=%d\n", errors)
+	if !fix && errors > 0 {
+		fmt.Println(errors, "errors found.")
+		os.Exit(1)
+	}
 }
 
 func dbcheck() {
-	fix := true
 	nofix := false
 
-	flag.BoolVar(&fix, "fix", true, "Fix issues")
-	flag.BoolVar(&fix, "y", true, "-fix")
-	flag.BoolVar(&nofix, "dontfix", false, "Don't fix issues")
-	flag.BoolVar(&nofix, "nofix", false, "-dontfix")
-	flag.BoolVar(&nofix, "N", false, "-dontfix")
+	flag.BoolVar(&nofix, "dontfix", nofix, "Don't fix issues")
+	flag.BoolVar(&nofix, "nofix", nofix, "-dontfix")
+	flag.BoolVar(&nofix, "N", nofix, "-dontfix")
 
 	SetupServer()
 	cfg.ServerOnly()
@@ -767,5 +784,5 @@ func dbcheck() {
 		LogExit(err)
 	}
 
-	fsck(fix && !nofix)
+	fsck(!nofix)
 }
