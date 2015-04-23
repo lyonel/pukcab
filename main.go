@@ -160,7 +160,7 @@ func main() {
 		data()
 	case "df":
 		df()
-	case "dbcheck", "fsck":
+	case "dbcheck", "fsck", "chkdsk":
 		dbcheck()
 	case "vacuum":
 		dbmaintenance()
