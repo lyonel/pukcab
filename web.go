@@ -171,6 +171,7 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 				if date == 0 || header.Date == date {
 					report.Backups = append(report.Backups, header)
 					report.Size += header.Size
+					report.Files += header.Files
 				}
 			}
 		}
