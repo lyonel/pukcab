@@ -358,6 +358,63 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 <div class="placeholder">Busy, retrying...</div>
 {{template "FOOTER" .}}{{end}}
 
+{{define "BACKUPSDAVROOT"}}
+<D:multistatus xmlns:D="DAV:" xmlns:pukcab="http://pukcab.ezix.org/">
+    <D:response>
+        <D:href>/backups/</D:href>
+	<D:propstat>
+           <D:prop>
+              <D:displayname>Backups</D:displayname>
+              <D:getlastmodified>{{now | dateRFC1123}}</D:getlastmodified>
+              <D:resourcetype><D:collection/></D:resourcetype>
+           </D:prop>
+           <D:status>HTTP/1.1 200 OK</D:status>
+         </D:propstat>
+    </D:response>
+</D:multistatus>
+{{end}}
+
+{{define "BACKUPSDAV"}}
+<D:multistatus xmlns:D="DAV:" xmlns:pukcab="http://pukcab.ezix.org/">
+{{with .Names}}
+    {{range .}}
+    <D:response>
+        <D:href>/backup/{{.}}</D:href>
+	<D:propstat>
+           <D:prop>
+              <D:displayname>{{.}}</D:displayname>
+              <D:resourcetype><D:collection/></D:resourcetype>
+           </D:prop>
+           <D:status>HTTP/1.1 200 OK</D:status>
+         </D:propstat>
+    </D:response>
+    {{end}}
+{{end}}
+{{with .Backups}}
+    {{range .}}
+    <D:response>
+        <D:href>/backups/{{.Name}}/{{.Date}}</D:href>
+	<D:propstat>
+           <D:prop>
+              <pukcab:date>{{.Date}}</pukcab:date>
+              <pukcab:finished>{{.Finished | dateRFC3339}}</pukcab:finished>
+              <pukcab:schedule>{{.Schedule}}</pukcab:schedule>
+              <pukcab:files>{{.Files}}</pukcab:files>
+              <pukcab:size>{{.Size}}</pukcab:size>
+              <D:creationdate>{{.Date | dateRFC3339}}</D:creationdate>
+              <D:displayname>{{.Date}} {{.Name}}</D:displayname>
+              <D:getlastmodified>{{.Finished | dateRFC1123}}</D:getlastmodified>
+              <D:getcontentlength>{{.Size}}</D:getcontentlength>
+              <D:resourcetype><D:collection/></D:resourcetype>
+           </D:prop>
+           <D:status>HTTP/1.1 200 OK</D:status>
+         </D:propstat>
+    </D:response>
+    {{end}}
+{{end}}
+</D:multistatus>
+{{end}}
+
 `
 
 var pages = template.New("webpages")
@@ -398,6 +455,30 @@ func DateExpander(args ...interface{}) string {
 	}
 
 	return t.Format("2 Jan 2006 15:04")
+}
+
+func DateFormat(format string, args ...interface{}) string {
+	ok := false
+	var t time.Time
+	if len(args) == 1 {
+		t, ok = args[0].(time.Time)
+
+		if !ok {
+			var d BackupID
+			if d, ok = args[0].(BackupID); ok {
+				t = time.Unix(int64(d), 0)
+			}
+		}
+	}
+	if !ok {
+		return fmt.Sprint(args...)
+	}
+
+	if t.IsZero() || t.Unix() == 0 {
+		return ""
+	}
+
+	return t.UTC().Format(format)
 }
 
 func BytesExpander(args ...interface{}) string {

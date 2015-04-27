@@ -44,8 +44,9 @@ type ConfigReport struct {
 
 type BackupsReport struct {
 	Report
-	BackupInfo
-	Backups []BackupInfo
+	Names, Schedules []string
+	Files, Size      int64
+	Backups          []BackupInfo
 }
 
 type StorageReport struct {
@@ -144,9 +145,13 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 		Report: Report{
 			Title: "Backups",
 		},
-		Backups: []BackupInfo{},
+		Names:     []string{},
+		Schedules: []string{},
+		Backups:   []BackupInfo{},
 	}
 
+	names := make(map[string]struct{})
+	schedules := make(map[string]struct{})
 	tr := tar.NewReader(stdout)
 	for {
 		hdr, err := tr.Next()
@@ -172,9 +177,18 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 					report.Backups = append(report.Backups, header)
 					report.Size += header.Size
 					report.Files += header.Files
+					names[header.Name] = struct{}{}
+					schedules[header.Schedule] = struct{}{}
 				}
 			}
 		}
+	}
+
+	for n := range names {
+		report.Names = append(report.Names, n)
+	}
+	for s := range schedules {
+		report.Schedules = append(report.Schedules, s)
 	}
 
 	if err := cmd.Wait(); err != nil {
@@ -200,23 +214,47 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Refresh", "900")
-	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
+	fmt.Printf("method=%q url=%q\n", r.Method, r.URL)
+	fmt.Println(r.Header)
+	switch r.Method {
 
-	if len(report.Backups) == 1 {
-		report.Title = "Backup"
-		if err := pages.ExecuteTemplate(w, "BACKUP", report); err != nil {
-			log.Println(err)
-			http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
+	case "GET":
+		w.Header().Set("Refresh", "900")
+		w.Header().Set("Content-Type", "text/html; charset=UTF-8")
+
+		if len(report.Backups) == 1 {
+			report.Title = "Backup"
+			if err := pages.ExecuteTemplate(w, "BACKUP", report); err != nil {
+				log.Println(err)
+				http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
+			}
+		} else {
+			for i, j := 0, len(report.Backups)-1; i < j; i, j = i+1, j-1 {
+				report.Backups[i], report.Backups[j] = report.Backups[j], report.Backups[i]
+			}
+			if err := pages.ExecuteTemplate(w, "BACKUPS", report); err != nil {
+				log.Println(err)
+				http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
+			}
 		}
-	} else {
-		for i, j := 0, len(report.Backups)-1; i < j; i, j = i+1, j-1 {
-			report.Backups[i], report.Backups[j] = report.Backups[j], report.Backups[i]
+
+	case "PROPFIND":
+		w.Header().Set("Content-Type", "application/xml; charset=UTF-8")
+		w.Write([]byte(`<?xml version="1.0" encoding="utf-8"?>`))
+		if r.Header.Get("Depth") != "0" {
+			if err := pages.ExecuteTemplate(w, "BACKUPSDAV", report); err != nil {
+				log.Println(err)
+				http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
+			}
+		} else {
+			if err := pages.ExecuteTemplate(w, "BACKUPSDAVROOT", report); err != nil {
+				log.Println(err)
+				http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
+			}
 		}
-		if err := pages.ExecuteTemplate(w, "BACKUPS", report); err != nil {
-			log.Println(err)
-			http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
-		}
+	case "OPTIONS":
+		w.Header().Set("Allow", "GET, DELETE, PROPFIND")
+		w.Header().Set("DAV", "1")
 	}
 }
 
@@ -355,12 +393,14 @@ func web() {
 	verbose = false // disable verbose mode when using web ui
 
 	pages = pages.Funcs(template.FuncMap{
-		"date":     DateExpander,
-		"bytes":    BytesExpander,
-		"status":   BackupStatus,
-		"isserver": cfg.IsServer,
-		"now":      time.Now,
-		"hostname": os.Hostname,
+		"date":        DateExpander,
+		"dateRFC1123": func(args ...interface{}) string { return DateFormat(time.RFC1123, args...) },
+		"dateRFC3339": func(args ...interface{}) string { return DateFormat(time.RFC3339, args...) },
+		"bytes":       BytesExpander,
+		"status":      BackupStatus,
+		"isserver":    cfg.IsServer,
+		"now":         time.Now,
+		"hostname":    os.Hostname,
 	})
 
 	setuptemplate(webparts)
