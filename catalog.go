@@ -160,7 +160,7 @@ func reschedule(backup BackupID, name string, s string) (schedule string) {
 		return "yearly"
 	case lastweekly != 0 && backup-lastweekly > 30*24*60*60:
 		return "monthly"
-	case latest != 0 && backup-latest > 7*24*60*60:
+	case lastweekly == 0 || backup-lastweekly > 7*24*60*60:
 		return "weekly"
 	}
 
