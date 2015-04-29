@@ -107,12 +107,15 @@ func dumpcatalog(what DumpFlags) {
 	details := what&FullDetails != 0
 	date = 0
 
+	depth := infinite
+
 	flag.StringVar(&name, "name", "", "Backup name")
 	flag.StringVar(&name, "n", "", "-name")
 	flag.StringVar(&schedule, "schedule", "", "Backup schedule")
 	flag.StringVar(&schedule, "r", "", "-schedule")
 	flag.Var(&date, "date", "Backup set")
 	flag.Var(&date, "d", "-date")
+	flag.IntVar(&depth, "depth", infinite, "Descent depth")
 
 	SetupServer()
 	cfg.ServerOnly()
@@ -125,7 +128,7 @@ func dumpcatalog(what DumpFlags) {
 	if len(filter) == 0 {
 		filter = append(filter, "*")
 	}
-	namefilter := ConvertGlob("names.name", filter...)
+	namefilter := ConvertGlob("names.name", depth, filter...)
 
 	tw := tar.NewWriter(os.Stdout)
 	defer tw.Close()

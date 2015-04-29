@@ -16,6 +16,8 @@ import (
 	"time"
 )
 
+const infinite = -1
+
 type BackupID int64
 
 type BackupInfo struct {
@@ -97,7 +99,7 @@ func Hash(filename string) (hash string) {
 	return
 }
 
-func ConvertGlob(name string, filters ...string) (SQL string) {
+func ConvertGlob(name string, depth int, filters ...string) (SQL string) {
 	clauses := []string{}
 
 	for _, f := range filters {
@@ -107,8 +109,12 @@ func ConvertGlob(name string, filters ...string) (SQL string) {
 			f = filepath.Join("*", f)
 		}
 		clauses = append(clauses, name+" GLOB '"+f+"'")
-		if filepath.Base(f) != "*" {
-			clauses = append(clauses, name+" GLOB '"+filepath.Join(f, "*")+"'")
+		if depth != 0 && filepath.Base(f) != "*" {
+			if depth == 1 {
+				clauses = append(clauses, "("+name+" GLOB '"+filepath.Join(f, "*")+"' AND NOT "+name+" GLOB '"+filepath.Join(f, "*", "*")+"')")
+			} else {
+				clauses = append(clauses, name+" GLOB '"+filepath.Join(f, "*")+"'")
+			}
 		}
 	}
 
