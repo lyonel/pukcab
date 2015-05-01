@@ -126,20 +126,27 @@ func davroot(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "OPTIONS":
-		w.Header().Set("Allow", "GET, DELETE, PROPFIND")
+		w.Header().Set("Allow", "GET, PROPFIND")
 		w.Header().Set("DAV", "1,2")
 
 	case "PROPFIND":
-		if report, err := listbackups(""); err == nil {
+		if r.Header.Get("Depth") == "0" {
 			w.Header().Set("Content-Type", "application/xml; charset=UTF-8")
-			w.Write([]byte(`<?xml version="1.0" encoding="utf-8"?>`))
-			if err := pages.ExecuteTemplate(w, "DAVROOT", report); err != nil {
+			if err := pages.ExecuteTemplate(w, "DAVROOT0", struct{}{}); err != nil {
 				log.Println(err)
 				http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
 			}
 		} else {
-			log.Println(err)
-			http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
+			if report, err := listbackups(""); err == nil {
+				w.Header().Set("Content-Type", "application/xml; charset=UTF-8")
+				if err := pages.ExecuteTemplate(w, "DAVROOT", report); err != nil {
+					log.Println(err)
+					http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
+				}
+			} else {
+				log.Println(err)
+				http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
+			}
 		}
 
 	default:
@@ -150,20 +157,27 @@ func davroot(w http.ResponseWriter, r *http.Request) {
 func davname(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "OPTIONS":
-		w.Header().Set("Allow", "GET, DELETE, PROPFIND")
+		w.Header().Set("Allow", "GET, PROPFIND")
 		w.Header().Set("DAV", "1,2")
 
 	case "PROPFIND":
-		if report, err := listbackups(name); err == nil {
+		if r.Header.Get("Depth") == "0" {
 			w.Header().Set("Content-Type", "application/xml; charset=UTF-8")
-			w.Write([]byte(`<?xml version="1.0" encoding="utf-8"?>`))
-			if err := pages.ExecuteTemplate(w, "DAVDOTDOTDOT", report); err != nil {
+			if err := pages.ExecuteTemplate(w, "DAVBACKUPS0", struct{}{}); err != nil {
 				log.Println(err)
 				http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
 			}
 		} else {
-			log.Println(err)
-			http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
+			if report, err := listbackups(name); err == nil {
+				w.Header().Set("Content-Type", "application/xml; charset=UTF-8")
+				if err := pages.ExecuteTemplate(w, "DAVBACKUPS", report); err != nil {
+					log.Println(err)
+					http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
+				}
+			} else {
+				log.Println(err)
+				http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
+			}
 		}
 
 	default:
@@ -174,7 +188,7 @@ func davname(w http.ResponseWriter, r *http.Request) {
 func davdate(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "OPTIONS":
-		w.Header().Set("Allow", "GET, DELETE, PROPFIND")
+		w.Header().Set("Allow", "GET, PROPFIND")
 		w.Header().Set("DAV", "1,2")
 
 	default:

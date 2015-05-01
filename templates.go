@@ -358,6 +358,20 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 <div class="placeholder">Busy, retrying...</div>
 {{template "FOOTER" .}}{{end}}
 
+{{define "DAVROOT0"}}
+<D:multistatus xmlns:D="DAV:" xmlns:P="http://pukcab.ezix.org/">
+    <D:response>
+        <D:href>.</D:href>
+	<D:propstat>
+           <D:prop>
+              <D:resourcetype><D:collection/></D:resourcetype>
+           </D:prop>
+           <D:status>HTTP/1.1 200 OK</D:status>
+         </D:propstat>
+    </D:response>
+</D:multistatus>
+{{end}}
+
 {{define "DAVROOT"}}
 <D:multistatus xmlns:D="DAV:" xmlns:P="http://pukcab.ezix.org/">
     <D:response>
@@ -387,10 +401,25 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 </D:multistatus>
 {{end}}
 
-{{define "DAVDOTDOTDOT"}}
+{{define "DAVBACKUPS0"}}
+<D:multistatus xmlns:D="DAV:" xmlns:P="http://pukcab.ezix.org/">
+    <D:response>
+        <D:href>.</D:href>
+	<D:propstat>
+           <D:prop>
+              <D:resourcetype><D:collection/></D:resourcetype>
+           </D:prop>
+           <D:status>HTTP/1.1 200 OK</D:status>
+         </D:propstat>
+    </D:response>
+</D:multistatus>
+{{end}}
+
+{{define "DAVBACKUPS"}}
 <D:multistatus xmlns:D="DAV:" xmlns:P="http://pukcab.ezix.org/">
 {{with .Backups}}
     {{range .}}
+    {{if .Files}}
     <D:response>
         <D:href>{{.Date}}</D:href>
 	<D:propstat>
@@ -409,6 +438,7 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
            <D:status>HTTP/1.1 200 OK</D:status>
          </D:propstat>
     </D:response>
+    {{end}}
     {{end}}
 {{end}}
 </D:multistatus>
