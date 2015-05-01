@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/gob"
 	"ezix.org/tar"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -10,7 +11,17 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+	"time"
 )
+
+type FilesReport struct {
+	Report
+	Date           BackupID
+	Finished       time.Time
+	Name, Schedule string
+	Files, Size    int64
+	Items          []*tar.Header
+}
 
 func listbackups(name string) (*BackupsReport, error) {
 	args := []string{"metadata"}
@@ -87,13 +98,78 @@ func listbackups(name string) (*BackupsReport, error) {
 	return report, nil
 }
 
+func listfiles(date BackupID, path string) (*FilesReport, error) {
+	args := []string{"metadata", "-depth", "1", "-date", fmt.Sprintf("%d", date), path}
+	cmd := remotecommand(args...)
+
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		log.Println(cmd.Args, err)
+		return nil, err
+	}
+
+	if err := cmd.Start(); err != nil {
+		log.Println(cmd.Args, err)
+		return nil, err
+	}
+
+	report := &FilesReport{}
+
+	tr := tar.NewReader(stdout)
+	for {
+		hdr, err := tr.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
+
+		switch hdr.Typeflag {
+		case tar.TypeXGlobalHeader:
+			var header BackupInfo
+			dec := gob.NewDecoder(tr)
+			if err := dec.Decode(&header); err != nil {
+				log.Println(err)
+				return nil, err
+			} else {
+				report.Date = header.Date
+				report.Size = header.Size
+				report.Files = header.Files
+				report.Name = header.Name
+				report.Schedule = header.Schedule
+			}
+		default:
+			report.Items = append(report.Items, hdr)
+		}
+	}
+
+	if err := cmd.Wait(); err != nil {
+		if exiterr, ok := err.(*exec.ExitError); ok {
+			// The program has exited with an exit code != 0
+			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
+				if status.ExitStatus() != 2 {
+					log.Println(cmd.Args, err)
+				}
+			}
+		} else {
+			log.Println(cmd.Args, err)
+		}
+
+		return nil, err
+	}
+
+	return report, nil
+}
+
 func davroot(w http.ResponseWriter, r *http.Request) {
 	for r.RequestURI[len(r.RequestURI)-1] == '/' {
 		r.RequestURI = r.RequestURI[0 : len(r.RequestURI)-1]
 	}
-	if req := strings.SplitN(r.RequestURI[1:], "/", 3); len(req) > 1 {
-		switch len(req) {
-		case 2:
+	if req := strings.SplitN(r.RequestURI[1:], "/", 4); len(req) > 1 {
+		switch {
+		case len(req) == 2:
 			if name = req[1]; name == "..." {
 				name = ""
 			}
@@ -104,7 +180,7 @@ func davroot(w http.ResponseWriter, r *http.Request) {
 
 			davname(w, r)
 
-		case 3:
+		case len(req) >= 3:
 			if d, err := strconv.Atoi(req[2]); err == nil {
 				date = BackupID(d)
 			} else {
@@ -128,7 +204,7 @@ func davroot(w http.ResponseWriter, r *http.Request) {
 	case "GET":
 		http.Redirect(w, r, "/", http.StatusFound)
 
-	case "OPTIONS":
+	case "OPTIONS", "HEAD":
 		w.Header().Set("Allow", "GET, PROPFIND")
 		w.Header().Set("DAV", "1,2")
 
@@ -164,7 +240,7 @@ func davroot(w http.ResponseWriter, r *http.Request) {
 
 func davname(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
-	case "OPTIONS":
+	case "OPTIONS", "HEAD":
 		w.Header().Set("Allow", "GET, PROPFIND")
 		w.Header().Set("DAV", "1,2")
 
@@ -194,10 +270,31 @@ func davname(w http.ResponseWriter, r *http.Request) {
 }
 
 func davdate(w http.ResponseWriter, r *http.Request) {
+	fmt.Println(r.Method, r.RequestURI)
 	switch r.Method {
-	case "OPTIONS":
+	case "OPTIONS", "HEAD":
 		w.Header().Set("Allow", "GET, PROPFIND")
 		w.Header().Set("DAV", "1,2")
+
+	case "PROPFIND":
+		if report, err := listfiles(date, "/"); err == nil {
+			if r.Header.Get("Depth") == "0" {
+				w.Header().Set("Content-Type", "application/xml; charset=UTF-8")
+				if err := pages.ExecuteTemplate(w, "DAVBACKUP0", report); err != nil {
+					log.Println(err)
+					http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
+				}
+			} else {
+				w.Header().Set("Content-Type", "application/xml; charset=UTF-8")
+				if err := pages.ExecuteTemplate(w, "DAVBACKUP", report); err != nil {
+					log.Println(err)
+					http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
+				}
+			}
+		} else {
+			log.Println(err)
+			http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
+		}
 
 	default:
 		http.Error(w, "Invalid request", http.StatusNotAcceptable)

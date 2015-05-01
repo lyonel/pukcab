@@ -365,6 +365,7 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 	<D:propstat>
            <D:prop>
               <D:resourcetype><D:collection/></D:resourcetype>
+              <D:getcontentlength>0</D:getcontentlength>
            </D:prop>
            <D:status>HTTP/1.1 200 OK</D:status>
          </D:propstat>
@@ -380,6 +381,7 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
            <D:prop>
               <D:displayname>All backups...</D:displayname>
               <D:resourcetype><D:collection/></D:resourcetype>
+              <D:getcontentlength>0</D:getcontentlength>
            </D:prop>
            <D:status>HTTP/1.1 200 OK</D:status>
          </D:propstat>
@@ -392,6 +394,7 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
            <D:prop>
               <D:displayname>{{.}}</D:displayname>
               <D:resourcetype><D:collection/></D:resourcetype>
+              <D:getcontentlength>0</D:getcontentlength>
            </D:prop>
            <D:status>HTTP/1.1 200 OK</D:status>
          </D:propstat>
@@ -439,6 +442,51 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
          </D:propstat>
     </D:response>
     {{end}}
+    {{end}}
+{{end}}
+</D:multistatus>
+{{end}}
+
+{{define "DAVBACKUP0"}}
+<D:multistatus xmlns:D="DAV:" xmlns:P="http://pukcab.ezix.org/">
+    <D:response>
+        <D:href>/dav/{{.Name}}/{{.Date}}/</D:href>
+	<D:propstat>
+           <D:prop>
+              <P:date>{{.Date}}</P:date>
+              <P:finished>{{.Finished | dateRFC3339}}</P:finished>
+              <P:schedule>{{.Schedule}}</P:schedule>
+              <P:files>{{.Files}}</P:files>
+              <P:size>{{.Size}}</P:size>
+              <D:creationdate>{{.Date | dateRFC3339}}</D:creationdate>
+              <D:displayname>{{.Date}} {{.Name}}</D:displayname>
+              <D:getlastmodified>{{.Finished | dateRFC1123}}</D:getlastmodified>
+              <D:getcontentlength>{{.Size}}</D:getcontentlength>
+              <D:resourcetype><D:collection/></D:resourcetype>
+           </D:prop>
+           <D:status>HTTP/1.1 200 OK</D:status>
+         </D:propstat>
+    </D:response>
+</D:multistatus>
+{{end}}
+
+{{define "DAVBACKUP"}}
+<D:multistatus xmlns:D="DAV:" xmlns:P="http://pukcab.ezix.org/">
+{{$name := .Name}}
+{{$date := .Date}}
+{{with .Items}}
+    {{range .}}
+    <D:response>
+        <D:href>/dav/{{$name}}/{{$date}}{{.Name}}</D:href>
+	<D:propstat>
+           <D:prop>
+              <D:getlastmodified>{{.ChangeTime | dateRFC1123}}</D:getlastmodified>
+              <D:getcontentlength>{{.Size}}</D:getcontentlength>
+              <D:resourcetype>{{if eq .Typeflag '5'}}<D:collection/>{{end}}</D:resourcetype>
+           </D:prop>
+           <D:status>HTTP/1.1 200 OK</D:status>
+         </D:propstat>
+    </D:response>
     {{end}}
 {{end}}
 </D:multistatus>
