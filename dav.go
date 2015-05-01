@@ -125,6 +125,9 @@ func davroot(w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch r.Method {
+	case "GET":
+		http.Redirect(w, r, "/", http.StatusFound)
+
 	case "OPTIONS":
 		w.Header().Set("Allow", "GET, PROPFIND")
 		w.Header().Set("DAV", "1,2")
@@ -148,6 +151,11 @@ func davroot(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
 			}
 		}
+
+	case "PUT":
+	case "DELETE":
+	case "PATCH":
+		http.Error(w, "Access denied.", http.StatusForbidden)
 
 	default:
 		http.Error(w, "Invalid request", http.StatusNotAcceptable)
@@ -198,4 +206,7 @@ func davdate(w http.ResponseWriter, r *http.Request) {
 
 func webdavHandleFuncs() {
 	http.HandleFunc("/dav/", davroot)
+	http.HandleFunc("/DAV/", davroot)
+	http.HandleFunc("/WebDAV/", davroot)
+	http.HandleFunc("/webdav/", davroot)
 }

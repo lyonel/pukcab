@@ -361,7 +361,7 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 {{define "DAVROOT0"}}
 <D:multistatus xmlns:D="DAV:" xmlns:P="http://pukcab.ezix.org/">
     <D:response>
-        <D:href>.</D:href>
+        <D:href>/dav/</D:href>
 	<D:propstat>
            <D:prop>
               <D:resourcetype><D:collection/></D:resourcetype>
@@ -375,10 +375,10 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 {{define "DAVROOT"}}
 <D:multistatus xmlns:D="DAV:" xmlns:P="http://pukcab.ezix.org/">
     <D:response>
-        <D:href>...</D:href>
+        <D:href>/dav/.../</D:href>
 	<D:propstat>
            <D:prop>
-              <D:displayname>...</D:displayname>
+              <D:displayname>All backups...</D:displayname>
               <D:resourcetype><D:collection/></D:resourcetype>
            </D:prop>
            <D:status>HTTP/1.1 200 OK</D:status>
@@ -387,7 +387,7 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 {{with .Names}}
     {{range .}}
     <D:response>
-        <D:href>{{.}}</D:href>
+        <D:href>/dav/{{.}}/</D:href>
 	<D:propstat>
            <D:prop>
               <D:displayname>{{.}}</D:displayname>
@@ -404,7 +404,7 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 {{define "DAVBACKUPS0"}}
 <D:multistatus xmlns:D="DAV:" xmlns:P="http://pukcab.ezix.org/">
     <D:response>
-        <D:href>.</D:href>
+        <D:href>/dav/.../</D:href>
 	<D:propstat>
            <D:prop>
               <D:resourcetype><D:collection/></D:resourcetype>
@@ -421,7 +421,7 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
     {{range .}}
     {{if .Files}}
     <D:response>
-        <D:href>{{.Date}}</D:href>
+        <D:href>/dav/{{.Name}}/{{.Date}}/</D:href>
 	<D:propstat>
            <D:prop>
               <P:date>{{.Date}}</P:date>
