@@ -104,6 +104,9 @@ func ConvertGlob(name string, depth int, filters ...string) (SQL string) {
 
 	for _, f := range filters {
 		f = strings.TrimRight(f, string(filepath.Separator))
+		if f == "" {
+			f = "/"
+		}
 		f = strings.Replace(f, "'", "''", -1)
 		if !filepath.IsAbs(f) {
 			f = filepath.Join("*", f)
