@@ -358,28 +358,22 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 <div class="placeholder">Busy, retrying...</div>
 {{template "FOOTER" .}}{{end}}
 
-{{define "BACKUPSDAVROOT"}}
-<D:multistatus xmlns:D="DAV:" xmlns:pukcab="http://pukcab.ezix.org/">
+{{define "DAVROOT"}}
+<D:multistatus xmlns:D="DAV:" xmlns:P="http://pukcab.ezix.org/">
     <D:response>
-        <D:href>/backups/</D:href>
+        <D:href>...</D:href>
 	<D:propstat>
            <D:prop>
-              <D:displayname>Backups</D:displayname>
-              <D:getlastmodified>{{now | dateRFC1123}}</D:getlastmodified>
+              <D:displayname>...</D:displayname>
               <D:resourcetype><D:collection/></D:resourcetype>
            </D:prop>
            <D:status>HTTP/1.1 200 OK</D:status>
          </D:propstat>
     </D:response>
-</D:multistatus>
-{{end}}
-
-{{define "BACKUPSDAV"}}
-<D:multistatus xmlns:D="DAV:" xmlns:pukcab="http://pukcab.ezix.org/">
 {{with .Names}}
     {{range .}}
     <D:response>
-        <D:href>/backup/{{.}}</D:href>
+        <D:href>{{.}}</D:href>
 	<D:propstat>
            <D:prop>
               <D:displayname>{{.}}</D:displayname>
@@ -390,17 +384,22 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
     </D:response>
     {{end}}
 {{end}}
+</D:multistatus>
+{{end}}
+
+{{define "DAVDOTDOTDOT"}}
+<D:multistatus xmlns:D="DAV:" xmlns:P="http://pukcab.ezix.org/">
 {{with .Backups}}
     {{range .}}
     <D:response>
-        <D:href>/backups/{{.Name}}/{{.Date}}</D:href>
+        <D:href>{{.Date}}</D:href>
 	<D:propstat>
            <D:prop>
-              <pukcab:date>{{.Date}}</pukcab:date>
-              <pukcab:finished>{{.Finished | dateRFC3339}}</pukcab:finished>
-              <pukcab:schedule>{{.Schedule}}</pukcab:schedule>
-              <pukcab:files>{{.Files}}</pukcab:files>
-              <pukcab:size>{{.Size}}</pukcab:size>
+              <P:date>{{.Date}}</P:date>
+              <P:finished>{{.Finished | dateRFC3339}}</P:finished>
+              <P:schedule>{{.Schedule}}</P:schedule>
+              <P:files>{{.Files}}</P:files>
+              <P:size>{{.Size}}</P:size>
               <D:creationdate>{{.Date | dateRFC3339}}</D:creationdate>
               <D:displayname>{{.Date}} {{.Name}}</D:displayname>
               <D:getlastmodified>{{.Finished | dateRFC1123}}</D:getlastmodified>

@@ -214,47 +214,23 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Printf("method=%q url=%q\n", r.Method, r.URL)
-	fmt.Println(r.Header)
-	switch r.Method {
+	w.Header().Set("Refresh", "900")
+	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 
-	case "GET":
-		w.Header().Set("Refresh", "900")
-		w.Header().Set("Content-Type", "text/html; charset=UTF-8")
-
-		if len(report.Backups) == 1 {
-			report.Title = "Backup"
-			if err := pages.ExecuteTemplate(w, "BACKUP", report); err != nil {
-				log.Println(err)
-				http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
-			}
-		} else {
-			for i, j := 0, len(report.Backups)-1; i < j; i, j = i+1, j-1 {
-				report.Backups[i], report.Backups[j] = report.Backups[j], report.Backups[i]
-			}
-			if err := pages.ExecuteTemplate(w, "BACKUPS", report); err != nil {
-				log.Println(err)
-				http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
-			}
+	if len(report.Backups) == 1 {
+		report.Title = "Backup"
+		if err := pages.ExecuteTemplate(w, "BACKUP", report); err != nil {
+			log.Println(err)
+			http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
 		}
-
-	case "PROPFIND":
-		w.Header().Set("Content-Type", "application/xml; charset=UTF-8")
-		w.Write([]byte(`<?xml version="1.0" encoding="utf-8"?>`))
-		if r.Header.Get("Depth") != "0" {
-			if err := pages.ExecuteTemplate(w, "BACKUPSDAV", report); err != nil {
-				log.Println(err)
-				http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
-			}
-		} else {
-			if err := pages.ExecuteTemplate(w, "BACKUPSDAVROOT", report); err != nil {
-				log.Println(err)
-				http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
-			}
+	} else {
+		for i, j := 0, len(report.Backups)-1; i < j; i, j = i+1, j-1 {
+			report.Backups[i], report.Backups[j] = report.Backups[j], report.Backups[i]
 		}
-	case "OPTIONS":
-		w.Header().Set("Allow", "GET, DELETE, PROPFIND")
-		w.Header().Set("DAV", "1")
+		if err := pages.ExecuteTemplate(w, "BACKUPS", report); err != nil {
+			log.Println(err)
+			http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
+		}
 	}
 }
 
@@ -420,6 +396,7 @@ func web() {
 	http.HandleFunc("/new/", webnew)
 	http.HandleFunc("/start/", webstart)
 	http.HandleFunc("/dryrun/", webdryrun)
+	webdavHandleFuncs()
 
 	Info(false)
 	Failure(false)
