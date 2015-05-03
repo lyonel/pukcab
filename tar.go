@@ -1,6 +1,7 @@
 package main
 
 import (
+	"ezix.org/tar"
 	"fmt"
 	"strconv"
 	"strings"
@@ -32,4 +33,13 @@ func paxHeaders(headers map[string]interface{}) []byte {
 	}
 
 	return []byte(result)
+}
+
+func unfold(hdr *tar.Header) {
+	if len(hdr.Xattrs["backup.type"]) > 0 {
+		hdr.Typeflag = hdr.Xattrs["backup.type"][0]
+	}
+	if s, err := strconv.ParseInt(hdr.Xattrs["backup.size"], 0, 0); err == nil {
+		hdr.Size = s
+	}
 }

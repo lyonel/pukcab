@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os/exec"
+	"path"
 	"strconv"
 	"strings"
 	"syscall"
@@ -141,6 +142,7 @@ func listfiles(date BackupID, path string) (*FilesReport, error) {
 				report.Schedule = header.Schedule
 			}
 		default:
+			unfold(hdr)
 			report.Items = append(report.Items, hdr)
 		}
 	}
@@ -164,6 +166,7 @@ func listfiles(date BackupID, path string) (*FilesReport, error) {
 }
 
 func davroot(w http.ResponseWriter, r *http.Request) {
+	r.RequestURI = path.Clean(r.RequestURI)
 	for r.RequestURI[len(r.RequestURI)-1] == '/' {
 		r.RequestURI = r.RequestURI[0 : len(r.RequestURI)-1]
 	}
@@ -195,7 +198,7 @@ func davroot(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			davdate(w, r)
+			davbrowse(w, r)
 		}
 		return
 	}
@@ -269,15 +272,18 @@ func davname(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func davdate(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(r.Method, r.RequestURI)
+func davbrowse(w http.ResponseWriter, r *http.Request) {
+	req := strings.SplitN(r.RequestURI[1:], "/", 4)
+	if len(req) < 4 {
+		req = append(req, "")
+	}
 	switch r.Method {
 	case "OPTIONS", "HEAD":
 		w.Header().Set("Allow", "GET, PROPFIND")
 		w.Header().Set("DAV", "1,2")
 
 	case "PROPFIND":
-		if report, err := listfiles(date, "/"); err == nil {
+		if report, err := listfiles(date, "/"+req[3]); err == nil {
 			if r.Header.Get("Depth") == "0" {
 				w.Header().Set("Content-Type", "application/xml; charset=UTF-8")
 				if err := pages.ExecuteTemplate(w, "DAVBACKUP0", report); err != nil {

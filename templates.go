@@ -365,7 +365,6 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 	<D:propstat>
            <D:prop>
               <D:resourcetype><D:collection/></D:resourcetype>
-              <D:getcontentlength>0</D:getcontentlength>
            </D:prop>
            <D:status>HTTP/1.1 200 OK</D:status>
          </D:propstat>
@@ -381,7 +380,6 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
            <D:prop>
               <D:displayname>All backups...</D:displayname>
               <D:resourcetype><D:collection/></D:resourcetype>
-              <D:getcontentlength>0</D:getcontentlength>
            </D:prop>
            <D:status>HTTP/1.1 200 OK</D:status>
          </D:propstat>
@@ -394,7 +392,6 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
            <D:prop>
               <D:displayname>{{.}}</D:displayname>
               <D:resourcetype><D:collection/></D:resourcetype>
-              <D:getcontentlength>0</D:getcontentlength>
            </D:prop>
            <D:status>HTTP/1.1 200 OK</D:status>
          </D:propstat>
@@ -471,7 +468,7 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 {{end}}
 
 {{define "DAVBACKUP"}}
-<D:multistatus xmlns:D="DAV:" xmlns:P="http://pukcab.ezix.org/">
+<D:multistatus xmlns:D="DAV:" xmlns:P="http://pukcab.ezix.org/" xmlns:A="http://apache.org/dav/props/">
 {{$name := .Name}}
 {{$date := .Date}}
 {{with .Items}}
@@ -480,8 +477,8 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
         <D:href>/dav/{{$name}}/{{$date}}{{.Name}}</D:href>
 	<D:propstat>
            <D:prop>
-              <D:getlastmodified>{{.ChangeTime | dateRFC1123}}</D:getlastmodified>
-              <D:getcontentlength>{{.Size}}</D:getcontentlength>
+              <D:getlastmodified>{{.ModTime | dateRFC1123}}</D:getlastmodified>
+              {{if eq .Typeflag '0'}}<D:getcontentlength>{{.Size}}</D:getcontentlength>{{end}}
               <D:resourcetype>{{if eq .Typeflag '5'}}<D:collection/>{{end}}</D:resourcetype>
            </D:prop>
            <D:status>HTTP/1.1 200 OK</D:status>
