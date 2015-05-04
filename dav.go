@@ -176,7 +176,7 @@ func davroot(w http.ResponseWriter, r *http.Request) {
 			if name = req[1]; name == "..." {
 				name = ""
 			}
-			if name != "" && name[0] == '.' {
+			if (name != "" && name[0] == '.') || (strings.ToLower(name) == "desktop.ini") {
 				http.Error(w, "Invalid request", http.StatusNotFound)
 				return
 			}
@@ -187,7 +187,7 @@ func davroot(w http.ResponseWriter, r *http.Request) {
 			if d, err := strconv.Atoi(req[2]); err == nil {
 				date = BackupID(d)
 			} else {
-				http.Error(w, "Invalid request", http.StatusNotAcceptable)
+				http.Error(w, "Invalid request", http.StatusNotFound)
 				return
 			}
 			if name = req[1]; name == "..." {
@@ -285,6 +285,10 @@ func davbrowse(w http.ResponseWriter, r *http.Request) {
 	case "PROPFIND":
 		if report, err := listfiles(date, "/"+req[3]); err == nil {
 			if r.Header.Get("Depth") == "0" {
+				if len(report.Items) == 0 {
+					http.Error(w, "Not found.", http.StatusNotFound)
+					return
+				}
 				w.Header().Set("Content-Type", "application/xml; charset=UTF-8")
 				if err := pages.ExecuteTemplate(w, "DAVBACKUP0", report); err != nil {
 					log.Println(err)
