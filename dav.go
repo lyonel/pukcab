@@ -23,6 +23,7 @@ type FilesReport struct {
 	Finished       time.Time
 	Name, Schedule string
 	Files, Size    int64
+	Path           string
 	Items          []*tar.Header
 }
 
@@ -116,7 +117,7 @@ func listfiles(date BackupID, path string) (*FilesReport, error) {
 		return nil, err
 	}
 
-	report := &FilesReport{}
+	report := &FilesReport{Path: path}
 
 	tr := tar.NewReader(stdout)
 	for {

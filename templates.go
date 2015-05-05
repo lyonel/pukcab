@@ -470,7 +470,7 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 {{define "DAVBACKUP"}}
 <D:multistatus xmlns:D="DAV:" xmlns:P="http://pukcab.ezix.org/" xmlns:A="http://apache.org/dav/props/">
     <D:response>
-        <D:href>/dav/{{.Name}}/{{.Date}}/</D:href>
+        <D:href>/dav/{{.Name}}/{{.Date}}{{.Path}}/</D:href>
 	<D:propstat>
            <D:prop>
               <P:date>{{.Date}}</P:date>
