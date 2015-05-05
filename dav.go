@@ -15,6 +15,8 @@ import (
 	"time"
 )
 
+const StatusMulti = 207
+
 type FilesReport struct {
 	Report
 	Date           BackupID
@@ -214,18 +216,16 @@ func davroot(w http.ResponseWriter, r *http.Request) {
 	case "PROPFIND":
 		if r.Header.Get("Depth") == "0" {
 			w.Header().Set("Content-Type", "application/xml; charset=UTF-8")
-			w.WriteHeader(207)
+			w.WriteHeader(StatusMulti)
 			if err := pages.ExecuteTemplate(w, "DAVROOT0", struct{}{}); err != nil {
 				log.Println(err)
-				http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
 			}
 		} else {
 			if report, err := listbackups(""); err == nil {
 				w.Header().Set("Content-Type", "application/xml; charset=UTF-8")
-				w.WriteHeader(207)
+				w.WriteHeader(StatusMulti)
 				if err := pages.ExecuteTemplate(w, "DAVROOT", report); err != nil {
 					log.Println(err)
-					http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
 				}
 			} else {
 				log.Println(err)
@@ -252,19 +252,17 @@ func davname(w http.ResponseWriter, r *http.Request) {
 	case "PROPFIND":
 		if r.Header.Get("Depth") == "0" {
 			w.Header().Set("Content-Type", "application/xml; charset=UTF-8")
-			w.WriteHeader(207)
+			w.WriteHeader(StatusMulti)
 			if err := pages.ExecuteTemplate(w, "DAVBACKUPS0", name); err != nil {
-				w.WriteHeader(207)
+				w.WriteHeader(StatusMulti)
 				log.Println(err)
-				http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
 			}
 		} else {
 			if report, err := listbackups(name); err == nil {
 				w.Header().Set("Content-Type", "application/xml; charset=UTF-8")
-				w.WriteHeader(207)
+				w.WriteHeader(StatusMulti)
 				if err := pages.ExecuteTemplate(w, "DAVBACKUPS", report); err != nil {
 					log.Println(err)
-					http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
 				}
 			} else {
 				log.Println(err)
@@ -295,17 +293,15 @@ func davbrowse(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 				w.Header().Set("Content-Type", "application/xml; charset=UTF-8")
-				w.WriteHeader(207)
+				w.WriteHeader(StatusMulti)
 				if err := pages.ExecuteTemplate(w, "DAVBACKUP0", report); err != nil {
 					log.Println(err)
-					http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
 				}
 			} else {
 				w.Header().Set("Content-Type", "application/xml; charset=UTF-8")
-				w.WriteHeader(207)
+				w.WriteHeader(StatusMulti)
 				if err := pages.ExecuteTemplate(w, "DAVBACKUP", report); err != nil {
 					log.Println(err)
-					http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
 				}
 			}
 		} else {
