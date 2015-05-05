@@ -404,7 +404,7 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 {{define "DAVBACKUPS0"}}
 <D:multistatus xmlns:D="DAV:" xmlns:P="http://pukcab.ezix.org/">
     <D:response>
-        <D:href>/dav/.../</D:href>
+        <D:href>/dav/{{.}}/</D:href>
 	<D:propstat>
            <D:prop>
               <D:resourcetype><D:collection/></D:resourcetype>
@@ -430,7 +430,7 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
               <P:files>{{.Files}}</P:files>
               <P:size>{{.Size}}</P:size>
               <D:creationdate>{{.Date | dateRFC3339}}</D:creationdate>
-              <D:displayname>{{.Date}} {{.Name}}</D:displayname>
+              <D:displayname>{{.Date}} ({{.Schedule}})</D:displayname>
               <D:getlastmodified>{{.Finished | dateRFC1123}}</D:getlastmodified>
               <D:getcontentlength>{{.Size}}</D:getcontentlength>
               <D:resourcetype><D:collection/></D:resourcetype>
