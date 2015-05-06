@@ -17,6 +17,7 @@ import (
 )
 
 const StatusMulti = 207
+const DAVOptions = "1, 2, access-control, redirectrefs"
 
 type FilesReport struct {
 	Report
@@ -219,7 +220,7 @@ func davroot(w http.ResponseWriter, r *http.Request) {
 
 	case "OPTIONS", "HEAD":
 		w.Header().Set("Allow", "GET, PROPFIND")
-		w.Header().Set("DAV", "1,2,redirectrefs")
+		w.Header().Set("DAV", DAVOptions)
 
 	case "PROPFIND":
 		if r.Header.Get("Depth") == "0" {
@@ -255,7 +256,7 @@ func davname(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "OPTIONS", "HEAD":
 		w.Header().Set("Allow", "GET, PROPFIND")
-		w.Header().Set("DAV", "1,2,redirectrefs")
+		w.Header().Set("DAV", DAVOptions)
 
 	case "PROPFIND":
 		if r.Header.Get("Depth") == "0" {
@@ -291,7 +292,7 @@ func davbrowse(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "OPTIONS", "HEAD":
 		w.Header().Set("Allow", "GET, PROPFIND")
-		w.Header().Set("DAV", "1,2,redirectrefs")
+		w.Header().Set("DAV", DAVOptions)
 
 	case "PROPFIND":
 		if report, err := listfiles(date, "/"+req[3]); err == nil {

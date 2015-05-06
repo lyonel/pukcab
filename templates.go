@@ -495,6 +495,8 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
               {{if eq .Typeflag '0'}}<D:getcontentlength>{{.Size}}</D:getcontentlength>{{end}}
               <D:resourcetype>{{if eq .Typeflag '5'}}<D:collection/>{{end}}{{if eq .Typeflag '2'}}<D:redirectref/>{{end}}</D:resourcetype>
               {{if eq .Typeflag '2'}}<D:reftarget><D:href>{{.Linkname}}</D:href></D:reftarget>{{end}}
+              {{if .Uname}}<D:owner>/users/{{.Uname}}</D:owner>{{end}}
+              {{if .Gname}}<D:group>/groups/{{.Gname}}</D:group>{{end}}
            </D:prop>
            <D:status>HTTP/1.1 200 OK</D:status>
         </D:propstat>
