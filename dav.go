@@ -289,7 +289,7 @@ func davbrowse(w http.ResponseWriter, r *http.Request) {
 	case "PROPFIND":
 		if report, err := listfiles(date, "/"+req[3]); err == nil {
 			if r.Header.Get("Depth") == "0" {
-				if len(report.Items) == 0 {
+				if len(report.Items) == 0 && req[3] != ""{
 					http.Error(w, "Not found.", http.StatusNotFound)
 					return
 				}
