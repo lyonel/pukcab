@@ -489,21 +489,15 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
     {{range .}}
     <D:response>
         <D:href>/dav/{{$name}}/{{$date}}{{.Name}}</D:href>
-        {{if eq .Typeflag '2'}}
-        <D:location>
-           <D:href>{{.Linkname}}</D:href>
-        </D:location>
-        <D:status>HTTP/1.1 302 Found</D:status>
-        {{else}}
 	<D:propstat>
            <D:prop>
               <D:getlastmodified>{{.ModTime | dateRFC1123}}</D:getlastmodified>
               {{if eq .Typeflag '0'}}<D:getcontentlength>{{.Size}}</D:getcontentlength>{{end}}
-              <D:resourcetype>{{if eq .Typeflag '5'}}<D:collection/>{{end}}</D:resourcetype>
+              <D:resourcetype>{{if eq .Typeflag '5'}}<D:collection/>{{end}}{{if eq .Typeflag '2'}}<D:redirectref/>{{end}}</D:resourcetype>
+              {{if eq .Typeflag '2'}}<D:reftarget><D:href>{{.Linkname}}</D:href></D:reftarget>{{end}}
            </D:prop>
            <D:status>HTTP/1.1 200 OK</D:status>
         </D:propstat>
-        {{end}}
     </D:response>
     {{end}}
 {{end}}
