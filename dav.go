@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"syscall"
@@ -144,6 +145,11 @@ func listfiles(date BackupID, path string) (*FilesReport, error) {
 				report.Name = header.Name
 				report.Schedule = header.Schedule
 			}
+		case tar.TypeSymlink, tar.TypeLink:
+			unfold(hdr)
+			if filepath.IsAbs(hdr.Linkname) {
+				hdr.Linkname = fmt.Sprintf("/dav/%s/%d%s", report.Name, report.Date, hdr.Linkname)
+			}
 		default:
 			unfold(hdr)
 			report.Items = append(report.Items, hdr)
@@ -212,7 +218,7 @@ func davroot(w http.ResponseWriter, r *http.Request) {
 
 	case "OPTIONS", "HEAD":
 		w.Header().Set("Allow", "GET, PROPFIND")
-		w.Header().Set("DAV", "1,2")
+		w.Header().Set("DAV", "1,2,redirectrefs")
 
 	case "PROPFIND":
 		if r.Header.Get("Depth") == "0" {
@@ -248,7 +254,7 @@ func davname(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "OPTIONS", "HEAD":
 		w.Header().Set("Allow", "GET, PROPFIND")
-		w.Header().Set("DAV", "1,2")
+		w.Header().Set("DAV", "1,2,redirectrefs")
 
 	case "PROPFIND":
 		if r.Header.Get("Depth") == "0" {
@@ -284,7 +290,7 @@ func davbrowse(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "OPTIONS", "HEAD":
 		w.Header().Set("Allow", "GET, PROPFIND")
-		w.Header().Set("DAV", "1,2")
+		w.Header().Set("DAV", "1,2,redirectrefs")
 
 	case "PROPFIND":
 		if report, err := listfiles(date, "/"+req[3]); err == nil {
