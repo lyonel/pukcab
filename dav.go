@@ -288,8 +288,8 @@ func davbrowse(w http.ResponseWriter, r *http.Request) {
 
 	case "PROPFIND":
 		if report, err := listfiles(date, "/"+req[3]); err == nil {
-			if r.Header.Get("Depth") == "0" {
-				if len(report.Items) == 0 && req[3] != ""{
+			if r.Header.Get("Depth") == "0" && req[3] == "" {
+				if len(report.Items) == 0 {
 					http.Error(w, "Not found.", http.StatusNotFound)
 					return
 				}
@@ -299,6 +299,10 @@ func davbrowse(w http.ResponseWriter, r *http.Request) {
 					log.Println(err)
 				}
 			} else {
+				if len(report.Items) == 0 {
+					http.Error(w, "Not found.", http.StatusNotFound)
+					return
+				}
 				w.Header().Set("Content-Type", "application/xml; charset=UTF-8")
 				w.WriteHeader(StatusMulti)
 				if err := pages.ExecuteTemplate(w, "DAVBACKUP", report); err != nil {
