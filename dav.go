@@ -150,6 +150,7 @@ func listfiles(date BackupID, path string) (*FilesReport, error) {
 			if filepath.IsAbs(hdr.Linkname) {
 				hdr.Linkname = fmt.Sprintf("/dav/%s/%d%s", report.Name, report.Date, hdr.Linkname)
 			}
+			report.Items = append(report.Items, hdr)
 		default:
 			unfold(hdr)
 			report.Items = append(report.Items, hdr)
