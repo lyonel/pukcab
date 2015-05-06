@@ -31,4 +31,5 @@ Windows
 `web` command
  * allow FTP access
  * allow WebDAV access
-
+ * username/password
+ * auto-start (in pukcab.conf)
