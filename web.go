@@ -378,6 +378,13 @@ func web() {
 		"now":         time.Now,
 		"hostname":    os.Hostname,
 		"basename":    func(args ...interface{}) string { return filepath.Base(args[0].(string)) },
+		"executable": func(args ...interface{}) string {
+			if m, ok := args[0].(int64); ok && m&0111 != 0 {
+				return "T"
+			} else {
+				return "F"
+			}
+		},
 	})
 
 	setuptemplate(webparts)
