@@ -148,8 +148,13 @@ func listfiles(date BackupID, path string) (*FilesReport, error) {
 			}
 		case tar.TypeSymlink, tar.TypeLink:
 			unfold(hdr)
+			if hdr.Xattrs == nil {
+				hdr.Xattrs = make(map[string]string)
+			}
 			if filepath.IsAbs(hdr.Linkname) {
-				hdr.Linkname = fmt.Sprintf("/dav/%s/%d%s", report.Name, report.Date, hdr.Linkname)
+				hdr.Xattrs["href"] = fmt.Sprintf("/dav/%s/%d%s", report.Name, report.Date, hdr.Linkname)
+			} else {
+				hdr.Xattrs["href"] = hdr.Linkname
 			}
 			report.Items = append(report.Items, hdr)
 		default:
