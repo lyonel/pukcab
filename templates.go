@@ -466,20 +466,6 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 
 {{define "DAVBACKUP"}}
 <D:multistatus xmlns:D="DAV:" xmlns:P="http://pukcab.ezix.org/" xmlns:A="http://apache.org/dav/props/">
-    <D:response>
-        <D:href>/dav/{{.Name}}/{{.Date}}{{.Path}}/</D:href>
-	<D:propstat>
-           <D:prop>
-              <P:date>{{.Date}}</P:date>
-              <P:finished>{{.Finished | dateRFC3339}}</P:finished>
-              <P:schedule>{{.Schedule}}</P:schedule>
-              <P:files>{{.Files}}</P:files>
-              <P:size>{{.Size}}</P:size>
-              <D:resourcetype><D:collection/></D:resourcetype>
-           </D:prop>
-           <D:status>HTTP/1.1 200 OK</D:status>
-         </D:propstat>
-    </D:response>
 {{$name := .Name}}
 {{$date := .Date}}
 {{with .Items}}
@@ -492,8 +478,8 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
               {{if eq .Typeflag '0'}}<D:getcontentlength>{{.Size}}</D:getcontentlength>{{end}}
               <D:resourcetype>{{if eq .Typeflag '5'}}<D:collection/>{{end}}{{if eq .Typeflag '2'}}<D:redirectref/>{{end}}</D:resourcetype>
               {{if eq .Typeflag '2'}}<D:displayname>{{.Name | basename}} → {{.Linkname}}</D:displayname><D:reftarget><D:href>{{.Xattrs.href}}</D:href></D:reftarget>{{end}}
-              {{if .Uname}}<D:owner><D:href>/users/{{.Uname}}</D:href></D:owner>{{end}}
-              {{if .Gname}}<D:group><D:href>/groups/{{.Gname}}</D:href></D:group>{{end}}
+              {{if .Uname}}<D:owner>{{.Uname}}</D:owner>{{end}}
+              {{if .Gname}}<D:group>{{.Gname}}</D:group>{{end}}
               <A:executable>{{.Mode | executable}}</A:executable>
            </D:prop>
            <D:status>HTTP/1.1 200 OK</D:status>
