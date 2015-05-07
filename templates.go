@@ -491,7 +491,7 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
               <D:getlastmodified>{{.ModTime | dateRFC1123}}</D:getlastmodified>
               {{if eq .Typeflag '0'}}<D:getcontentlength>{{.Size}}</D:getcontentlength>{{end}}
               <D:resourcetype>{{if eq .Typeflag '5'}}<D:collection/>{{end}}{{if eq .Typeflag '2'}}<D:redirectref/>{{end}}</D:resourcetype>
-              {{if eq .Typeflag '2'}}<D:reftarget><D:href>{{.Linkname}}</D:href></D:reftarget>{{end}}
+              {{if eq .Typeflag '2'}}<D:displayname>{{.Name | basename}} → {{.Linkname}}</D:displayname><D:reftarget><D:href>{{.Linkname}}</D:href></D:reftarget>{{end}}
               {{if .Uname}}<D:owner><D:href>/users/{{.Uname}}</D:href></D:owner>{{end}}
               {{if .Gname}}<D:group><D:href>/groups/{{.Gname}}</D:href></D:group>{{end}}
            </D:prop>

@@ -377,6 +377,7 @@ func web() {
 		"isserver":    cfg.IsServer,
 		"now":         time.Now,
 		"hostname":    os.Hostname,
+		"basename":    func(args ...interface{}) string { return filepath.Base(args[0].(string)) },
 	})
 
 	setuptemplate(webparts)
