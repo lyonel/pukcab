@@ -390,7 +390,6 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
         <D:href>/dav/{{.}}/</D:href>
 	<D:propstat>
            <D:prop>
-              <D:displayname>{{.}}</D:displayname>
               <D:resourcetype><D:collection/></D:resourcetype>
            </D:prop>
            <D:status>HTTP/1.1 200 OK</D:status>
@@ -430,7 +429,6 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
               <P:files>{{.Files}}</P:files>
               <P:size>{{.Size}}</P:size>
               <D:creationdate>{{.Date | dateRFC3339}}</D:creationdate>
-              <D:displayname>{{.Date}} ({{.Schedule}})</D:displayname>
               <D:getlastmodified>{{.Finished | dateRFC1123}}</D:getlastmodified>
               <D:getcontentlength>{{.Size}}</D:getcontentlength>
               <D:resourcetype><D:collection/></D:resourcetype>
@@ -456,7 +454,6 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
               <P:files>{{.Files}}</P:files>
               <P:size>{{.Size}}</P:size>
               <D:creationdate>{{.Date | dateRFC3339}}</D:creationdate>
-              <D:displayname>{{.Date}} {{.Name}}</D:displayname>
               <D:getlastmodified>{{.Finished | dateRFC1123}}</D:getlastmodified>
               <D:getcontentlength>{{.Size}}</D:getcontentlength>
               <D:resourcetype><D:collection/></D:resourcetype>
