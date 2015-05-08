@@ -34,6 +34,16 @@ const (
 
 func SetupServer() {
 	Setup()
+
+	if cfg.Web != "" {
+		web := remotecommand("web")
+		web.Stdin = nil
+		web.Stdout = nil
+		web.Stderr = nil
+
+		os.Setenv("PUKCAB_WEB", "auto")
+		web.Start()
+	}
 	switchuser()
 	if sshclient := strings.Split(os.Getenv("SSH_CLIENT"), " "); sshclient[0] != "" {
 		log.Printf("Remote client: ip=%q\n", sshclient[0])

@@ -20,6 +20,7 @@ type Config struct {
 
 	Vault   string
 	Catalog string
+	Web     string
 
 	Maxtries int
 	Debug    bool

@@ -362,6 +362,9 @@ func webdryrun(w http.ResponseWriter, r *http.Request) {
 
 func web() {
 	listen := "localhost:8080"
+	if cfg.Web != "" {
+		listen = cfg.Web
+	}
 	flag.StringVar(&listen, "listen", listen, "Address to listen to")
 	flag.StringVar(&listen, "l", listen, "-listen")
 	Setup()
@@ -411,6 +414,10 @@ func web() {
 	timeout = 10
 	if err := http.ListenAndServe(listen, nil); err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		log.Fatal("Could no start web interface: ", err)
+		if os.Getenv("PUKCAB_WEB") == "" {
+			log.Fatal("Could no start web interface: ", err)
+		}
+	} else {
+		log.Println("Started web interface on", listen)
 	}
 }
