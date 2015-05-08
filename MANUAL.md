@@ -142,6 +142,7 @@ parameter   type   default         description
 `vault`     text  `"vault"`        folder where all archive files will be created
 `catalog`   text  `"catalog.db"`   name of the catalog database
 `maxtries` number  `10`            number of retries in case of concurrent client accesses
+`web`       text   *none*          auto-start the web interface on [*host*]:*port* (cf. [listen])
 ---------- ------ ------------     -------------------------------
 
 ### Notes
