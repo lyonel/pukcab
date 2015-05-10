@@ -510,54 +510,46 @@ func purgebackup() {
 }
 
 func vacuum() {
-	if tx, err := catalog.Begin(); err == nil {
-		defer tx.Commit()
-		log.Println("Vacuum...")
+	log.Println("Vacuum...")
 
-		tx.Exec("DELETE FROM files WHERE backupid NOT IN (SELECT date FROM backups)")
-		tx.Exec("DELETE FROM names WHERE id NOT IN (SELECT nameid FROM files UNION SELECT linknameid FROM files)")
-		tx.Exec("VACUUM")
+	catalog.Exec("DELETE FROM files WHERE backupid NOT IN (SELECT date FROM backups)")
+	catalog.Exec("DELETE FROM names WHERE id NOT IN (SELECT nameid FROM files UNION SELECT linknameid FROM files)")
+	catalog.Exec("VACUUM")
 
-		unused := make(map[string]struct{})
-		if vaultfiles, err := ioutil.ReadDir(cfg.Vault); err == nil {
-			for _, f := range vaultfiles {
-				if time.Since(f.ModTime()).Hours() > 24 { // f is older than 24 hours
-					unused[f.Name()] = struct{}{}
-				}
-			}
-		} else {
-			log.Println(err)
-			return
-		}
-
-		if datafiles, err := tx.Query("SELECT DISTINCT hash FROM files"); err == nil {
-			defer datafiles.Close()
-			for datafiles.Next() {
-				var f string
-				if err := datafiles.Scan(&f); err == nil {
-					delete(unused, f)
-				} else {
-					log.Println(err)
-					return
-				}
-			}
-		} else {
-			log.Println(err)
-			return
-		}
-
-		for f := range unused {
-			if err := os.Remove(filepath.Join(cfg.Vault, f)); err != nil {
+	used := make(map[string]bool)
+	if datafiles, err := catalog.Query("SELECT DISTINCT hash FROM files"); err == nil {
+		defer datafiles.Close()
+		for datafiles.Next() {
+			var f string
+			if err := datafiles.Scan(&f); err == nil {
+				used[f] = true
+			} else {
 				log.Println(err)
 				return
 			}
 		}
-
-		log.Printf("Vacuum: removed %d files\n", len(unused))
 	} else {
 		log.Println(err)
 		return
 	}
+
+	unused := 0
+	if vaultfiles, err := ioutil.ReadDir(cfg.Vault); err == nil {
+		for _, f := range vaultfiles {
+			if time.Since(f.ModTime()).Hours() > 24 && !used[f.Name()] { // f is older than 24 hours
+				unused++
+				if err := os.Remove(filepath.Join(cfg.Vault, f.Name())); err != nil {
+					log.Println(err)
+					return
+				}
+			}
+		}
+	} else {
+		log.Println(err)
+		return
+	}
+
+	log.Printf("Vacuum: removed %d files\n", unused)
 }
 
 func expirebackup() {
