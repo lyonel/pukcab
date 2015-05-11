@@ -432,6 +432,7 @@ func submitfiles() {
 						os.Rename(tmpfile.Name(), filepath.Join(cfg.Vault, hash))
 					} else {
 						os.Remove(tmpfile.Name())
+						os.Chtimes(filepath.Join(cfg.Vault, hash), time.Now(), time.Now())
 					}
 				}
 
