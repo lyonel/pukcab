@@ -512,8 +512,6 @@ func purgebackup() {
 func vacuum() {
 	log.Println("Vacuum...")
 
-	catalog.Exec("DELETE FROM files WHERE backupid NOT IN (SELECT date FROM backups)")
-	catalog.Exec("DELETE FROM names WHERE id NOT IN (SELECT nameid FROM files UNION SELECT linknameid FROM files)")
 	catalog.Exec("VACUUM")
 
 	used := make(map[string]bool)
