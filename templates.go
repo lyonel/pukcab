@@ -12,8 +12,11 @@ const css = `body {
     font-weight: light;
 }
 
-tt {
+.ls, tt {
     font-family: Inconsolata, Consolas, Monaco, "Andale Mono";
+}
+
+tt {
     background: #eee;
     border: 1px solid #ccc;
     padding: 1px;
@@ -184,12 +187,39 @@ tr.total td.total {
  width: 50%;
 }
 
+.ls .date,
+.ls .size,
+.ls .user {
+    text-align: right;
+}
+
+.ls .date {
+ color: #bbb;
+ background-color: #fbfbfb;
+}
+
+.ls .name {
+  padding-left: 1em;
+}
+
+.ls .type53 {
+  color: #008;
+}
+
+.ls .type50 {
+  color: #800;
+}
+
 `
 
 const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 <a href="/">Home</a>
 <a href="/backups">Backups</a>
 {{if isserver}}<a href="/tools">Tools</a>{{end}}
+</div>{{end}}
+{{define "BROWSEMENU"}}
+<div class="submenu">
+<a class="label" href="..">&#x2191; Up</a>
 </div>{{end}}
 {{define "TOOLSMENU"}}
 <div class="submenu">
@@ -290,7 +320,7 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 {{with .Backups}}
 {{$me := hostname}}
     {{range .}}
-<div class="submenu">{{if .Files}}<a href="">Open</a><a href="" {{if ne $me .Name}}onclick="return confirm('This backup seems to be from a different system ({{.Name}}).\n\nAre you sure you want to verify it on {{$me}}?')"{{end}}>&#10003; Verify</a>{{end}}<a href="/delete/{{.Name}}/{{.Date}}" onclick="return confirm('Are you sure?')" class="caution">&#10006; Delete</a></div>
+<div class="submenu">{{if .Files}}<a href="/dav/{{.Name}}/{{.Date}}">Open</a><a href="" {{if ne $me .Name}}onclick="return confirm('This backup seems to be from a different system ({{.Name}}).\n\nAre you sure you want to verify it on {{$me}}?')"{{end}}>&#10003; Verify</a>{{end}}<a href="/delete/{{.Name}}/{{.Date}}" onclick="return confirm('Are you sure?')" class="caution">&#10006; Delete</a></div>
 <table class="report">
 <tbody>
 	<tr><th class="rowtitle">ID</th><td class="{{. | status}}" title="{{. | status}}">{{.Date}}</td></tr>
@@ -400,6 +430,16 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 </D:multistatus>
 {{end}}
 
+{{define "BROWSEROOT"}}{{template "HEADER" .}}
+{{template "BROWSEMENU"}}
+<ul>
+   <li><a href="/dav/.../">All backups...</a></li>
+{{range .Names}}
+   <li><a href="/dav/{{.}}/">{{.}}</a></li>
+{{end}}
+</ul>
+{{template "FOOTER" .}}{{end}}
+
 {{define "DAVBACKUPS0"}}
 <D:multistatus xmlns:D="DAV:" xmlns:P="http://pukcab.ezix.org/">
     <D:response>
@@ -441,6 +481,15 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 {{end}}
 </D:multistatus>
 {{end}}
+
+{{define "BROWSEBACKUPS"}}{{template "HEADER" .}}
+{{template "BROWSEMENU"}}
+<ul>
+{{range .Backups}}
+   <li><a href="/dav/{{.Name}}/{{.Date}}/">{{.Date}}</a></li>
+{{end}}
+</ul>
+{{template "FOOTER" .}}{{end}}
 
 {{define "DAVBACKUP0"}}
 <D:multistatus xmlns:D="DAV:" xmlns:P="http://pukcab.ezix.org/">
@@ -489,6 +538,17 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 {{end}}
 </D:multistatus>
 {{end}}
+
+{{define "BROWSEBACKUP"}}{{template "HEADER" .}}
+{{template "BROWSEMENU"}}
+{{$name := .Name}}
+{{$date := .Date}}
+<table>
+{{range .Items}}
+    <tr class="ls"><td>{{.FileInfo.Mode}}</td><td class="user">{{.Uname}}</td><td class="group">{{.Gname}}</td><td class="size">{{if .Size}}{{.Size | bytes}}{{end}}</td><td class="date">{{.ModTime | date}}</td><td class="name type{{.Typeflag}}"><a href="/dav/{{$name}}/{{$date}}{{.Name}}/">{{.Name | basename}}</a>{{if eq .Typeflag '2'}} → <a href="{{.Xattrs.href}}/">{{.Linkname}}</a>{{end}}</td></tr>
+{{end}}
+</table>
+{{template "FOOTER" .}}{{end}}
 
 `
 

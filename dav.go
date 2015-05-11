@@ -221,7 +221,12 @@ func davroot(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
-		http.Redirect(w, r, "/", http.StatusFound)
+		if report, err := listbackups(""); err == nil {
+			w.Header().Set("Content-Type", "text/html; charset=UTF-8")
+			if err := pages.ExecuteTemplate(w, "BROWSEROOT", report); err != nil {
+				log.Println(err)
+			}
+		}
 
 	case "OPTIONS", "HEAD":
 		w.Header().Set("Allow", "GET, PROPFIND")
@@ -284,6 +289,14 @@ func davname(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
+	case "GET":
+		if report, err := listbackups(name); err == nil {
+			w.Header().Set("Content-Type", "text/html; charset=UTF-8")
+			if err := pages.ExecuteTemplate(w, "BROWSEBACKUPS", report); err != nil {
+				log.Println(err)
+			}
+		}
+
 	default:
 		http.Error(w, "Invalid request", http.StatusNotAcceptable)
 	}
@@ -325,6 +338,18 @@ func davbrowse(w http.ResponseWriter, r *http.Request) {
 		} else {
 			log.Println(err)
 			http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
+		}
+
+	case "GET":
+		if report, err := listfiles(date, "/"+req[3]); err == nil {
+			report.Title = "/" + req[3]
+			if len(req[3])+1 >= len(report.Items[0].Name) {
+				report.Items = report.Items[1:]
+			}
+			w.Header().Set("Content-Type", "text/html; charset=UTF-8")
+			if err := pages.ExecuteTemplate(w, "BROWSEBACKUP", report); err != nil {
+				log.Println(err)
+			}
 		}
 
 	default:
