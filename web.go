@@ -361,10 +361,7 @@ func webdryrun(w http.ResponseWriter, r *http.Request) {
 }
 
 func web() {
-	listen := "localhost:8080"
-	if cfg.Web != "" {
-		listen = cfg.Web
-	}
+	listen := ""
 	flag.StringVar(&listen, "listen", listen, "Address to listen to")
 	flag.StringVar(&listen, "l", listen, "-listen")
 	Setup()
@@ -413,6 +410,15 @@ func web() {
 	Info(false)
 	Failure(false)
 	timeout = 10
+
+	if listen == "" {
+		if cfg.Web != "" {
+			listen = cfg.Web
+		} else {
+			listen = "localhost:8080"
+		}
+	}
+
 	if err := http.ListenAndServe(listen, nil); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		if os.Getenv("PUKCAB_WEB") == "" {
