@@ -343,7 +343,7 @@ func davbrowse(w http.ResponseWriter, r *http.Request) {
 	case "GET":
 		if report, err := listfiles(date, "/"+req[3]); err == nil {
 			report.Title = "/" + req[3]
-			if len(req[3])+1 >= len(report.Items[0].Name) {
+			if len(report.Items) > 0 && len(req[3])+1 >= len(report.Items[0].Name) {
 				report.Items = report.Items[1:]
 			}
 			w.Header().Set("Content-Type", "text/html; charset=UTF-8")
