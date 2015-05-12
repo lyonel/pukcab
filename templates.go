@@ -199,7 +199,6 @@ tr.total td.total {
 }
 
 .ls .name {
-  padding-left: 1em;
 }
 
 .ls .type53 {
@@ -545,7 +544,7 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 {{$date := .Date}}
 <table>
 {{range .Items}}
-    <tr class="ls"><td>{{.FileInfo.Mode}}</td><td class="user">{{.Uname}}</td><td class="group">{{.Gname}}</td><td class="size">{{if .Size}}{{.Size | bytes}}{{end}}</td><td class="date">{{.ModTime | date}}</td><td class="name type{{.Typeflag}}"><a href="/dav/{{$name}}/{{$date}}{{.Name}}/">{{.Name | basename}}</a>{{if eq .Typeflag '2'}} → <a href="{{.Xattrs.href}}/">{{.Linkname}}</a>{{end}}</td></tr>
+    <tr class="ls"><td>{{.FileInfo.Mode}}</td><td class="user">{{.Uname}}</td><td class="group">{{.Gname}}</td><td class="size">{{if .Size}}{{.Size | bytes}}{{end}}</td><td class="date"><a href="/history/{{$name}}{{.Name}}">{{.ModTime | date}}</a></td><td>{{if eq .Typeflag '5'}}&#8227;{{end}}</td><td class="name type{{.Typeflag}}"><a {{if eq .Typeflag '5'}}href="/dav/{{$name}}/{{$date}}{{.Name}}/"{{end}}>{{.Name | basename}}</a>{{if eq .Typeflag '2'}} → <a href="{{.Xattrs.href}}/">{{.Linkname}}</a>{{end}}</td></tr>
 {{end}}
 </table>
 {{template "FOOTER" .}}{{end}}
