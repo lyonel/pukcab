@@ -65,10 +65,12 @@ func remotecommand(arg ...string) (rcmd *exec.Cmd) {
 		cmd = append(cmd, arg[1:]...)
 		rcmd = ssh(cmd...)
 	} else {
+		cmd := []string{arg[0]}
 		if timeout != defaultTimeout {
-			arg = append(arg, "-timeout", strconv.Itoa(timeout))
+			cmd = append(cmd, "-timeout", strconv.Itoa(timeout))
 		}
-		rcmd = exec.Command(programFile, arg...)
+		cmd = append(cmd, arg[1:]...)
+		rcmd = exec.Command(programFile, cmd...)
 	}
 	rcmd.Stderr = NewLogStream(failure)
 	return rcmd
