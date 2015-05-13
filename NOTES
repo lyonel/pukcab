@@ -8,7 +8,6 @@ encrypt vault files
 
 new commands:
  * `auto`: connect to server and wait for orders
- * `fsck`: check catalog/vault consistency (server only)
  * `analysis`
    - show big files in a backup set
    - show big directories in a backup set
@@ -30,6 +29,10 @@ Windows
 
 `web` command
  * allow FTP access
- * allow WebDAV access
  * username/password
- * auto-start (in pukcab.conf)
+
+auto-backup catalog
+
+improve `restore` command usability
+ * pukcab restore ./local-file
+ * pukcab restore --in-place /absolute/path
