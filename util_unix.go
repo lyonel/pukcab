@@ -44,6 +44,11 @@ static int setugid(uid_t uid, gid_t gid)
   return setuid(uid);
 }
 
+static daemonize()
+{
+  setpgid(0, 0);
+}
+
 */
 import "C"
 
@@ -128,4 +133,11 @@ func LoadAvg() (result float64) {
 	C.getloadavg((*C.double)(unsafe.Pointer(&result)), 1)
 
 	return
+}
+
+func Daemonize() {
+	C.daemonize()
+	os.Stdin.Close()
+	os.Stdout.Close()
+	os.Stderr.Close()
 }

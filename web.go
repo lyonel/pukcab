@@ -425,6 +425,7 @@ func web() {
 			log.Fatal("Could no start web interface: ", err)
 		}
 	} else {
+		Daemonize()
 		log.Println("Started web interface on", listen)
 	}
 }
