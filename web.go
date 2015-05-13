@@ -419,13 +419,16 @@ func web() {
 		}
 	}
 
+	Daemonize()
 	if err := http.ListenAndServe(listen, nil); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		if os.Getenv("PUKCAB_WEB") == "" {
 			log.Fatal("Could no start web interface: ", err)
 		}
 	} else {
-		Daemonize()
+		os.Stdin.Close()
+		os.Stdout.Close()
+		os.Stderr.Close()
 		log.Println("Started web interface on", listen)
 	}
 }

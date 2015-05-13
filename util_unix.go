@@ -137,7 +137,4 @@ func LoadAvg() (result float64) {
 
 func Daemonize() {
 	C.daemonize()
-	os.Stdin.Close()
-	os.Stdout.Close()
-	os.Stderr.Close()
 }
