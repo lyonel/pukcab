@@ -43,6 +43,7 @@ func SetupServer() {
 
 		os.Setenv("PUKCAB_WEB", "auto")
 		web.Start()
+		go web.Wait()
 	}
 	switchuser()
 	if sshclient := strings.Split(os.Getenv("SSH_CLIENT"), " "); sshclient[0] != "" {
