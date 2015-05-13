@@ -17,6 +17,7 @@ Pukcab is a lightweight, single-binary backup system that stores de-duplicated, 
 BuildArch: noarch
 Summary: Simple Network Backup Utility (client)
 Requires: openssh-clients
+Requires: tar
 Requires: %{name} >= %{version}
 
 %description client
