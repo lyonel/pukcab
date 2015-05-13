@@ -542,9 +542,10 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 {{template "BROWSEMENU"}}
 {{$name := .Name}}
 {{$date := .Date}}
+<h2 title="{{.Date | date}}">{{.Date}}</h2>
 <table>
 {{range .Items}}
-    <tr class="ls"><td>{{.FileInfo.Mode}}</td><td class="user">{{.Uname}}</td><td class="group">{{.Gname}}</td><td class="size">{{if .Size}}{{.Size | bytes}}{{end}}</td><td class="date"><a href="/history/{{$name}}{{.Name}}">{{.ModTime | date}}</a></td><td>{{if eq .Typeflag '5'}}&#8227;{{end}}</td><td class="name type{{.Typeflag}}"><a {{if eq .Typeflag '5'}}href="/dav/{{$name}}/{{$date}}{{.Name}}/"{{end}}>{{.Name | basename}}</a>{{if eq .Typeflag '2'}} → <a href="{{.Xattrs.href}}/">{{.Linkname}}</a>{{end}}</td></tr>
+    <tr class="ls"><td>{{.FileInfo.Mode}}</td><td class="user" title="{{.Uid}}">{{.Uname}}</td><td class="group" title="{{.Gid}}">{{.Gname}}</td><td class="size" {{if .Size}}title="{{.Size}}"{{end}}>{{if .Size}}{{.Size | bytes}}{{end}}</td><td class="date"><a href="/history/{{$name}}{{.Name}}">{{.ModTime | date}}</a></td><td>{{if eq .Typeflag '5'}}&#8227;{{end}}</td><td class="name type{{.Typeflag}}"><a title="{{.Name}}" {{if eq .Typeflag '5'}}href="/dav/{{$name}}/{{$date}}{{.Name}}/"{{end}}>{{.Name | basename}}</a>{{if eq .Typeflag '2'}} → <a href="{{.Xattrs.href}}/">{{.Linkname}}</a>{{end}}</td></tr>
 {{end}}
 </table>
 {{template "FOOTER" .}}{{end}}
