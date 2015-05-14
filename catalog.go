@@ -211,7 +211,7 @@ func backupcatalog() error {
 		backupdb.Exec("PRAGMA synchronous = OFF")
 
 		if backupconn == nil {
-			return errors.New("Couldn't open backup DB")
+			return errors.New("Error accessing " + cfg.Catalog + "~")
 		}
 
 		if backup, err := backupconn.Backup("main", catalogconn, "main"); err == nil {
