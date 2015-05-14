@@ -31,6 +31,9 @@ func opencatalog() error {
 		catalog.Exec("PRAGMA synchronous = OFF")
 		catalog.Exec("PRAGMA journal_mode=WAL")
 		catalog.Exec(fmt.Sprintf("PRAGMA busy_timeout = %d", timeout*1000))
+		if timeout < defaultTimeout {
+			catalog.Exec("PRAGMA wal_autocheckpoint = 0")
+		}
 
 		if _, err = catalog.Exec(`
 CREATE TABLE IF NOT EXISTS META(name TEXT COLLATE NOCASE PRIMARY KEY, value TEXT);

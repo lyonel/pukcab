@@ -515,6 +515,7 @@ func vacuum() {
 	log.Println("Vacuum...")
 
 	catalog.Exec("VACUUM")
+	catalog.Exec("PRAGMA wal_checkpoint(FULL)")
 
 	used := make(map[string]bool)
 	if datafiles, err := catalog.Query("SELECT DISTINCT hash FROM files"); err == nil {
