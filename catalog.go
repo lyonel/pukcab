@@ -14,6 +14,7 @@ import (
 const schemaVersion = 2
 
 var catalog *sql.DB
+var catalogconn *sqlite3.SQLiteConn
 
 type Catalog interface {
 	Exec(query string, args ...interface{}) (sql.Result, error)
@@ -25,7 +26,15 @@ func opencatalog() error {
 		return err
 	}
 
-	if db, err := sql.Open("sqlite3", cfg.Catalog); err == nil {
+	sql.Register("CatalogDB",
+		&sqlite3.SQLiteDriver{
+			ConnectHook: func(conn *sqlite3.SQLiteConn) error {
+				catalogconn = conn
+				return nil
+			},
+		})
+
+	if db, err := sql.Open("CatalogDB", cfg.Catalog); err == nil {
 		catalog = db
 
 		catalog.Exec("PRAGMA synchronous = OFF")
@@ -180,4 +189,43 @@ func busy(err error) bool {
 		return e.Code == sqlite3.ErrBusy
 	}
 	return false
+}
+
+func backupcatalog() error {
+	var backupconn *sqlite3.SQLiteConn
+
+	if catalog == nil || catalogconn == nil {
+		return nil
+	}
+
+	sql.Register("BackupDB",
+		&sqlite3.SQLiteDriver{
+			ConnectHook: func(conn *sqlite3.SQLiteConn) error {
+				backupconn = conn
+				return nil
+			},
+		})
+	if backupdb, err := sql.Open("BackupDB", cfg.Catalog+"~"); err == nil {
+		defer backupdb.Close()
+
+		backupdb.Exec("PRAGMA synchronous = OFF")
+
+		if backupconn == nil {
+			return errors.New("Couldn't open backup DB")
+		}
+
+		if backup, err := backupconn.Backup("main", catalogconn, "main"); err == nil {
+			if ok, err := backup.Step(-1); ok {
+				backup.Finish()
+				return nil
+			} else {
+				backup.Close()
+				return err
+			}
+		} else {
+			return err
+		}
+	} else {
+		return err
+	}
 }
