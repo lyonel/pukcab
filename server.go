@@ -517,6 +517,11 @@ func vacuum() {
 	catalog.Exec("VACUUM")
 	catalog.Exec("PRAGMA wal_checkpoint(FULL)")
 
+	done := make(chan error)
+	go func() {
+		done <- backupcatalog()
+	}()
+
 	used := make(map[string]bool)
 	if datafiles, err := catalog.Query("SELECT DISTINCT hash FROM files"); err == nil {
 		defer datafiles.Close()
@@ -552,7 +557,7 @@ func vacuum() {
 
 	log.Printf("Vacuum: removed %d files\n", unused)
 
-	if err := backupcatalog(); err != nil {
+	if err := <-done; err != nil {
 		log.Printf("Could not backup catalog: msg=%q error=warn\n", err)
 	}
 }
