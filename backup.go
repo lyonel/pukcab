@@ -38,10 +38,12 @@ func NewBackup(cfg Config) (backup *Backup) {
 		if pw, err := Getpwnam(cfg.User); err == nil {
 			if filepath.IsAbs(cfg.Catalog) {
 				backup.Ignore(cfg.Catalog,
+					cfg.Catalog+"~",
 					cfg.Catalog+"-shm",
 					cfg.Catalog+"-wal")
 			} else {
 				backup.Ignore(filepath.Join(pw.Dir, cfg.Catalog),
+					filepath.Join(pw.Dir, cfg.Catalog+"~"),
 					filepath.Join(pw.Dir, cfg.Catalog+"-shm"),
 					filepath.Join(pw.Dir, cfg.Catalog+"-wal"))
 			}
