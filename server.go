@@ -134,6 +134,7 @@ func dumpcatalog(what DumpFlags) {
 	if err := opencatalog(); err != nil {
 		LogExit(err)
 	}
+	catalog.Exec("PRAGMA wal_autocheckpoint = 0")
 
 	filter := flag.Args()
 	if len(filter) == 0 {
