@@ -44,7 +44,7 @@ static int setugid(uid_t uid, gid_t gid)
   return setuid(uid);
 }
 
-static daemonize()
+static void daemonize()
 {
   setpgid(0, 0);
 }
