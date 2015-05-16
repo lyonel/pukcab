@@ -12,7 +12,7 @@ const defaultCommand = "help"
 const defaultCatalog = "catalog.db"
 const defaultVault = "vault"
 const defaultMaxtries = 10
-const defaultTimeout = 4 * 3600 // 4 hours
+const defaultTimeout = 6 * 3600 // 6 hours
 
 const protocolVersion = 1
 

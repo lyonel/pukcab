@@ -458,6 +458,8 @@ func submitfiles() {
 		}
 	}
 
+	catalog.Exec("PRAGMA wal_checkpoint(PASSIVE)")
+
 	missing = 0
 	if err := catalog.QueryRow("SELECT COUNT(*) FROM files WHERE backupid=? AND type='?'", date).Scan(&missing); err == nil {
 		if missing == 0 {
