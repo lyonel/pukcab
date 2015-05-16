@@ -515,8 +515,7 @@ func purgebackup() {
 func vacuum() {
 	log.Println("Vacuum...")
 
-	catalog.Exec("VACUUM")
-	catalog.Exec("PRAGMA wal_checkpoint(FULL)")
+	catalog.Exec("PRAGMA wal_checkpoint(TRUNCATE)")
 
 	done := make(chan error)
 	go func() {
