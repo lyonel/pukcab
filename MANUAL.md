@@ -60,7 +60,7 @@ To run a `pukcab` backup server, you will need:
 
 The "scalable filesystem" requirement might seem surprising but, to store backups, you will need a modern filesystem that can gracefully handle thousands and thousands of files per directory, sometimes big, sometimes small.
 
-On Linux, XFS, ext4 and Btrfs are known to work. FAT, NTFS or HFS cannot and must not be used.
+On Linux, [XFS], [ext4] and [Btrfs] are known to work. FAT, NTFS or HFS cannot and must not be used.
 
 Clients
 -------
@@ -752,15 +752,15 @@ Frequently Asked Questions
 
 Which filesystem should I use for the catalog? Can I use a network filesystem?
 
-:   No, it must be stored on a local filesystem. You will need a fast filesystem able to deal with potentially big files (several gigabytes are not uncommon) that will be created and removed on the fly. For stability and performance reasons, you should prefer native filesystems, do NOT use NTFS, FAT or FUSE-based filesystems.
- * under Linux, you can use ext3/4, XFS, Btrfs, ReiserFS, JFS
- * under OS X, you can use HFS+
+:   No, it must be stored on a local filesystem. You will need a fast filesystem able to deal with potentially big files (several gigabytes are not uncommon) that will be created and removed on the fly. For stability and performance reasons, you should prefer native filesystems, do NOT use NTFS, FAT or [FUSE]-based filesystems.
+ * under Linux, you can use [ext3]/[ext4], [XFS], [Btrfs], [ReiserFS], [JFS]
+ * under OS X, you can use [HFS+]
 
 Which filesystem should I use for the vault? Can I use a network filesystem?
 
-:   Yes, the vault can be on a remote filesystem. You will need a fast filesystem able to deal with potentially big files and, more importantly, with many files (often thousands and thousands) *in the same directory*. For that reason, do NOT use NTFS, FAT but you can use FUSE-based filesystems.
- * under Linux, you can use ext3/4, XFS, Btrfs, ReiserFS, JFS, NFS, SMB, AFS...
- * under OS X, you can use HFS+, AFP, NFS, SMB...
+:   Yes, the vault can be on a remote filesystem. You will need a fast filesystem able to deal with potentially big files and, more importantly, with many files (often thousands and thousands) *in the same directory*. For that reason, do NOT use NTFS, FAT but you can use [FUSE]-based filesystems if they don't put a limit on the number of files.
+ * under Linux, you can use [ext3]/[ext4], [XFS], [Btrfs], [ReiserFS], [JFS], [NFS], [SMB], [AFS]...
+ * under OS X, you can use [HFS+], [AFP], [NFS], [SMB]...
 
 What are these `catalog.db-wal` and `catalog.db-shm` files? Can I remove them?
 
@@ -810,3 +810,15 @@ What is this `catalog.db~` file? Can I remove it?
 
 [create SSH keys]: https://en.wikipedia.org/wiki/Ssh-keygen
 [OS-dependent]: #os-dependent-defaults
+[HFS+]: https://support.apple.com/en-us/HT201711
+[Btrfs]: https://en.wikipedia.org/wiki/Btrfs
+[ext3]: https://en.wikipedia.org/wiki/Ext3
+[ext4]: https://en.wikipedia.org/wiki/Ext4
+[ReiserFS]: https://en.wikipedia.org/wiki/ReiserFS
+[XFS]: https://en.wikipedia.org/wiki/XFS
+[JFS]: https://en.wikipedia.org/wiki/JFS_%28file_system%29
+[AFS]: https://en.wikipedia.org/wiki/Andrew_File_System
+[AFP]: https://en.wikipedia.org/wiki/Apple_Filing_Protocol
+[SMB]: https://en.wikipedia.org/wiki/Server_Message_Block
+[NFS]: https://en.wikipedia.org/wiki/Network_File_System
+[FUSE]: https://en.wikipedia.org/wiki/Filesystem_in_Userspace

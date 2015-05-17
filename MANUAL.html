@@ -110,7 +110,7 @@
 <li>enough memory or swap space (running without swap space is <em>not</em> recommended)</li>
 </ul>
 <p>The “scalable filesystem” requirement might seem surprising but, to store backups, you will need a modern filesystem that can gracefully handle thousands and thousands of files per directory, sometimes big, sometimes small.</p>
-<p>On Linux, XFS, ext4 and Btrfs are known to work. FAT, NTFS or HFS cannot and must not be used.</p>
+<p>On Linux, <a href="https://en.wikipedia.org/wiki/XFS">XFS</a>, <a href="https://en.wikipedia.org/wiki/Ext4">ext4</a> and <a href="https://en.wikipedia.org/wiki/Btrfs">Btrfs</a> are known to work. FAT, NTFS or HFS cannot and must not be used.</p>
 <h2 id="clients">Clients</h2>
 <p>The requirements for a client are very limited. In short, nearly any Linux/OS X box will do.</p>
 <ul>
@@ -894,21 +894,21 @@ Missing:  0
 <h1 id="frequently-asked-questions">Frequently Asked Questions</h1>
 <dl>
 <dt>Which filesystem should I use for the catalog? Can I use a network filesystem?</dt>
-<dd>No, it must be stored on a local filesystem. You will need a fast filesystem able to deal with potentially big files (several gigabytes are not uncommon) that will be created and removed on the fly. For stability and performance reasons, you should prefer native filesystems, do NOT use NTFS, FAT or FUSE-based filesystems.
+<dd>No, it must be stored on a local filesystem. You will need a fast filesystem able to deal with potentially big files (several gigabytes are not uncommon) that will be created and removed on the fly. For stability and performance reasons, you should prefer native filesystems, do NOT use NTFS, FAT or <a href="https://en.wikipedia.org/wiki/Filesystem_in_Userspace">FUSE</a>-based filesystems.
 </dd>
 </dl>
 <ul>
-<li>under Linux, you can use ext3/4, XFS, Btrfs, ReiserFS, JFS</li>
-<li>under OS X, you can use HFS+</li>
+<li>under Linux, you can use <a href="https://en.wikipedia.org/wiki/Ext3">ext3</a>/<a href="https://en.wikipedia.org/wiki/Ext4">ext4</a>, <a href="https://en.wikipedia.org/wiki/XFS">XFS</a>, <a href="https://en.wikipedia.org/wiki/Btrfs">Btrfs</a>, <a href="https://en.wikipedia.org/wiki/ReiserFS">ReiserFS</a>, <a href="https://en.wikipedia.org/wiki/JFS_%28file_system%29">JFS</a></li>
+<li>under OS X, you can use <a href="https://support.apple.com/en-us/HT201711">HFS+</a></li>
 </ul>
 <dl>
 <dt>Which filesystem should I use for the vault? Can I use a network filesystem?</dt>
-<dd>Yes, the vault can be on a remote filesystem. You will need a fast filesystem able to deal with potentially big files and, more importantly, with many files (often thousands and thousands) <em>in the same directory</em>. For that reason, do NOT use NTFS, FAT but you can use FUSE-based filesystems.
+<dd>Yes, the vault can be on a remote filesystem. You will need a fast filesystem able to deal with potentially big files and, more importantly, with many files (often thousands and thousands) <em>in the same directory</em>. For that reason, do NOT use NTFS, FAT but you can use <a href="https://en.wikipedia.org/wiki/Filesystem_in_Userspace">FUSE</a>-based filesystems if they don’t put a limit on the number of files.
 </dd>
 </dl>
 <ul>
-<li>under Linux, you can use ext3/4, XFS, Btrfs, ReiserFS, JFS, NFS, SMB, AFS…</li>
-<li>under OS X, you can use HFS+, AFP, NFS, SMB…</li>
+<li>under Linux, you can use <a href="https://en.wikipedia.org/wiki/Ext3">ext3</a>/<a href="https://en.wikipedia.org/wiki/Ext4">ext4</a>, <a href="https://en.wikipedia.org/wiki/XFS">XFS</a>, <a href="https://en.wikipedia.org/wiki/Btrfs">Btrfs</a>, <a href="https://en.wikipedia.org/wiki/ReiserFS">ReiserFS</a>, <a href="https://en.wikipedia.org/wiki/JFS_%28file_system%29">JFS</a>, <a href="https://en.wikipedia.org/wiki/Network_File_System">NFS</a>, <a href="https://en.wikipedia.org/wiki/Server_Message_Block">SMB</a>, <a href="https://en.wikipedia.org/wiki/Andrew_File_System">AFS</a>…</li>
+<li>under OS X, you can use <a href="https://support.apple.com/en-us/HT201711">HFS+</a>, <a href="https://en.wikipedia.org/wiki/Apple_Filing_Protocol">AFP</a>, <a href="https://en.wikipedia.org/wiki/Network_File_System">NFS</a>, <a href="https://en.wikipedia.org/wiki/Server_Message_Block">SMB</a>…</li>
 </ul>
 <dl>
 <dt>What are these <code>catalog.db-wal</code> and <code>catalog.db-shm</code> files? Can I remove them?</dt>
