@@ -79,13 +79,13 @@ func newbackup() {
 		catalog.QueryRow("PRAGMA page_count").Scan(&page_count)
 		catalog.QueryRow("PRAGMA page_size").Scan(&page_size)
 
-		if int64(page_size*page_count) > fsstat.Bsize*int64(fsstat.Bavail)/3 {
-			log.Printf("Low disk space: msg=\"catalog disk filling up\" available=%d required=%d where=%q error=warn\n", fsstat.Bsize*int64(fsstat.Bavail), 3*page_size*page_count, cfg.Catalog)
+		if int64(page_size*page_count) > int64(fsstat.Bsize)*int64(fsstat.Bavail)/3 {
+			log.Printf("Low disk space: msg=\"catalog disk filling up\" available=%d required=%d where=%q error=warn\n", int64(fsstat.Bsize)*int64(fsstat.Bavail), 3*page_size*page_count, cfg.Catalog)
 		}
 	}
 	if err := syscall.Statfs(cfg.Vault, &fsstat); err == nil {
 		if 10*fsstat.Bavail < fsstat.Blocks {
-			log.Printf("Low disk space: msg=\"vault filling up (>90%)\" available=%d required=%d where=%q error=warn\n", fsstat.Bsize*int64(fsstat.Bavail), fsstat.Bsize*int64(fsstat.Blocks)/10, cfg.Vault)
+			log.Printf("Low disk space: msg=\"vault filling up (>90%)\" available=%d required=%d where=%q error=warn\n", int64(fsstat.Bsize)*int64(fsstat.Bavail), int64(fsstat.Bsize)*int64(fsstat.Blocks)/10, cfg.Vault)
 		}
 	}
 
