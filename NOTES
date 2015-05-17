@@ -14,6 +14,8 @@ new commands:
    - show often changing files in a backup
 
 check disk space before accepting a new backup
+ * warn if <10% disk space available
+ * warn if not enough disk space available for a few catalogs (original+backup+logs)
  * fail if <5% disk space available
  * fail if available disk space < size previous backup
 
