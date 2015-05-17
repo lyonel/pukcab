@@ -14,7 +14,7 @@
 <body>
 <header>
 <h1 class="title">Pukcab 1.5beta2</h1>
-<h3 class="date">2015-05-17</h3>
+<h3 class="date">2015-05-18</h3>
 </header>
 <nav id="TOC">
 <ul>
@@ -64,7 +64,10 @@
 <li><a href="#files">Files</a></li>
 </ul></li>
 <li><a href="#examples-2">Examples</a></li>
-<li><a href="#frequently-asked-questions">Frequently Asked Questions</a></li>
+<li><a href="#frequently-asked-questions">Frequently Asked Questions</a><ul>
+<li><a href="#client-faq">Client FAQ</a></li>
+<li><a href="#server-faq">Server FAQ</a></li>
+</ul></li>
 </ul>
 </nav>
 <h1 id="introduction">Introduction</h1>
@@ -892,7 +895,31 @@ Missing:  0
 -rw-rw-r-- 1 support support 1804762 Dec  2 19:59 netatalk-3.1.7-0.1.fc21.src.rpm
 [root@myserver ~]#</code></pre>
 <h1 id="frequently-asked-questions">Frequently Asked Questions</h1>
+<h2 id="client-faq">Client FAQ</h2>
 <dl>
+<dt>Is there a Windows version?</dt>
+<dd><p>No, Windows is currently unsupported. Porting to Windows would require a significant effort and isn’t in the plans. This may change, though.</p>
+</dd>
+<dt>My first backup is taking forever! What should I do?</dt>
+<dd>Wait. Another option is to make sure you didn’t forget to <a href="#including-excluding-items">exclude</a> useless or volatile data like
+</dd>
+</dl>
+<ul>
+<li>big <code>Downloads</code> folders</li>
+<li>caches (Firefox, Safari, Thunderbird tend to keep gigabytes of throw-away data)</li>
+<li>backups</li>
+<li>temporary files you forgot to delete</li>
+</ul>
+<dl>
+<dt>My first backup is <em>still</em> taking forever! What should I do?</dt>
+<dd>If necessary, you can interrupt it and <a href="#continue">continue</a> later (<code>pukcab</code> will think a bit and restart where it was interrupted). Once the first backup is complete, you can take a second one and get rid (with <a href="#delete">delete</a>) of the first one as many files may have changed during such a long backup.
+</dd>
+</dl>
+<h2 id="server-faq">Server FAQ</h2>
+<dl>
+<dt>Is there a Windows version?</dt>
+<dd><p>No, and there problably never will. If you’re seriously considering trusting a Windows server with your most precious data, we humbly suggest reconsidering your backup strategy.</p>
+</dd>
 <dt>Which filesystem should I use for the catalog? Can I use a network filesystem?</dt>
 <dd>No, it must be stored on a local filesystem. You will need a fast filesystem able to deal with potentially big files (several gigabytes are not uncommon) that will be created and removed on the fly. For stability and performance reasons, you should prefer native filesystems, do NOT use NTFS, FAT or <a href="https://en.wikipedia.org/wiki/Filesystem_in_Userspace">FUSE</a>-based filesystems.
 </dd>

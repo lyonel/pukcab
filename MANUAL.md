@@ -750,6 +750,30 @@ We found it! Let's restore it in-place
 Frequently Asked Questions
 ==========================
 
+##Client FAQ
+
+Is there a Windows version?
+
+:   No, Windows is currently unsupported. Porting to Windows would require a significant effort and isn't in the plans. This may change, though.
+
+My first backup is taking forever! What should I do?
+
+:   Wait. Another option is to make sure you didn't forget to [exclude] useless or volatile data like
+ * big `Downloads` folders
+ * caches (Firefox, Safari, Thunderbird tend to keep gigabytes of throw-away data)
+ * backups
+ * temporary files you forgot to delete
+
+My first backup is *still* taking forever! What should I do?
+
+:   If necessary, you can interrupt it and [continue] later (`pukcab` will think a bit and restart where it was interrupted). Once the first backup is complete, you can take a second one and get rid (with [delete]) of the first one as many files may have changed during such a long backup.
+
+##Server FAQ
+
+Is there a Windows version?
+
+:   No, and there problably never will. If you're seriously considering trusting a Windows server with your most precious data, we humbly suggest reconsidering your backup strategy.
+
 Which filesystem should I use for the catalog? Can I use a network filesystem?
 
 :   No, it must be stored on a local filesystem. You will need a fast filesystem able to deal with potentially big files (several gigabytes are not uncommon) that will be created and removed on the fly. For stability and performance reasons, you should prefer native filesystems, do NOT use NTFS, FAT or [FUSE]-based filesystems.
@@ -810,6 +834,7 @@ What is this `catalog.db~` file? Can I remove it?
 
 [create SSH keys]: https://en.wikipedia.org/wiki/Ssh-keygen
 [OS-dependent]: #os-dependent-defaults
+[exclude]: #including-excluding-items
 [HFS+]: https://support.apple.com/en-us/HT201711
 [Btrfs]: https://en.wikipedia.org/wiki/Btrfs
 [ext3]: https://en.wikipedia.org/wiki/Ext3
