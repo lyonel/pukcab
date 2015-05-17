@@ -747,6 +747,32 @@ We found it! Let's restore it in-place
 [root@myserver ~]#
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Frequently Asked Questions
+==========================
+
+Which filesystem should I use for the catalog? Can I use a network filesystem?
+
+:   No, it must be stored on a local filesystem. You will need a fast filesystem able to deal with potentially big files (several gigabytes are not uncommon) that will be created and removed on the fly. For stability and performance reasons, you should prefer native filesystems, do NOT use NTFS, FAT or FUSE-based filesystems.
+ * under Linux, you can use ext3/4, XFS, Btrfs, ReiserFS, JFS
+ * under OS X, you can use HFS+
+
+Which filesystem should I use for the vault? Can I use a network filesystem?
+
+:   Yes, the vault can be on a remote filesystem. You will need a fast filesystem able to deal with potentially big files and, more importantly, with many files (often thousands and thousands) *in the same directory*. For that reason, do NOT use NTFS, FAT but you can use FUSE-based filesystems.
+ * under Linux, you can use ext3/4, XFS, Btrfs, ReiserFS, JFS, NFS, SMB, AFS...
+ * under OS X, you can use HFS+, AFP, NFS, SMB...
+
+What are these `catalog.db-wal` and `catalog.db-shm` files? Can I remove them?
+
+:   Short answer: don't, you would lose backups!
+:   These files are used to ensure safe concurrent access to the catalog to multiple `pukcab` instances. They are created and deleted automatically, there is no need for you to worry about them.
+
+What is this `catalog.db~` file? Can I remove it?
+
+:   Short answer: you can, but it's not recommended.
+:   This file is an automatic backup of your catalog that is created right after each `expire` command. It may therefore be slightly obsolete but it can be used for recovery in case the live catalog gets destroyed/corrupted.
+
+
 [_OPTIONS_]: #options
 [_FILES_]: #files
 [backup]: #backup

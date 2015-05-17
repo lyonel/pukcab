@@ -13,8 +13,8 @@
 </head>
 <body>
 <header>
-<h1 class="title">Pukcab 1.4.37</h1>
-<h3 class="date">2015-05-08</h3>
+<h1 class="title">Pukcab 1.5beta2</h1>
+<h3 class="date">2015-05-17</h3>
 </header>
 <nav id="TOC">
 <ul>
@@ -64,6 +64,7 @@
 <li><a href="#files">Files</a></li>
 </ul></li>
 <li><a href="#examples-2">Examples</a></li>
+<li><a href="#frequently-asked-questions">Frequently Asked Questions</a></li>
 </ul>
 </nav>
 <h1 id="introduction">Introduction</h1>
@@ -890,6 +891,37 @@ Missing:  0
 [root@myserver ~]# ls -l netatalk-3.1.7-0.1.fc21.src.rpm
 -rw-rw-r-- 1 support support 1804762 Dec  2 19:59 netatalk-3.1.7-0.1.fc21.src.rpm
 [root@myserver ~]#</code></pre>
+<h1 id="frequently-asked-questions">Frequently Asked Questions</h1>
+<dl>
+<dt>Which filesystem should I use for the catalog? Can I use a network filesystem?</dt>
+<dd>No, it must be stored on a local filesystem. You will need a fast filesystem able to deal with potentially big files (several gigabytes are not uncommon) that will be created and removed on the fly. For stability and performance reasons, you should prefer native filesystems, do NOT use NTFS, FAT or FUSE-based filesystems.
+</dd>
+</dl>
+<ul>
+<li>under Linux, you can use ext3/4, XFS, Btrfs, ReiserFS, JFS</li>
+<li>under OS X, you can use HFS+</li>
+</ul>
+<dl>
+<dt>Which filesystem should I use for the vault? Can I use a network filesystem?</dt>
+<dd>Yes, the vault can be on a remote filesystem. You will need a fast filesystem able to deal with potentially big files and, more importantly, with many files (often thousands and thousands) <em>in the same directory</em>. For that reason, do NOT use NTFS, FAT but you can use FUSE-based filesystems.
+</dd>
+</dl>
+<ul>
+<li>under Linux, you can use ext3/4, XFS, Btrfs, ReiserFS, JFS, NFS, SMB, AFS…</li>
+<li>under OS X, you can use HFS+, AFP, NFS, SMB…</li>
+</ul>
+<dl>
+<dt>What are these <code>catalog.db-wal</code> and <code>catalog.db-shm</code> files? Can I remove them?</dt>
+<dd>Short answer: don’t, you would lose backups!
+</dd>
+<dd><p>These files are used to ensure safe concurrent access to the catalog to multiple <code>pukcab</code> instances. They are created and deleted automatically, there is no need for you to worry about them.</p>
+</dd>
+<dt>What is this <code>catalog.db~</code> file? Can I remove it?</dt>
+<dd>Short answer: you can, but it’s not recommended.
+</dd>
+<dd><p>This file is an automatic backup of your catalog that is created right after each <code>expire</code> command. It may therefore be slightly obsolete but it can be used for recovery in case the live catalog gets destroyed/corrupted.</p>
+</dd>
+</dl>
 <section class="footnotes">
 <hr />
 <ol>

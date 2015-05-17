@@ -1,7 +1,8 @@
 OS:=$(shell uname -s)
 ARCH?=$(shell uname -m)
 VERSION:=$(shell git describe --tags --long | cut -d - -f 1,2 | tr - .)
-PANDOC:=pandoc -V title="Pukcab ${VERSION}" -V date="`date +%F`" --smart --toc --toc-depth=2
+SHORTVERSION:=$(shell git describe --tags --long | cut -d - -f 1 | tr - .)
+PANDOC:=pandoc -V title="Pukcab ${SHORTVERSION}" -V date="`date +%F`" --smart --toc --toc-depth=2
 
 export GOPATH=${PWD}
 
