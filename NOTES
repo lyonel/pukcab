@@ -13,12 +13,6 @@ new commands:
    - show big directories in a backup set
    - show often changing files in a backup
 
-check disk space before accepting a new backup
- * warn if <10% disk space available
- * warn if not enough disk space available for a few catalogs (original+backup+logs)
- * fail if <5% disk space available
- * fail if available disk space < size previous backup
-
 investigate DAR format for `archive` command (cf. http://dar.linux.free.fr/)
 
 detect sparse files (esp. /var/log/lastlog)
@@ -32,8 +26,6 @@ Windows
 `web` command
  * allow FTP access
  * username/password
-
-auto-backup catalog
 
 improve `restore` command usability
  * pukcab restore ./local-file
