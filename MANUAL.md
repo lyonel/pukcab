@@ -244,17 +244,17 @@ Synopsis
 
 --------------------------- -----------------------------------------
 [backup], [save]            take a new backup
+[config], [cfg]             display `pukcab`'s configuration
 [continue], [resume]        continue a partial backup
-[restore]                   restore files
-[verify], [check]           verify files in a backup
 [delete], [purge]           delete a backup
 [expire]                    apply retention schedule to old backups
-[vacuum]                    vault and catalog clean-up
-[config], [cfg]             display `pukcab`'s configuration
 [history], [versions]       list history for files
 [info], [list]              list backups and files
 [ping], [test]              check server connectivity
 [register]                  register to backup server
+[restore]                   restore files
+[vacuum]                    vault and catalog clean-up
+[verify], [check]           verify files in a backup
 [web]                       starts the built-in web interface
 --------------------------- -----------------------------------------
 
@@ -279,6 +279,15 @@ Syntax
  * the [name] and [schedule] options are chosen automatically if not specified
  * interrupted backups can be resumed with the [continue] command
 
+`config`
+--------
+
+The `config` command displays the current configuration.
+
+Syntax
+
+:   `pukcab config`
+
 `continue`
 ----------
 
@@ -293,35 +302,6 @@ Syntax
  * the [name] option is chosen automatically if not specified
  * the [date] option automatically selects the last unfinished backup
  * only unfinished backups may be resumed
-
-`restore`
----------
-
-The `restore` command restores [files] as they were at a given [date].
-
-Syntax
-
-:   `pukcab restore` [ --[name]=_name_ ] [ --[date]=_date_ ] [ [_FILES_] ... ]
-
-### Notes
-
- * the [name] option is chosen automatically if not specified
- * the [date] option automatically selects the last backup
- * this operation currently requires a working `tar` system command (usually GNU tar)
-
-`verify`
---------
-
-The verify command reports [files] which have changed since a given [date].
-
-Syntax
-
-:   `pukcab verify` [ --[name]=_name_ ] [ --[date]=_date_ ] [ [_FILES_] ... ]
-
-### Notes
-
- * the [name] option is chosen automatically if not specified
- * the [date] option automatically selects the last backup if not specified
 
 `delete`
 --------
@@ -362,29 +342,6 @@ Syntax
  * on the [backup server](#server), the [name] option defaults to all backups if not specified
  * on a [backup client](#client), the [name] option is chosen automatically if not specified
  * the [schedule] and [expiration] are chosen automatically if not specified
-
-`vacuum`
---------
-
-The `vacuum` command initiates clean-up of the catalog and vault to save disk space.
-
-Syntax
-
-:   `pukcab vacuum`
-
-### Notes
-
- * can only be run on the server
- * the clean-up may take a while and delay new backups
-
-`config`
---------
-
-The `config` command displays the current configuration.
-
-Syntax
-
-:   `pukcab config`
 
 `history`
 ---------
@@ -441,6 +398,49 @@ Syntax
 
  * to register to the backup server, `pukcab` will ask for the dedicated user's password (set on the server)
  * verbose mode displays detailed information during the registration
+
+`restore`
+---------
+
+The `restore` command restores [files] as they were at a given [date].
+
+Syntax
+
+:   `pukcab restore` [ --[name]=_name_ ] [ --[date]=_date_ ] [ [_FILES_] ... ]
+
+### Notes
+
+ * the [name] option is chosen automatically if not specified
+ * the [date] option automatically selects the last backup
+ * this operation currently requires a working `tar` system command (usually GNU tar)
+
+`vacuum`
+--------
+
+The `vacuum` command initiates clean-up of the catalog and vault to save disk space.
+
+Syntax
+
+:   `pukcab vacuum`
+
+### Notes
+
+ * can only be run on the server
+ * the clean-up may take a while and delay new backups
+
+`verify`
+--------
+
+The verify command reports [files] which have changed since a given [date].
+
+Syntax
+
+:   `pukcab verify` [ --[name]=_name_ ] [ --[date]=_date_ ] [ [_FILES_] ... ]
+
+### Notes
+
+ * the [name] option is chosen automatically if not specified
+ * the [date] option automatically selects the last backup if not specified
 
 `web`
 -----
@@ -521,6 +521,53 @@ Syntax
  * `--date 2h30m` means *2 hours and 30 minutes ago*
  * `--date 2015-01-07` means *on the 7th January 2015 at midnight*
 
+`full`
+------
+
+Forces a full backup: `pukcab` will send all files to the server, without checking for changes.
+
+Syntax
+
+:   `--full`[`=true`]
+
+:   `--full=false`
+
+:   `-f`
+
+Default value
+
+:   `false`
+
+`keep`
+------
+
+When expiring data, keep at least a certain number of backups (even if they are expired).
+
+Syntax
+
+:   `--keep`[=]*number*
+
+:   `-k` *number*
+
+Default value
+
+:   `3`
+
+`listen`
+--------
+
+Force the built-in web server to listen for connections on a different address/port.
+
+Syntax
+
+:   `--listen`[=][*host*]:*port*
+
+:   `-l` [*host*]:*port*
+
+Default value
+
+:   `localhost:8080`
+
 `name`
 ------
 
@@ -559,38 +606,6 @@ Default value
 
 :   `yearly` on 1st January
 
-`full`
-------
-
-Forces a full backup: `pukcab` will send all files to the server, without checking for changes.
-
-Syntax
-
-:   `--full`[`=true`]
-
-:   `--full=false`
-
-:   `-f`
-
-Default value
-
-:   `false`
-
-`keep`
-------
-
-When expiring data, keep at least a certain number of backups (even if they are expired).
-
-Syntax
-
-:   `--keep`[=]*number*
-
-:   `-k` *number*
-
-Default value
-
-:   `3`
-
 `short`
 -------
 
@@ -607,21 +622,6 @@ Syntax
 Default value
 
 :   `false`
-
-`listen`
---------
-
-Force the built-in web server to listen for connections on a different address/port.
-
-Syntax
-
-:   `--listen`[=][*host*]:*port*
-
-:   `-l` [*host*]:*port*
-
-Default value
-
-:   `localhost:8080`
 
 Files
 -----
