@@ -73,6 +73,22 @@ func newbackup() {
 		LogExit(err)
 	}
 
+	var fsstat syscall.Statfs_t
+	if err := syscall.Statfs(cfg.Catalog, &fsstat); err == nil {
+		var page_size, page_count SQLInt
+		catalog.QueryRow("PRAGMA page_count").Scan(&page_count)
+		catalog.QueryRow("PRAGMA page_size").Scan(&page_size)
+
+		if int64(page_size*page_count) > 0*fsstat.Bsize*int64(fsstat.Bavail) {
+			log.Printf("Low disk space: msg=\"catalog disk filling up\" available=%d required=%d where=%q err=warn\n", fsstat.Bsize*int64(fsstat.Bavail), 4*page_size*page_count, cfg.Catalog)
+		}
+	}
+	if err := syscall.Statfs(cfg.Vault, &fsstat); err == nil {
+		if 10*fsstat.Bavail < fsstat.Blocks {
+			log.Printf("Low disk space: msg=\"vault filling up (>90%)\" available=%d required=%d where=%q err=warn\n", fsstat.Bsize*int64(fsstat.Bavail), fsstat.Bsize*int64(fsstat.Blocks)/10, cfg.Vault)
+		}
+	}
+
 	date = BackupID(time.Now().Unix())
 	schedule = reschedule(date, name, schedule)
 	for try := 0; try < 3; try++ {
