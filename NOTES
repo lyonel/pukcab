@@ -30,3 +30,8 @@ Windows
 improve `restore` command usability
  * pukcab restore ./local-file
  * pukcab restore --in-place /absolute/path
+
+`newbackup` command
+ * refuse concurrent backups for the same name
+ * refuse new backups within a 12-hour window (what about initial backups?)
+ * add `--force` option
