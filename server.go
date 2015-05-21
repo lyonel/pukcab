@@ -150,7 +150,7 @@ func dumpcatalog(what DumpFlags) {
 	if err := opencatalog(); err != nil {
 		LogExit(err)
 	}
-	catalog.Exec("PRAGMA wal_autocheckpoint = 0")
+	autocheckpoint(catalog, false)
 
 	filter := flag.Args()
 	if len(filter) == 0 {
@@ -474,7 +474,7 @@ func submitfiles() {
 		}
 	}
 
-	catalog.Exec("PRAGMA wal_checkpoint(PASSIVE)")
+	checkpoint(catalog, false)
 
 	missing = 0
 	if err := catalog.QueryRow("SELECT COUNT(*) FROM files WHERE backupid=? AND type='?'", date).Scan(&missing); err == nil {
@@ -533,7 +533,7 @@ func purgebackup() {
 func vacuum() {
 	log.Println("Vacuum...")
 
-	catalog.Exec("PRAGMA wal_checkpoint(TRUNCATE)")
+	checkpoint(catalog, true)
 
 	done := make(chan error)
 	go func() {

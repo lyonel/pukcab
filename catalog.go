@@ -228,3 +228,19 @@ func backupcatalog() error {
 		return err
 	}
 }
+
+func checkpoint(catalog Catalog, force bool) {
+	if force {
+		catalog.Exec("PRAGMA wal_checkpoint(TRUNCATE)")
+	} else {
+		catalog.Exec("PRAGMA wal_checkpoint(PASSIVE)")
+	}
+}
+
+func autocheckpoint(catalog Catalog, enable bool) {
+	if enable {
+		catalog.Exec("PRAGMA wal_autocheckpoint = 1000")
+	} else {
+		catalog.Exec("PRAGMA wal_autocheckpoint = 0")
+	}
+}
