@@ -13,7 +13,6 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
-	"math/rand"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -89,12 +88,14 @@ func newbackup() {
 		}
 	}
 
-	retry(3, func() error {
+	if err := retry(cfg.Maxtries, func() error {
 		date = BackupID(time.Now().Unix())
 		schedule = reschedule(date, name, schedule)
 		_, err := catalog.Exec("INSERT INTO backups (date,name,schedule) VALUES(?,?,?)", date, name, schedule)
 		return err
-	})
+	}); err != nil {
+		LogExit(err)
+	}
 
 	log.Printf("Creating backup set: date=%d name=%q schedule=%q\n", date, name, schedule)
 
@@ -455,16 +456,10 @@ func submitfiles() {
 			if stmt, err := catalog.Prepare("INSERT OR REPLACE INTO files (hash,backupid,nameid,size,type,linknameid,username,groupname,uid,gid,mode,access,modify,change,devmajor,devminor) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"); err != nil {
 				LogExit(err)
 			} else {
-				for try := 0; try < cfg.Maxtries; try++ {
-					_, err = stmt.Exec(hash, date, nameid(catalog, filepath.Clean(hdr.Name)), hdr.Size, string(hdr.Typeflag), nameid(catalog, filepath.Clean(hdr.Linkname)), hdr.Uname, hdr.Gname, hdr.Uid, hdr.Gid, hdr.Mode, hdr.AccessTime.Unix(), hdr.ModTime.Unix(), hdr.ChangeTime.Unix(), hdr.Devmajor, hdr.Devminor)
-					if busy(err) {
-						log.Println(err, "- retrying", try+1)
-						time.Sleep(time.Duration(1+rand.Intn(10)) * time.Second)
-					} else {
-						break
-					}
-				}
-				if err != nil {
+				if err := retryif(cfg.Maxtries, busy, func() error {
+					_, err := stmt.Exec(hash, date, nameid(catalog, filepath.Clean(hdr.Name)), hdr.Size, string(hdr.Typeflag), nameid(catalog, filepath.Clean(hdr.Linkname)), hdr.Uname, hdr.Gname, hdr.Uid, hdr.Gid, hdr.Mode, hdr.AccessTime.Unix(), hdr.ModTime.Unix(), hdr.ChangeTime.Unix(), hdr.Devmajor, hdr.Devminor)
+					return err
+				}); err != nil {
 					LogExit(err)
 				}
 			}
