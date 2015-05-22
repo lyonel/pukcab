@@ -89,15 +89,12 @@ func newbackup() {
 		}
 	}
 
-	date = BackupID(time.Now().Unix())
-	schedule = reschedule(date, name, schedule)
-	for try := 0; try < 3; try++ {
-		if _, err := catalog.Exec("INSERT INTO backups (date,name,schedule) VALUES(?,?,?)", date, name, schedule); err == nil {
-			break
-		}
-		time.Sleep(1 * time.Second)
+	retry(3, func() error {
 		date = BackupID(time.Now().Unix())
-	}
+		schedule = reschedule(date, name, schedule)
+		_, err := catalog.Exec("INSERT INTO backups (date,name,schedule) VALUES(?,?,?)", date, name, schedule)
+		return err
+	})
 
 	log.Printf("Creating backup set: date=%d name=%q schedule=%q\n", date, name, schedule)
 
