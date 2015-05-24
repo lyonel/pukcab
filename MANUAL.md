@@ -794,8 +794,21 @@ What are these `catalog.db-wal` and `catalog.db-shm` files? Can I remove them?
 What is this `catalog.db~` file? Can I remove it?
 
 :   Short answer: you can, but it's not recommended.
-:   This file is an automatic backup of your catalog that is created right after each `expire` command. It may therefore be slightly obsolete but it can be used for recovery in case the live catalog gets destroyed/corrupted.
+:   This file is an automatic backup of your catalog that is created right after each [expire] command. It may therefore be slightly obsolete but it can be used for recovery in case the live catalog gets destroyed/corrupted.
 
+But `catalog.db-wal` is becoming huge! Can I shrink it?
+
+:   Short answer: it will shrink when `pukcab` is done with what it is doing, or after the next [expire] command.
+:   Depending of the number and length of concurrent operations, `pukcab` may make heavy use of this working file. You can reduce its maximum size by limiting the number of concurrent operations you run (i.e. you can serialise the [backup] commands).
+:   If that doesn't help, you can force-clean it by using [vacuum]
+:   If that still doesn't help, make sure no `pukcab` operation is running and issue the following command
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+sqlite3 catalog.db .schema
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ * replace `catalog.db` by your catalog's path
+ * you may need to install [SQLite]
+ * these commands must be run as the `pukcab` user _on the server_
 
 [_OPTIONS_]: #options
 [_FILES_]: #files
@@ -847,3 +860,4 @@ What is this `catalog.db~` file? Can I remove it?
 [SMB]: https://en.wikipedia.org/wiki/Server_Message_Block
 [NFS]: https://en.wikipedia.org/wiki/Network_File_System
 [FUSE]: https://en.wikipedia.org/wiki/Filesystem_in_Userspace
+[SQLite]: http://www.sqlite.org/

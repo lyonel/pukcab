@@ -14,7 +14,7 @@
 <body>
 <header>
 <h1 class="title">Pukcab 1.5beta2</h1>
-<h3 class="date">2015-05-18</h3>
+<h3 class="date">2015-05-24</h3>
 </header>
 <nav id="TOC">
 <ul>
@@ -946,9 +946,24 @@ Missing:  0
 <dt>What is this <code>catalog.db~</code> file? Can I remove it?</dt>
 <dd>Short answer: you can, but it’s not recommended.
 </dd>
-<dd><p>This file is an automatic backup of your catalog that is created right after each <code>expire</code> command. It may therefore be slightly obsolete but it can be used for recovery in case the live catalog gets destroyed/corrupted.</p>
+<dd><p>This file is an automatic backup of your catalog that is created right after each <a href="#expire">expire</a> command. It may therefore be slightly obsolete but it can be used for recovery in case the live catalog gets destroyed/corrupted.</p>
+</dd>
+<dt>But <code>catalog.db-wal</code> is becoming huge! Can I shrink it?</dt>
+<dd>Short answer: it will shrink when <code>pukcab</code> is done with what it is doing, or after the next <a href="#expire">expire</a> command.
+</dd>
+<dd>Depending of the number and length of concurrent operations, <code>pukcab</code> may make heavy use of this working file. You can reduce its maximum size by limiting the number of concurrent operations you run (i.e. you can serialise the <a href="#backup">backup</a> commands).
+</dd>
+<dd>If that doesn’t help, you can force-clean it by using <a href="#vacuum">vacuum</a>
+</dd>
+<dd>If that still doesn’t help, make sure no <code>pukcab</code> operation is running and issue the following command
 </dd>
 </dl>
+<pre><code>sqlite3 catalog.db .schema</code></pre>
+<ul>
+<li>replace <code>catalog.db</code> by your catalog’s path</li>
+<li>you may need to install <a href="http://www.sqlite.org/">SQLite</a></li>
+<li>these commands must be run as the <code>pukcab</code> user <em>on the server</em></li>
+</ul>
 <section class="footnotes">
 <hr />
 <ol>
