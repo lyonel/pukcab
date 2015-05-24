@@ -808,7 +808,8 @@ sqlite3 catalog.db .schema
 
  * replace `catalog.db` by your catalog's path
  * you may need to install [SQLite]
- * these commands must be run as the `pukcab` user _on the server_
+ * this command must be run as the `pukcab` user _on the server_
+ * this command will (probably) take very long and block any backup until it has completed
 
 [_OPTIONS_]: #options
 [_FILES_]: #files
