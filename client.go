@@ -900,8 +900,12 @@ func expire() {
 func restore() {
 	date.Set("now")
 
+	directory := ""
+
 	flag.StringVar(&name, "name", defaultName, "Backup name")
 	flag.StringVar(&name, "n", defaultName, "-name")
+	flag.StringVar(&directory, "directory", "", "Change to directory")
+	flag.StringVar(&directory, "C", "", "-directory")
 	flag.Var(&date, "date", "Backup set")
 	flag.Var(&date, "d", "-date")
 
@@ -916,6 +920,9 @@ func restore() {
 
 	args = []string{}
 	args = append(args, "-x", "-p", "-f", "-")
+	if directory != "" {
+		args = append(args, "-C", directory)
+	}
 	if verbose {
 		args = append(args, "-v")
 	}

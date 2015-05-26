@@ -406,7 +406,7 @@ The `restore` command restores [files] as they were at a given [date].
 
 Syntax
 
-:   `pukcab restore` [ --[name]=_name_ ] [ --[date]=_date_ ] [ [_FILES_] ... ]
+:   `pukcab restore` [ --[directory]=_directory_ ] [ --[name]=_name_ ] [ --[date]=_date_ ] [ [_FILES_] ... ]
 
 ### Notes
 
@@ -622,6 +622,21 @@ Syntax
 Default value
 
 :   `false`
+
+`directory`
+-----------
+
+Change to a given direcory before restoring entries from the backup.
+
+Syntax
+
+:   `--directory`[=]*directory*
+
+:   `-C` *directory*
+
+Default value
+
+:   _none_ (i.e. extract to the current directory)
 
 Files
 -----
@@ -845,6 +860,7 @@ sqlite3 catalog.db .schema
 [age]: #date
 [expiration]: #date
 [listen]: #listen
+[directory]: #directory
 
 [create SSH keys]: https://en.wikipedia.org/wiki/Ssh-keygen
 [OS-dependent]: #os-dependent-defaults
