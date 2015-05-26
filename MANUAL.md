@@ -68,7 +68,7 @@ Clients
 The requirements for a client are very limited. In short, nearly any Linux/OS X box will do.
 
  * SSH client
- * functional `tar` command (tested with [GNU tar](http://www.gnu.org/software/tar/), should work with [BSD (libarchive) tar](http://www.libarchive.org/) and [Jörg Schilling's star](http://sourceforge.net/projects/s-tar/))
+ * functional `tar` command (tested with [GNU tar](http://www.gnu.org/software/tar/), should work with [BSD (libarchive) tar](http://www.libarchive.org/) and [Jörg Schilling's star](http://sourceforge.net/projects/s-tar/)). Caution: the `tar` command of [BusyBox] is known to have issues that will prevent it from restoring files.
  * `root` access (if you want to backup files other than yours)
 
 Installation
@@ -862,3 +862,4 @@ sqlite3 catalog.db .schema
 [NFS]: https://en.wikipedia.org/wiki/Network_File_System
 [FUSE]: https://en.wikipedia.org/wiki/Filesystem_in_Userspace
 [SQLite]: http://www.sqlite.org/
+[BusyBox]: http://www.busybox.net/
