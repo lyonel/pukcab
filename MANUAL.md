@@ -626,7 +626,7 @@ Default value
 `directory`
 -----------
 
-Change to a given direcory before restoring entries from the backup.
+Change to a given directory before restoring entries from the backup.
 
 Syntax
 
