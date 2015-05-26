@@ -282,6 +282,9 @@ func dumpcatalog(what DumpFlags) {
 									hdr.Typeflag = filetype[0]
 								}
 							}
+							if what&Data != 0 && hdr.Typeflag != tar.TypeSymlink && hdr.Typeflag != tar.TypeLink {
+								hdr.Linkname = ""
+							}
 							if what&Data != 0 && hdr.Typeflag == tar.TypeReg {
 								hdr.Size = size
 							}
