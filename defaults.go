@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+var buildId string
+
 const programName = "pukcab"
 const versionMajor = 1
 const versionMinor = 5

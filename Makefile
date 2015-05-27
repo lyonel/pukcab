@@ -11,7 +11,7 @@ export GOPATH=${PWD}
 .SUFFIXES: .md .pdf .html
 
 pukcab:
-	go build -o $@
+	go build -o $@ -ldflags "-X main.buildId \"`git describe --tags` (`date --iso`)\""
 	strip $@
 
 pukcab.exe:
