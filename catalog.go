@@ -22,6 +22,10 @@ type Catalog interface {
 }
 
 func upgradecatalog(v int) (int, error) {
+	if v >= schemaVersion {
+		return v, nil
+	}
+
 	log.Println("Upgrading catalog")
 	tx, _ := catalog.Begin()
 
@@ -126,11 +130,13 @@ END;
 			if v, err := strconv.Atoi(schema); err != nil || v > schemaVersion {
 				return errors.New("Unsupported catalog version, please upgrade")
 			} else {
-				if v, err := upgradecatalog(v); err != nil {
-					fmt.Fprintln(os.Stderr, "Catalog error")
-					log.Fatal(err)
-				} else {
-					log.Println("Upgraded catalog to version", v)
+				if v < schemaVersion {
+					if v, err := upgradecatalog(v); err != nil {
+						fmt.Fprintln(os.Stderr, "Catalog error")
+						log.Fatal(err)
+					} else {
+						log.Println("Upgraded catalog to version", v)
+					}
 				}
 			}
 		} else {
