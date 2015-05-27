@@ -8,6 +8,7 @@ import (
 )
 
 /*
+#include <sys/ioctl.h>
 #include <linux/fs.h>
 
 static int isnodump(int fd)
