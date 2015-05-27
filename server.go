@@ -163,7 +163,7 @@ func dumpcatalog(what DumpFlags) {
 	var stmt *sql.Stmt
 	var err error
 	if date != 0 {
-		query = "SELECT date, name, schedule, finished, files, size FROM backups WHERE date"
+		query = "SELECT date, name, schedule, finished, lastmodified, files, size FROM backups WHERE date"
 		if what&Reverse != 0 {
 			query += ">="
 		} else {
@@ -178,7 +178,7 @@ func dumpcatalog(what DumpFlags) {
 		}
 		details = true
 	} else {
-		query = "SELECT date, name, schedule, finished, files, size FROM backups WHERE ? NOT NULL AND ? IN ('', name) AND ? IN ('', schedule) ORDER BY date"
+		query = "SELECT date, name, schedule, finished, lastmodified, files, size FROM backups WHERE ? NOT NULL AND ? IN ('', name) AND ? IN ('', schedule) ORDER BY date"
 	}
 
 	stmt, err = catalog.Prepare(query)
@@ -190,6 +190,7 @@ func dumpcatalog(what DumpFlags) {
 		defer backups.Close()
 		for backups.Next() {
 			var finished SQLInt
+			var lastmodified SQLInt
 			var d SQLInt
 			var f SQLInt
 			var s SQLInt
@@ -198,6 +199,7 @@ func dumpcatalog(what DumpFlags) {
 				&name,
 				&schedule,
 				&finished,
+				&lastmodified,
 				&f,
 				&s,
 			); err != nil {
@@ -210,12 +212,13 @@ func dumpcatalog(what DumpFlags) {
 			if what&Data == 0 {
 				enc := gob.NewEncoder(&header)
 				enc.Encode(BackupInfo{
-					Date:     date,
-					Finished: time.Unix(int64(finished), 0),
-					Name:     name,
-					Schedule: schedule,
-					Files:    int64(f),
-					Size:     int64(s),
+					Date:         date,
+					Finished:     time.Unix(int64(finished), 0),
+					LastModified: time.Unix(int64(lastmodified), 0),
+					Name:         name,
+					Schedule:     schedule,
+					Files:        int64(f),
+					Size:         int64(s),
 				})
 
 				globalhdr := &tar.Header{

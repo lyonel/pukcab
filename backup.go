@@ -17,6 +17,7 @@ type Backup struct {
 	Name, Schedule string
 	Started        time.Time
 	Finished       time.Time
+	LastModified   time.Time
 
 	backupset   map[string]struct{}
 	directories map[string]bool

@@ -187,10 +187,10 @@ func process(c string, backup *Backup, action func(tar.Header), files ...string)
 				log.Println(err)
 				return err
 			}
-			backup.Name, backup.Schedule, backup.Date, backup.Finished =
-				header.Name, header.Schedule, header.Date, header.Finished
-			hdr.Name, hdr.Linkname, hdr.ModTime, hdr.ChangeTime, hdr.Size =
-				header.Name, header.Schedule, time.Unix(int64(header.Date), 0), header.Finished, header.Size
+			backup.Name, backup.Schedule, backup.Date, backup.Finished, backup.LastModified =
+				header.Name, header.Schedule, header.Date, header.Finished, header.LastModified
+			hdr.Name, hdr.Linkname, hdr.ModTime, hdr.ChangeTime, hdr.AccessTime, hdr.Size =
+				header.Name, header.Schedule, time.Unix(int64(header.Date), 0), header.Finished, header.LastModified, header.Size
 			if hdr.Xattrs == nil {
 				hdr.Xattrs = make(map[string]string)
 			}
@@ -528,6 +528,9 @@ func list() {
 				if !hdr.ChangeTime.IsZero() && hdr.ChangeTime.Unix() != 0 {
 					fmt.Println("Finished:", hdr.ChangeTime)
 					fmt.Println("Duration:", hdr.ChangeTime.Sub(hdr.ModTime))
+				}
+				if !hdr.AccessTime.IsZero() && hdr.AccessTime.Unix() != 0 {
+					fmt.Println("Running: ", time.Now().Sub(hdr.AccessTime))
 				}
 				if hdr.Size > 0 {
 					fmt.Println("Size:    ", Bytes(uint64(hdr.Size)))

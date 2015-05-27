@@ -23,6 +23,7 @@ type BackupID int64
 type BackupInfo struct {
 	Date           BackupID
 	Finished       time.Time
+	LastModified   time.Time
 	Name, Schedule string
 	Files, Size    int64
 }
