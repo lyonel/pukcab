@@ -408,6 +408,8 @@ func submitfiles() {
 				hdr.ChangeTime = time.Unix(0, 0)
 			}
 
+			catalog.Exec("UPDATE backups SET lastmodified=? WHERE date=?", time.Now().Unix(), date)
+
 			switch hdr.Typeflag {
 			case tar.TypeReg, tar.TypeRegA:
 				if tmpfile, err := ioutil.TempFile(cfg.Vault, programName+"-"); err == nil {
@@ -418,6 +420,7 @@ func submitfiles() {
 					buf := make([]byte, 1024*1024) // 1MiB
 					for {
 						nr, er := tr.Read(buf)
+						catalog.Exec("UPDATE backups SET lastmodified=? WHERE date=?", time.Now().Unix(), date)
 						if nr > 0 {
 							nw, ew := gz.Write(buf[0:nr])
 							checksum.Write(buf[0:nr])
@@ -469,6 +472,7 @@ func submitfiles() {
 		}
 	}
 
+	catalog.Exec("UPDATE backups SET lastmodified=NULL WHERE date=?", date)
 	checkpoint(catalog, false)
 
 	missing = 0

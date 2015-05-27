@@ -11,7 +11,7 @@ import (
 	"github.com/mattn/go-sqlite3"
 )
 
-const schemaVersion = 2
+const schemaVersion = 3
 
 var catalog *sql.DB
 var catalogconn *sqlite3.SQLiteConn
@@ -62,6 +62,17 @@ UPDATE META SET value=2 WHERE name='schema';
 		v = 2
 	}
 
+	if v == 2 {
+		if _, err := tx.Exec(`
+ALTER TABLE backups ADD COLUMN lastmodified INTEGER;
+UPDATE META SET value=3 WHERE name='schema';
+					`); err != nil {
+			tx.Rollback()
+			return v, err
+		}
+		v = 3
+	}
+
 	tx.Commit()
 	return v, nil
 }
@@ -97,6 +108,7 @@ CREATE TABLE IF NOT EXISTS backups(name TEXT NOT NULL,
 			schedule TEXT NOT NULL,
 			date INTEGER PRIMARY KEY,
 			finished INTEGER,
+			lastmodified INTEGER,
 			files INTEGER,
 			size INTEGER);
 CREATE TABLE IF NOT EXISTS files(backupid INTEGER NOT NULL,
