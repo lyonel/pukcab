@@ -636,11 +636,11 @@ func BackupStatus(i BackupInfo) string {
 	}
 
 	switch duration := time.Since(i.LastModified); {
-	case duration < 30*time.Minute:
+	case duration < 3*time.Minute:
 		return "starting"
-	case duration < 3*time.Hour:
+	case duration < time.Hour:
 		return "running"
-	case duration < 9*time.Hour:
+	case duration < 2*time.Hour:
 		return "stuck"
 	}
 
