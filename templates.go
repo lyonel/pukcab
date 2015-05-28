@@ -10,6 +10,7 @@ import (
 const css = `body {
     font-family: sans-serif;
     font-weight: light;
+    background: white;
 }
 
 .ls, tt {
