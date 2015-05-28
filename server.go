@@ -46,8 +46,10 @@ func SetupServer() {
 		go web.Wait()
 	}
 	switchuser()
+	failure.SetPrefix("")
 	if sshclient := strings.Split(os.Getenv("SSH_CLIENT"), " "); sshclient[0] != "" {
 		log.Printf("Remote client: ip=%q\n", sshclient[0])
+		failure.SetPrefix("server: ")
 	}
 }
 
@@ -92,6 +94,7 @@ func newbackup() {
 	var previous SQLInt
 	if err := catalog.QueryRow("SELECT MAX(date) AS previous FROM backups WHERE lastmodified AND name=? AND ?-lastmodified<3600", name, time.Now().Unix()).Scan(&previous); err == nil {
 		if previous != 0 {
+			failure.Println("Another backup is already running")
 			LogExit(errors.New("Another backup is already running"))
 		}
 	}
