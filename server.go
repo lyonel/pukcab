@@ -89,6 +89,13 @@ func newbackup() {
 		}
 	}
 
+	var previous SQLInt
+	if err := catalog.QueryRow("SELECT MAX(date) AS previous FROM backups WHERE lastmodififed AND name=? AND ?-lastmodified<3600", name, time.Now().Unix()).Scan(&previous); err == nil {
+		if previous != 0 {
+			LogExit(errors.New("Another backup is already running"))
+		}
+	}
+
 	if err := retry(cfg.Maxtries, func() error {
 		date = BackupID(time.Now().Unix())
 		schedule = reschedule(date, name, schedule)
@@ -96,13 +103,6 @@ func newbackup() {
 		return err
 	}); err != nil {
 		LogExit(err)
-	}
-
-	var previous SQLInt
-	if err := catalog.QueryRow("SELECT MAX(date) AS previous FROM backups WHERE lastmodififed AND name=? AND ?-lastmodified<3600", name, date).Scan(&previous); err == nil {
-		if previous != 0 {
-			LogExit(errors.New("Another backup is already running"))
-		}
 	}
 
 	log.Printf("Creating backup set: date=%d name=%q schedule=%q\n", date, name, schedule)
