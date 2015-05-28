@@ -7,6 +7,7 @@ import (
 	"crypto/sha512"
 	"database/sql"
 	"encoding/gob"
+	"errors"
 	"ezix.org/tar"
 	"flag"
 	"fmt"
@@ -91,10 +92,17 @@ func newbackup() {
 	if err := retry(cfg.Maxtries, func() error {
 		date = BackupID(time.Now().Unix())
 		schedule = reschedule(date, name, schedule)
-		_, err := catalog.Exec("INSERT INTO backups (date,name,schedule) VALUES(?,?,?)", date, name, schedule)
+		_, err := catalog.Exec("INSERT INTO backups (date,name,schedule,lastmodified) VALUES(?,?,?,?)", date, name, schedule, date)
 		return err
 	}); err != nil {
 		LogExit(err)
+	}
+
+	var previous SQLInt
+	if err := catalog.QueryRow("SELECT MAX(date) AS previous FROM backups WHERE lastmodififed AND name=? AND ?-lastmodified<3600", name, date).Scan(&previous); err == nil {
+		if previous != 0 {
+			LogExit(errors.New("Another backup is already running"))
+		}
 	}
 
 	log.Printf("Creating backup set: date=%d name=%q schedule=%q\n", date, name, schedule)
@@ -112,15 +120,16 @@ func newbackup() {
 			LogExit(err)
 		}
 	}
+	tx.Exec("UPDATE backups SET lastmodified=? WHERE date=?", time.Now().Unix(), date)
 	tx.Commit()
 
 	fmt.Println(date)
 
 	if !full {
 		catalog.Exec("WITH previousbackups AS (SELECT date FROM backups WHERE name=? AND date<?), newfiles AS (SELECT nameid from files where backupid=?) INSERT OR REPLACE INTO files (backupid,hash,type,nameid,linknameid,size,birth,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor) SELECT ?,hash,type,nameid,linknameid,size,birth,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor FROM (SELECT * FROM files WHERE type!='?' AND nameid IN newfiles AND backupid IN previousbackups ORDER BY backupid) GROUP BY nameid", name, date, date, date)
+		catalog.Exec("UPDATE backups SET lastmodified=? WHERE date=?", time.Now().Unix(), date)
 	}
 
-	var previous SQLInt
 	if err := catalog.QueryRow("SELECT MAX(date) AS previous FROM backups WHERE finished AND name=?", name).Scan(&previous); err == nil {
 		fmt.Println(int64(previous))
 	} else {
