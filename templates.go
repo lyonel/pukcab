@@ -635,8 +635,7 @@ func BackupStatus(i BackupInfo) string {
 		return "finished"
 	}
 
-	t := time.Unix(int64(i.Date), 0)
-	switch duration := time.Since(t); {
+	switch duration := time.Since(i.LastModified); {
 	case duration < 30*time.Minute:
 		return "starting"
 	case duration < 3*time.Hour:
