@@ -90,7 +90,7 @@ func newbackup() {
 	}
 
 	var previous SQLInt
-	if err := catalog.QueryRow("SELECT MAX(date) AS previous FROM backups WHERE lastmodififed AND name=? AND ?-lastmodified<3600", name, time.Now().Unix()).Scan(&previous); err == nil {
+	if err := catalog.QueryRow("SELECT MAX(date) AS previous FROM backups WHERE lastmodified AND name=? AND ?-lastmodified<3600", name, time.Now().Unix()).Scan(&previous); err == nil {
 		if previous != 0 {
 			LogExit(errors.New("Another backup is already running"))
 		}
