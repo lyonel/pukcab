@@ -49,7 +49,6 @@ func SetupServer() {
 	failure.SetPrefix("")
 	if sshclient := strings.Split(os.Getenv("SSH_CLIENT"), " "); sshclient[0] != "" {
 		log.Printf("Remote client: ip=%q\n", sshclient[0])
-		failure.SetPrefix("server: ")
 	}
 }
 
@@ -66,7 +65,7 @@ func newbackup() {
 
 	if name == "" {
 		fmt.Println(0)
-		fmt.Fprintln(os.Stderr, "Missing backup name")
+		failure.Println("Missing backup name")
 		log.Fatal("Client did not provide a backup name")
 	}
 
@@ -357,12 +356,12 @@ func submitfiles() {
 	cfg.ServerOnly()
 
 	if name == "" {
-		fmt.Fprintln(os.Stderr, "Missing backup name")
+		failure.Println("Missing backup name")
 		log.Fatal("Client did not provide a backup name")
 	}
 
 	if IsATTY(os.Stdout) {
-		fmt.Fprintln(os.Stderr, "Should not be called directly")
+		failure.Println("Should not be called directly")
 		log.Fatal("Should not be called directly")
 	}
 
@@ -388,7 +387,7 @@ func submitfiles() {
 	catalog.QueryRow("SELECT name,schedule,finished FROM backups WHERE date=?", date).Scan(&name, &schedule, &finished)
 
 	if finished != 0 {
-		fmt.Fprintf(os.Stderr, "Error: backup set date=%d is already complete\n", date)
+		failure.Printf("Error: backup set date=%d is already complete\n", date)
 		log.Fatalf("Error: backup set date=%d is already complete\n", date)
 	}
 	log.Printf("Receiving files for backup set: date=%d name=%q schedule=%q files=%d missing=%d\n", date, name, schedule, files, missing)
@@ -519,12 +518,12 @@ func purgebackup() {
 	cfg.ServerOnly()
 
 	if name == "" {
-		fmt.Fprintln(os.Stderr, "Missing backup name")
+		failure.Println("Missing backup name")
 		log.Fatal("Client did not provide a backup name")
 	}
 
 	if date == 0 {
-		fmt.Fprintln(os.Stderr, "Missing backup date")
+		failure.Println("Missing backup date")
 		log.Fatal("Client did not provide a backup date")
 	}
 
@@ -611,7 +610,7 @@ func expirebackup() {
 	cfg.ServerOnly()
 
 	if schedule == "" {
-		fmt.Fprintln(os.Stderr, "Missing backup schedule")
+		failure.Println("Missing backup schedule")
 		log.Fatal("Client did not provide a backup schedule")
 	}
 
@@ -626,7 +625,7 @@ func expirebackup() {
 		case "yearly":
 			date = BackupID(time.Now().Unix() - 10*365*24*60*60) // 10 years
 		default:
-			fmt.Fprintln(os.Stderr, "Missing expiration")
+			failure.Println("Missing expiration")
 			log.Fatal("Client did not provide an expiration")
 		}
 	}
