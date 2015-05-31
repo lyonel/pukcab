@@ -25,6 +25,7 @@ var defaultSchedule string = "daily"
 var verbose bool = false
 var protocol int = protocolVersion
 var timeout int = defaultTimeout
+var force bool = false
 
 func setDefaults() {
 	defaultName, _ = os.Hostname()

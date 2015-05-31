@@ -278,6 +278,7 @@ Syntax
 
  * the [name] and [schedule] options are chosen automatically if not specified
  * interrupted backups can be resumed with the [continue] command
+ * unless forced, the command will fail if another backup for the same name is already running
 
 `config`
 --------
@@ -487,6 +488,7 @@ The following options apply to all commands:
 option                        description
 ---------------------------- ------------------------------------------------
 `-c`, `--config`[`=`]_file_   specify a [configuration file](#configuration) to use
+`-F`, `--force`[`=true`]      ignore non-fatal errors and force action
 `-v`, `--verbose`[`=true`]    display more detailed information
 `-h`, `--help`                display online help
 ---------------------------- ------------------------------------------------

@@ -104,6 +104,8 @@ func main() {
 	flag.StringVar(&configFile, "c", defaultConfig, "-config")
 	flag.BoolVar(&verbose, "verbose", verbose, "Be more verbose")
 	flag.BoolVar(&verbose, "v", verbose, "-verbose")
+	flag.BoolVar(&force, "force", force, "Force action")
+	flag.BoolVar(&force, "F", force, "-force")
 	flag.IntVar(&protocol, "protocol", protocol, "Protocol version")
 	flag.IntVar(&protocol, "p", protocol, "-protocol")
 	flag.IntVar(&timeout, "timeout", timeout, "Backend timeout (in seconds)")

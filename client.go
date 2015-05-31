@@ -48,6 +48,9 @@ func dobackup(name string, schedule string, full bool) (fail error) {
 	if schedule != "" {
 		cmdline = append(cmdline, "-schedule", schedule)
 	}
+	if force {
+		cmdline = append(cmdline, "-force")
+	}
 
 	backup.Start(name, schedule)
 
