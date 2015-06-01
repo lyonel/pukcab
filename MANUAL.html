@@ -14,7 +14,7 @@
 <body>
 <header>
 <h1 class="title">Pukcab 1.5beta2</h1>
-<h3 class="date">2015-05-27</h3>
+<h3 class="date">2015-06-01</h3>
 </header>
 <nav id="TOC">
 <ul>
@@ -468,6 +468,7 @@ server=&quot;backupserver.localdomain.net&quot;</code></pre>
 <ul>
 <li>the <a href="#name">name</a> and <a href="#schedule">schedule</a> options are chosen automatically if not specified</li>
 <li>interrupted backups can be resumed with the <a href="#continue">continue</a> command</li>
+<li>unless forced, the command will fail if another backup for the same name is already running</li>
 </ul>
 <h2 id="config"><code>config</code></h2>
 <p>The <code>config</code> command displays the current configuration.</p>
@@ -671,10 +672,14 @@ pukcab info --name=test</code></pre>
 <td style="text-align: center;">specify a <a href="#configuration">configuration file</a> to use</td>
 </tr>
 <tr class="even">
+<td style="text-align: left;"><code>-F</code>, <code>--force</code>[<code>=true</code>]</td>
+<td style="text-align: center;">ignore non-fatal errors and force action</td>
+</tr>
+<tr class="odd">
 <td style="text-align: left;"><code>-v</code>, <code>--verbose</code>[<code>=true</code>]</td>
 <td style="text-align: center;">display more detailed information</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>-h</code>, <code>--help</code></td>
 <td style="text-align: center;">display online help</td>
 </tr>
