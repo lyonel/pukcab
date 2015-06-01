@@ -170,10 +170,24 @@ func nameid(c Catalog, s string) (id int64) {
 	return id
 }
 
+func first(c Catalog, name string, schedule string) (id BackupID) {
+	var date SQLInt
+	c.QueryRow("SELECT MIN(date) FROM backups WHERE finished AND ? IN ('', name) AND ? IN ('', schedule)", name, schedule).Scan(&date)
+	return BackupID(date)
+}
+
 func last(c Catalog, name string, schedule string) (id BackupID) {
 	var date SQLInt
 	c.QueryRow("SELECT MAX(date) FROM backups WHERE finished AND ? IN ('', name) AND ? IN ('', schedule)", name, schedule).Scan(&date)
 	return BackupID(date)
+}
+
+func min(a, b BackupID) BackupID {
+	if a > b {
+		return b
+	} else {
+		return a
+	}
 }
 
 func reschedule(backup BackupID, name string, s string) (schedule string) {
@@ -186,20 +200,24 @@ func reschedule(backup BackupID, name string, s string) (schedule string) {
 		return
 	}
 
-	latest, lastweekly, lastmonthly := last(catalog, name, ""),
+	earliest, firstweekly, firstmonthly := first(catalog, name, ""),
+		first(catalog, name, "weekly"),
+		first(catalog, name, "monthly")
+	latest, lastweekly, lastmonthly, lastyearly := last(catalog, name, ""),
 		last(catalog, name, "weekly"),
-		last(catalog, name, "monthly")
+		last(catalog, name, "monthly"),
+		last(catalog, name, "yearly")
 
 	if latest == 0 { // this is our first backup ever
 		return
 	}
 
 	switch {
-	case lastmonthly != 0 && backup-lastmonthly > 365*24*60*60:
+	case min(backup-firstmonthly, backup-lastyearly) > 365*24*60*60:
 		return "yearly"
-	case lastweekly != 0 && backup-lastweekly > 30*24*60*60:
+	case min(backup-firstweekly, backup-lastmonthly) > 30*24*60*60:
 		return "monthly"
-	case lastweekly == 0 || backup-lastweekly > 7*24*60*60:
+	case min(backup-earliest, backup-lastweekly) > 7*24*60*60:
 		return "weekly"
 	}
 
