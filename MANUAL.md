@@ -523,6 +523,21 @@ Syntax
  * `--date 2h30m` means *2 hours and 30 minutes ago*
  * `--date 2015-01-07` means *on the 7th January 2015 at midnight*
 
+`directory`
+-----------
+
+Change to a given directory before restoring entries from the backup.
+
+Syntax
+
+:   `--directory`[=]*directory*
+
+:   `-C` *directory*
+
+Default value
+
+:   _none_ (i.e. extract to the current directory)
+
 `full`
 ------
 
@@ -624,21 +639,6 @@ Syntax
 Default value
 
 :   `false`
-
-`directory`
------------
-
-Change to a given directory before restoring entries from the backup.
-
-Syntax
-
-:   `--directory`[=]*directory*
-
-:   `-C` *directory*
-
-Default value
-
-:   _none_ (i.e. extract to the current directory)
 
 Files
 -----
