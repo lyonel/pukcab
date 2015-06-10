@@ -86,7 +86,7 @@ func newbackup() {
 	}
 	if err := syscall.Statfs(cfg.Vault, &fsstat); err == nil {
 		if 10*fsstat.Bavail < fsstat.Blocks {
-			log.Printf("Low disk space: msg=\"vault filling up (>90%)\" available=%d required=%d where=%q error=warn\n", int64(fsstat.Bsize)*int64(fsstat.Bavail), int64(fsstat.Bsize)*int64(fsstat.Blocks)/10, cfg.Vault)
+			log.Printf("Low disk space: msg=\"vault filling up (>90%%)\" available=%d required=%d where=%q error=warn\n", int64(fsstat.Bsize)*int64(fsstat.Bavail), int64(fsstat.Bsize)*int64(fsstat.Blocks)/10, cfg.Vault)
 		}
 	}
 
