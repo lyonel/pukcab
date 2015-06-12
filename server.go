@@ -400,6 +400,7 @@ func submitfiles() {
 	}
 	log.Printf("Receiving files for backup set: date=%d name=%q schedule=%q files=%d missing=%d\n", date, name, schedule, files, missing)
 
+	var received, compressed int64
 	tr := tar.NewReader(os.Stdin)
 
 	for {
@@ -470,10 +471,12 @@ func submitfiles() {
 						LogExit(err)
 					}
 
+					received += hdr.Size
 					hash = EncodeHash(checksum.Sum(nil))
 
-					if _, err := os.Stat(filepath.Join(cfg.Vault, hash)); os.IsNotExist(err) {
+					if s, err := os.Stat(filepath.Join(cfg.Vault, hash)); os.IsNotExist(err) {
 						os.Rename(tmpfile.Name(), filepath.Join(cfg.Vault, hash))
+						compressed += s.Size()
 					} else {
 						os.Remove(tmpfile.Name())
 						os.Chtimes(filepath.Join(cfg.Vault, hash), time.Now(), time.Now())
@@ -504,10 +507,10 @@ func submitfiles() {
 			catalog.Exec("UPDATE backups SET finished=? WHERE date=?", time.Now().Unix(), date)
 			catalog.Exec("UPDATE backups SET files=(SELECT COUNT(*) FROM files WHERE backupid=date) WHERE date=?", date)
 			catalog.Exec("UPDATE backups SET size=(SELECT SUM(size) FROM files WHERE backupid=date) WHERE date=?", date)
-			log.Printf("Finished backup: date=%d name=%q schedule=%q files=%d\n", date, name, schedule, files)
+			log.Printf("Finished backup: date=%d name=%q schedule=%q files=%d received=%d compressed=%d\n", date, name, schedule, files, received, compressed)
 			fmt.Printf("Backup %d complete (%d files)\n", date, files)
 		} else {
-			log.Printf("Received files for backup set: date=%d name=%q schedule=%q files=%d missing=%d\n", date, name, schedule, files, missing)
+			log.Printf("Received files for backup set: date=%d name=%q schedule=%q files=%d missing=%d received=%d compressed=%d\n", date, name, schedule, files, missing, received, compressed)
 			fmt.Printf("Received %d files for backup %d (%d files to go)\n", files-missing, date, missing)
 		}
 	} else {
