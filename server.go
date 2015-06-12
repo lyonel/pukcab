@@ -474,9 +474,11 @@ func submitfiles() {
 					received += hdr.Size
 					hash = EncodeHash(checksum.Sum(nil))
 
-					if s, err := os.Stat(filepath.Join(cfg.Vault, hash)); os.IsNotExist(err) {
+					if _, err := os.Stat(filepath.Join(cfg.Vault, hash)); os.IsNotExist(err) {
 						os.Rename(tmpfile.Name(), filepath.Join(cfg.Vault, hash))
-						compressed += s.Size()
+						if s, err := tmpfile.Stat(); err == nil {
+							compressed += s.Size()
+						}
 					} else {
 						os.Remove(tmpfile.Name())
 						os.Chtimes(filepath.Join(cfg.Vault, hash), time.Now(), time.Now())
