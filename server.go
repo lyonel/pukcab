@@ -552,8 +552,6 @@ func purgebackup() {
 }
 
 func vacuum() {
-	log.Println("Vacuum...")
-
 	checkpoint(catalog, true)
 
 	done := make(chan error)
@@ -578,7 +576,8 @@ func vacuum() {
 		return
 	}
 
-	unused := 0
+	var unused, freed int64
+
 	if vaultfiles, err := ioutil.ReadDir(cfg.Vault); err == nil {
 		for _, f := range vaultfiles {
 			if time.Since(f.ModTime()).Hours() > 24 && !used[f.Name()] { // f is older than 24 hours
@@ -586,6 +585,8 @@ func vacuum() {
 				if err := os.Remove(filepath.Join(cfg.Vault, f.Name())); err != nil {
 					log.Println(err)
 					return
+				} else {
+					freed += f.Size()
 				}
 			}
 		}
@@ -594,7 +595,7 @@ func vacuum() {
 		return
 	}
 
-	log.Printf("Vacuum: removed %d files\n", unused)
+	log.Printf("Vacuum: removed=%d freed=%d\n", unused, freed)
 
 	if err := <-done; err != nil {
 		log.Printf("Could not backup catalog: msg=%q error=warn\n", err)
