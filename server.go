@@ -444,7 +444,7 @@ func submitfiles() {
 					buf := make([]byte, 1024*1024) // 1MiB
 					for {
 						nr, er := tr.Read(buf)
-						catalog.Exec("UPDATE backups SET lastmodified=? WHERE date=?", time.Now().Unix(), date)
+						catalog.Exec("UPDATE backups SET lastmodified=?,size=size+? WHERE date=?", time.Now().Unix(), nr, date)
 						if nr > 0 {
 							nw, ew := gz.Write(buf[0:nr])
 							checksum.Write(buf[0:nr])
