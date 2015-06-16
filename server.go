@@ -109,7 +109,7 @@ func newbackup() {
 	if err := retry(cfg.Maxtries, func() error {
 		date = BackupID(time.Now().Unix())
 		schedule = reschedule(date, name, schedule)
-		_, err := catalog.Exec("INSERT INTO backups (date,name,schedule,lastmodified) VALUES(?,?,?,?)", date, name, schedule, date)
+		_, err := catalog.Exec("INSERT INTO backups (date,name,schedule,lastmodified,size) VALUES(?,?,?,?,0)", date, name, schedule, date)
 		return err
 	}); err != nil {
 		LogExit(err)
