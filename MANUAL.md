@@ -756,8 +756,7 @@ Let's pretend we want to recover a source RPM for `netatalk` that was deleted a 
 We found it! Let's restore it in-place
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-[root@myserver ~]# cd /
-[root@myserver ~]# pukcab restore -d 1422764854 netatalk-3.1.7-0.1.fc21.src.rpm
+[root@myserver ~]# pukcab restore -d 1422764854 -C / netatalk-3.1.7-0.1.fc21.src.rpm
 [root@myserver ~]# cd /home/support/Downloads
 [root@myserver ~]# ls -l netatalk-3.1.7-0.1.fc21.src.rpm
 -rw-rw-r-- 1 support support 1804762 Dec  2 19:59 netatalk-3.1.7-0.1.fc21.src.rpm
