@@ -794,12 +794,14 @@ Is there a Windows version?
 Which filesystem should I use for the catalog? Can I use a network filesystem?
 
 :   No, it must be stored on a local filesystem. You will need a fast filesystem able to deal with potentially big files (several gigabytes are not uncommon) that will be created and removed on the fly. For stability and performance reasons, you should prefer native filesystems, do NOT use NTFS, FAT or [FUSE]-based filesystems.
+
  * under Linux, you can use [ext3]/[ext4], [XFS], [Btrfs], [ReiserFS], [JFS]
  * under OS X, you can use [HFS+]
 
 Which filesystem should I use for the vault? Can I use a network filesystem?
 
 :   Yes, the vault can be on a remote filesystem. You will need a fast filesystem able to deal with potentially big files and, more importantly, with many files (often thousands and thousands) *in the same directory*. For that reason, do NOT use NTFS, FAT but you can use [FUSE]-based filesystems if they don't put a limit on the number of files.
+
  * under Linux, you can use [ext3]/[ext4], [XFS], [Btrfs], [ReiserFS], [JFS], [NFS], [SMB], [AFS]...
  * under OS X, you can use [HFS+], [AFP], [NFS], [SMB]...
 
@@ -819,6 +821,7 @@ But `catalog.db-wal` is becoming huge! Can I shrink it?
 :   Depending of the number and length of concurrent operations, `pukcab` may make heavy use of this working file. You can reduce its maximum size by limiting the number of concurrent operations you run (i.e. you can serialise the [backup] commands).
 :   If that doesn't help, you can force-clean it by using [vacuum]
 :   If that still doesn't help, make sure no `pukcab` operation is running and issue the following command
+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 sqlite3 catalog.db .schema
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
