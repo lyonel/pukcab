@@ -13,7 +13,7 @@
 </head>
 <body>
 <header>
-<h1 class="title">Pukcab 1.5beta2</h1>
+<h1 class="title">Pukcab 1.5</h1>
 <h3 class="date">2015-06-18</h3>
 </header>
 <nav id="TOC">
@@ -906,8 +906,7 @@ Missing:  0
 1427249388 myserver daily Wed Mar 25 03:24
 [root@myserver ~]#</code></pre>
 <p>We found it! Let’s restore it in-place</p>
-<pre><code>[root@myserver ~]# cd /
-[root@myserver ~]# pukcab restore -d 1422764854 netatalk-3.1.7-0.1.fc21.src.rpm
+<pre><code>[root@myserver ~]# pukcab restore -d 1422764854 -C / netatalk-3.1.7-0.1.fc21.src.rpm
 [root@myserver ~]# cd /home/support/Downloads
 [root@myserver ~]# ls -l netatalk-3.1.7-0.1.fc21.src.rpm
 -rw-rw-r-- 1 support support 1804762 Dec  2 19:59 netatalk-3.1.7-0.1.fc21.src.rpm
