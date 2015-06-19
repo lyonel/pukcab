@@ -1,0 +1,20 @@
+{
+   "name": "pukcab",
+   "title": "Pukcab",
+   "description": "Pukcab is a lightweight, single-binary backup system that stores de-duplicated, compressed and incremental backups on a remote server using just an SSH connection.",
+   "homepage": "http://pukcab.ezix.org/",
+   "license": "GNU GPL",
+   "tags": "backup, go, console, darwin, posix, linux, web, ssh",
+   "image": "http://www.ezix.org/project/raw-attachment/wiki/Pukcab/pukcab.png",
+   "download": "http://www.ezix.org/software/files/pukcab-$version.tar.gz",
+   "releases": [
+      {
+         "version": "1.5",
+         "state": "stable",
+         "scope": "minor feature",
+         "changes": "Improved concurrency and web UI",
+         "download": "http://www.ezix.org/software/files/pukcab-$version.tar.gz",
+         "published": "2015-06-18T22:50:00+02:00"
+      }
+   ]
+}
