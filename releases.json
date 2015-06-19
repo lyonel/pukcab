@@ -9,7 +9,7 @@
    "download": "http://www.ezix.org/software/files/pukcab-$version.tar.gz",
    "releases": [
       {
-         "version": "1.5",
+         "version": "1.5.1",
          "state": "stable",
          "scope": "minor feature",
          "changes": "Improved concurrency and web UI",
