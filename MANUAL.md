@@ -176,6 +176,7 @@ parameter      type      default          description
 `command`      text     `"pukcab"`        command to use on the backup server
 `include`      list     [OS-dependent]    what to include in the backup
 `exclude`      list     [OS-dependent]    what to exclude from the backup
+`tar`          text     `"tar"`           tar command to use to [restore] files
 ----------    ------    --------------    ----------------------------------------------------------
 
 ### `includ`ing / `exclud`ing items

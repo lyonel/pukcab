@@ -932,7 +932,7 @@ func restore() {
 	if verbose {
 		args = append(args, "-v")
 	}
-	tar := exec.Command("tar", args...)
+	tar := exec.Command(cfg.Tar, args...)
 	tar.Stderr = os.Stderr
 	tar.Stdout = os.Stdout
 

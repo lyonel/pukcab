@@ -14,6 +14,7 @@ type Config struct {
 	Server  string
 	User    string
 	Command string
+	Tar     string
 	Port    int
 	Include []string
 	Exclude []string
@@ -54,6 +55,9 @@ func (cfg *Config) Load(filename string) {
 	}
 	if len(cfg.Command) < 1 {
 		cfg.Command = programName
+	}
+	if len(cfg.Tar) < 1 {
+		cfg.Tar = "tar"
 	}
 
 	if cfg.Maxtries < 1 {
