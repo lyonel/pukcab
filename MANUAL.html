@@ -14,7 +14,7 @@
 <body>
 <header>
 <h1 class="title">Pukcab 1.5</h1>
-<h3 class="date">2015-06-20</h3>
+<h3 class="date">2015-06-23</h3>
 </header>
 <nav id="TOC">
 <ul>
@@ -467,7 +467,7 @@ server=&quot;backupserver.localdomain.net&quot;</code></pre>
 </ul>
 <dl>
 <dt>Syntax</dt>
-<dd><code>pukcab backup</code> [ –<a href="#full">full</a> ] [ –<a href="#name">name</a>=<em>name</em> ] [ –<a href="#schedule">schedule</a>=<em>schedule</em> ]
+<dd><p><code>pukcab backup</code> [ –<a href="#full">full</a> ] [ –<a href="#name">name</a>=<em>name</em> ] [ –<a href="#schedule">schedule</a>=<em>schedule</em> ]</p>
 </dd>
 </dl>
 <h3 id="notes-2">Notes</h3>
@@ -480,14 +480,14 @@ server=&quot;backupserver.localdomain.net&quot;</code></pre>
 <p>The <code>config</code> command displays the current configuration.</p>
 <dl>
 <dt>Syntax</dt>
-<dd><code>pukcab config</code>
+<dd><p><code>pukcab config</code></p>
 </dd>
 </dl>
 <h2 id="continue"><code>continue</code></h2>
 <p>The <code>continue</code> command continues a previously interrupted backup.</p>
 <dl>
 <dt>Syntax</dt>
-<dd><code>pukcab continue</code> [ –<a href="#name">name</a>=<em>name</em> ] [ –<a href="#date">date</a>=<em>date</em> ]
+<dd><p><code>pukcab continue</code> [ –<a href="#name">name</a>=<em>name</em> ] [ –<a href="#date">date</a>=<em>date</em> ]</p>
 </dd>
 </dl>
 <h3 id="notes-3">Notes</h3>
@@ -500,7 +500,7 @@ server=&quot;backupserver.localdomain.net&quot;</code></pre>
 <p>The <code>delete</code> command discards the backup taken at a given <a href="#date">date</a>.</p>
 <dl>
 <dt>Syntax</dt>
-<dd><code>pukcab delete</code> [ –<a href="#name">name</a>=<em>name</em> ] –<a href="#date">date</a>=<em>date</em>
+<dd><p><code>pukcab delete</code> [ –<a href="#name">name</a>=<em>name</em> ] –<a href="#date">date</a>=<em>date</em></p>
 </dd>
 </dl>
 <h3 id="notes-4">Notes</h3>
@@ -540,7 +540,7 @@ server=&quot;backupserver.localdomain.net&quot;</code></pre>
 </table>
 <dl>
 <dt>Syntax</dt>
-<dd><code>pukcab expire</code> [ –<a href="#name">name</a>=<em>name</em> ] [ –<a href="#schedule">schedule</a>=<em>schedule</em> ] [ –<a href="#date">age</a>=<em>age</em> ] [ –<a href="#keep">keep</a>=<em>keep</em> ]
+<dd><p><code>pukcab expire</code> [ –<a href="#name">name</a>=<em>name</em> ] [ –<a href="#schedule">schedule</a>=<em>schedule</em> ] [ –<a href="#date">age</a>=<em>age</em> ] [ –<a href="#keep">keep</a>=<em>keep</em> ]</p>
 </dd>
 </dl>
 <h3 id="notes-5">Notes</h3>
@@ -553,7 +553,7 @@ server=&quot;backupserver.localdomain.net&quot;</code></pre>
 <p>The <code>history</code> command shows the different versions stored in backups for given files. Backup sets can be filtered by name and/or date and files.</p>
 <dl>
 <dt>Syntax</dt>
-<dd><code>pukcab history</code> [ –<a href="#name">name</a>=<em>name</em> ] [ –<a href="#date">date</a>=<em>date</em> ] [ <a href="#files"><em>FILES</em></a> … ]
+<dd><p><code>pukcab history</code> [ –<a href="#name">name</a>=<em>name</em> ] [ –<a href="#date">date</a>=<em>date</em> ] [ <a href="#files"><em>FILES</em></a> … ]</p>
 </dd>
 </dl>
 <h3 id="notes-6">Notes</h3>
@@ -565,7 +565,7 @@ server=&quot;backupserver.localdomain.net&quot;</code></pre>
 <p>The <code>info</code> command lists the backup sets stored on the server. Backup sets can be filtered by name and/or date and files.</p>
 <dl>
 <dt>Syntax</dt>
-<dd><code>pukcab info</code> [ –<a href="#short">short</a> ] [ –<a href="#name">name</a>=<em>name</em> ] [ –<a href="#date">date</a>=<em>date</em> ] [ <a href="#files"><em>FILES</em></a> … ]
+<dd><p><code>pukcab info</code> [ –<a href="#short">short</a> ] [ –<a href="#name">name</a>=<em>name</em> ] [ –<a href="#date">date</a>=<em>date</em> ] [ <a href="#files"><em>FILES</em></a> … ]</p>
 </dd>
 </dl>
 <h3 id="notes-7">Notes</h3>
@@ -578,7 +578,7 @@ server=&quot;backupserver.localdomain.net&quot;</code></pre>
 <p>The <code>ping</code> command allows to check connectivity to the server.</p>
 <dl>
 <dt>Syntax</dt>
-<dd><code>pukcab ping</code>
+<dd><p><code>pukcab ping</code></p>
 </dd>
 </dl>
 <h3 id="notes-8">Notes</h3>
@@ -589,7 +589,7 @@ server=&quot;backupserver.localdomain.net&quot;</code></pre>
 <p>The <code>register</code> command registers a client’s SSH public key to the server.</p>
 <dl>
 <dt>Syntax</dt>
-<dd><code>pukcab register</code>
+<dd><p><code>pukcab register</code></p>
 </dd>
 </dl>
 <h3 id="notes-9">Notes</h3>
@@ -601,7 +601,7 @@ server=&quot;backupserver.localdomain.net&quot;</code></pre>
 <p>The <code>restore</code> command restores <a href="#files">files</a> as they were at a given <a href="#date">date</a>.</p>
 <dl>
 <dt>Syntax</dt>
-<dd><code>pukcab restore</code> [ –<a href="#directory">directory</a>=<em>directory</em> ] [ –<a href="#name">name</a>=<em>name</em> ] [ –<a href="#date">date</a>=<em>date</em> ] [ <a href="#files"><em>FILES</em></a> … ]
+<dd><p><code>pukcab restore</code> [ –<a href="#directory">directory</a>=<em>directory</em> ] [ –<a href="#name">name</a>=<em>name</em> ] [ –<a href="#date">date</a>=<em>date</em> ] [ <a href="#files"><em>FILES</em></a> … ]</p>
 </dd>
 </dl>
 <h3 id="notes-10">Notes</h3>
@@ -614,7 +614,7 @@ server=&quot;backupserver.localdomain.net&quot;</code></pre>
 <p>The <code>vacuum</code> command initiates clean-up of the catalog and vault to save disk space.</p>
 <dl>
 <dt>Syntax</dt>
-<dd><code>pukcab vacuum</code>
+<dd><p><code>pukcab vacuum</code></p>
 </dd>
 </dl>
 <h3 id="notes-11">Notes</h3>
@@ -626,7 +626,7 @@ server=&quot;backupserver.localdomain.net&quot;</code></pre>
 <p>The verify command reports <a href="#files">files</a> which have changed since a given <a href="#date">date</a>.</p>
 <dl>
 <dt>Syntax</dt>
-<dd><code>pukcab verify</code> [ –<a href="#name">name</a>=<em>name</em> ] [ –<a href="#date">date</a>=<em>date</em> ] [ <a href="#files"><em>FILES</em></a> … ]
+<dd><p><code>pukcab verify</code> [ –<a href="#name">name</a>=<em>name</em> ] [ –<a href="#date">date</a>=<em>date</em> ] [ <a href="#files"><em>FILES</em></a> … ]</p>
 </dd>
 </dl>
 <h3 id="notes-12">Notes</h3>
@@ -638,7 +638,7 @@ server=&quot;backupserver.localdomain.net&quot;</code></pre>
 <p>The <code>web</code> command starts the built-in web interface.</p>
 <dl>
 <dt>Syntax</dt>
-<dd><code>pukcab web</code> [ –<a href="#listen">listen</a>=[<em>host</em>]:<em>port</em> ]
+<dd><p><code>pukcab web</code> [ –<a href="#listen">listen</a>=[<em>host</em>]:<em>port</em> ]</p>
 </dd>
 </dl>
 <h3 id="notes-13">Notes</h3>
@@ -920,27 +920,19 @@ Missing:  0
 <h1 id="frequently-asked-questions">Frequently Asked Questions</h1>
 <h2 id="client-faq">Client FAQ</h2>
 <dl>
-<dt>Is there a Windows version?</dt>
+<dt>Is there a Windows client?</dt>
 <dd><p>No, Windows is currently unsupported. Porting to Windows would require a significant effort and isn’t in the plans. This may change, though.</p>
 </dd>
 <dt>My first backup is taking forever! What should I do?</dt>
-<dd>Wait. Another option is to make sure you didn’t forget to <a href="#including-excluding-items">exclude</a> useless or volatile data like
+<dd><p>Wait. Another option is to make sure you didn’t forget to <a href="#including-excluding-items">exclude</a> useless or volatile data like * big <code>Downloads</code> folders * caches (Firefox, Safari, Thunderbird tend to keep gigabytes of throw-away data) * backups * temporary files you forgot to delete</p>
 </dd>
-</dl>
-<ul>
-<li>big <code>Downloads</code> folders</li>
-<li>caches (Firefox, Safari, Thunderbird tend to keep gigabytes of throw-away data)</li>
-<li>backups</li>
-<li>temporary files you forgot to delete</li>
-</ul>
-<dl>
 <dt>My first backup is <em>still</em> taking forever! What should I do?</dt>
-<dd>If necessary, you can interrupt it and <a href="#continue">continue</a> later (<code>pukcab</code> will think a bit and restart where it was interrupted). Once the first backup is complete, you can take a second one and get rid (with <a href="#delete">delete</a>) of the first one as many files may have changed during such a long backup.
+<dd><p>If necessary, you can interrupt it and <a href="#continue">continue</a> later (<code>pukcab</code> will think a bit and restart where it was interrupted). Once the first backup is complete, you can take a second one and get rid (with <a href="#delete">delete</a>) of the first one as many files may have changed during such a long backup.</p>
 </dd>
 </dl>
 <h2 id="server-faq">Server FAQ</h2>
 <dl>
-<dt>Is there a Windows version?</dt>
+<dt>Is there a Windows server?</dt>
 <dd><p>No, and there problably never will. If you’re seriously considering trusting a Windows server with your most precious data, we humbly suggest reconsidering your backup strategy.</p>
 </dd>
 <dt>Which filesystem should I use for the catalog? Can I use a network filesystem?</dt>
@@ -953,7 +945,7 @@ Missing:  0
 </ul>
 <dl>
 <dt>Which filesystem should I use for the vault? Can I use a network filesystem?</dt>
-<dd>Yes, the vault can be on a remote filesystem. You will need a fast filesystem able to deal with potentially big files and, more importantly, with many files (often thousands and thousands) <em>in the same directory</em>. For that reason, do NOT use NTFS, FAT but you can use <a href="https://en.wikipedia.org/wiki/Filesystem_in_Userspace">FUSE</a>-based filesystems if they don’t put a limit on the number of files.
+<dd><p>Yes, the vault can be on a remote filesystem. You will need a fast filesystem able to deal with potentially big files and, more importantly, with many files (often thousands and thousands) <em>in the same directory</em>. For that reason, do NOT use NTFS, FAT but you can use <a href="https://en.wikipedia.org/wiki/Filesystem_in_Userspace">FUSE</a>-based filesystems if they don’t put a limit on the number of files.</p>
 </dd>
 </dl>
 <ul>
@@ -962,23 +954,23 @@ Missing:  0
 </ul>
 <dl>
 <dt>What are these <code>catalog.db-wal</code> and <code>catalog.db-shm</code> files? Can I remove them?</dt>
-<dd>Short answer: don’t, you would lose backups!
+<dd><p>Short answer: don’t, you would lose backups!</p>
 </dd>
-<dd><p>These files are used to ensure safe concurrent access to the catalog to multiple <code>pukcab</code> instances. They are created and deleted automatically, there is no need for you to worry about them.</p>
+<dd>These files are used to ensure safe concurrent access to the catalog to multiple <code>pukcab</code> instances. They are created and deleted automatically, there is no need for you to worry about them.
 </dd>
 <dt>What is this <code>catalog.db~</code> file? Can I remove it?</dt>
-<dd>Short answer: you can, but it’s not recommended.
+<dd><p>Short answer: you can, but it’s not recommended.</p>
 </dd>
-<dd><p>This file is an automatic backup of your catalog that is created right after each <a href="#expire">expire</a> command. It may therefore be slightly obsolete but it can be used for recovery in case the live catalog gets destroyed/corrupted.</p>
+<dd>This file is an automatic backup of your catalog that is created right after each <a href="#expire">expire</a> command. It may therefore be slightly obsolete but it can be used for recovery in case the live catalog gets destroyed/corrupted.
 </dd>
 <dt>But <code>catalog.db-wal</code> is becoming huge! Can I shrink it?</dt>
-<dd>Short answer: it will shrink when <code>pukcab</code> is done with what it is doing, or after the next <a href="#expire">expire</a> command.
+<dd><p>Short answer: it will shrink when <code>pukcab</code> is done with what it is doing, or after the next <a href="#expire">expire</a> command.</p>
 </dd>
 <dd>Depending of the number and length of concurrent operations, <code>pukcab</code> may make heavy use of this working file. You can reduce its maximum size by limiting the number of concurrent operations you run (i.e. you can serialise the <a href="#backup">backup</a> commands).
 </dd>
 <dd>If that doesn’t help, you can force-clean it by using <a href="#vacuum">vacuum</a>
 </dd>
-<dd><p>If that still doesn’t help, make sure no <code>pukcab</code> operation is running and issue the following command</p>
+<dd>If that still doesn’t help, make sure no <code>pukcab</code> operation is running and issue the following command
 </dd>
 </dl>
 <pre><code>sqlite3 catalog.db .schema</code></pre>

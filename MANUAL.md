@@ -769,7 +769,7 @@ Frequently Asked Questions
 
 ##Client FAQ
 
-Is there a Windows version?
+Is there a Windows client?
 
 :   No, Windows is currently unsupported. Porting to Windows would require a significant effort and isn't in the plans. This may change, though.
 
@@ -787,7 +787,7 @@ My first backup is *still* taking forever! What should I do?
 
 ##Server FAQ
 
-Is there a Windows version?
+Is there a Windows server?
 
 :   No, and there problably never will. If you're seriously considering trusting a Windows server with your most precious data, we humbly suggest reconsidering your backup strategy.
 
