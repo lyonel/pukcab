@@ -122,11 +122,10 @@ func dobackup(name string, schedule string, full bool) (fail error) {
 	files := backup.Count()
 
 	if !full {
-		if err := getmetadata(backup); err != nil {
+		info.Print("Determining files to backup... ")
+		if err := checkmetadata(backup); err != nil {
 			return err
 		}
-		info.Print("Determining files to backup... ")
-		backup.CheckAll(true)
 		backuptype := "incremental"
 		if files == backup.Count() {
 			backuptype = "full"
@@ -199,7 +198,7 @@ func process(c string, backup *Backup, action func(tar.Header), files ...string)
 			}
 			hdr.Xattrs["backup.files"] = fmt.Sprintf("%d", header.Files)
 			hdr.Xattrs["backup.schedule"] = header.Schedule
-			backup.AddMeta(hdr)
+
 			action(*hdr)
 		default:
 			if len(hdr.Xattrs["backup.type"]) > 0 {
@@ -209,7 +208,6 @@ func process(c string, backup *Backup, action func(tar.Header), files ...string)
 				hdr.Size = s
 			}
 
-			backup.AddMeta(hdr)
 			action(*hdr)
 		}
 	}
@@ -223,8 +221,12 @@ func process(c string, backup *Backup, action func(tar.Header), files ...string)
 	return
 }
 
-func getmetadata(backup *Backup, files ...string) (fail error) {
-	return process("metadata", backup, func(tar.Header) {}, files...)
+func checkmetadata(backup *Backup, files ...string) (fail error) {
+	return process("metadata", backup, func(hdr tar.Header) {
+		if Check(hdr, true) != OK {
+			backup.Add(hdr.Name)
+		}
+	}, files...)
 }
 
 func resume() {
@@ -251,7 +253,7 @@ func doresume(date BackupID, name string) (fail error) {
 
 	backup := NewBackup(cfg)
 	backup.Init(date, name)
-	if err := getmetadata(backup); err != nil {
+	if err := checkmetadata(backup); err != nil {
 		return err
 	}
 
@@ -263,12 +265,11 @@ func doresume(date BackupID, name string) (fail error) {
 
 	info.Print("Determining files to backup... ")
 	if date == 0 { // force retrieving the file list
-		if err := getmetadata(backup); err != nil {
+		if err := checkmetadata(backup); err != nil {
 			return err
 		}
 	}
 
-	backup.CheckAll(true)
 	info.Println("done.")
 
 	info.Printf("Resuming backup: date=%d files=%d\n", backup.Date, backup.Count())

@@ -23,8 +23,6 @@ type Backup struct {
 	directories map[string]bool
 
 	include, exclude, ignore []string
-
-	metadata []tar.Header
 }
 
 func NewBackup(cfg Config) (backup *Backup) {
@@ -183,32 +181,6 @@ func (b *Backup) Count() int {
 func (b *Backup) ForEach(action func(string)) {
 	for f := range b.backupset {
 		action(f)
-	}
-}
-
-func (b *Backup) AddMeta(files ...*tar.Header) {
-	for _, f := range files {
-		if f != nil {
-			b.backupset[f.Name] = struct{}{}
-			b.metadata = append(b.metadata, *f)
-		}
-	}
-}
-
-func (b *Backup) CheckAll(quick bool) (result Status) {
-	for _, hdr := range b.metadata {
-		if Check(hdr, quick) == OK {
-			b.Forget(hdr.Name)
-		} else {
-			result = Modified
-		}
-	}
-	return
-}
-
-func (b *Backup) ForEachMeta(action func(tar.Header)) {
-	for _, h := range b.metadata {
-		action(h)
 	}
 }
 
