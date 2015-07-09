@@ -129,6 +129,11 @@ func main() {
 		os.Args = os.Args[1:]
 	}
 
+	if logwriter, err := syslog.New(syslog.LOG_NOTICE, filepath.Base(programFile)+"("+os.Args[0]+")"); err == nil {
+		log.SetOutput(logwriter)
+		log.SetFlags(0) // no need to add timestamp, syslog will do it for us
+	}
+
 	switch os.Args[0] {
 	// client commands
 	case "archive", "tar":
