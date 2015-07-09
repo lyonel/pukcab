@@ -223,8 +223,8 @@ func process(c string, backup *Backup, action func(tar.Header), files ...string)
 
 func checkmetadata(backup *Backup, files ...string) (fail error) {
 	return process("metadata", backup, func(hdr tar.Header) {
-		if Check(hdr, true) != OK {
-			backup.Add(hdr.Name)
+		if Check(hdr, true) == OK {
+			backup.Forget(hdr.Name)
 		}
 	}, files...)
 }
