@@ -587,7 +587,7 @@ func DateExpander(args ...interface{}) string {
 	case duration < 7*24*time.Hour:
 		return t.Format("Monday 15:04")
 	case duration < 365*24*time.Hour:
-		return t.Format("2 January 15:04")
+		return t.Format("Mon 2 January 15:04")
 	}
 
 	return t.Format("2 Jan 2006 15:04")
