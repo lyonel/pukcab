@@ -66,10 +66,10 @@ func LogExit(err error) {
 	if dberror(err) {
 		failure.Println("Catalog error.")
 	}
-	log.Printf("Exiting: msg=%q error=fatal\n", err)
 	if busy(err) {
 		os.Exit(2)
 	} else {
+		log.Printf("Exiting: msg=%q error=fatal\n", err)
 		os.Exit(1)
 	}
 }
