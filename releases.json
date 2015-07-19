@@ -9,6 +9,14 @@
    "download": "http://www.ezix.org/software/files/pukcab-$version.tar.gz",
    "releases": [
       {
+         "version": "1.5.11",
+         "state": "stable",
+         "scope": "minor enhancement",
+         "changes": "Reduced memory usage",
+         "download": "http://www.ezix.org/software/files/pukcab-$version.tar.gz",
+         "published": "2015-07-19T10:47:00+02:00"
+      },
+      {
          "version": "1.5.1",
          "state": "stable",
          "scope": "minor feature",
