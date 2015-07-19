@@ -102,8 +102,8 @@ func dobackup(name string, schedule string, full bool) (fail error) {
 		log.Println("Server error", errmsg)
 		return errors.New("Server error")
 	} else {
-		info.Printf("New backup: date=%d files=%d\n", backup.Date, backup.Count())
-		log.Printf("New backup: date=%d files=%d\n", backup.Date, backup.Count())
+		info.Printf("New backup: date=%d name=%q files=%d\n", backup.Date, backup.Name, backup.Count())
+		log.Printf("New backup: date=%d name=%q files=%d\n", backup.Date, backup.Name, backup.Count())
 		if scanner.Scan() {
 			previous, _ = strconv.ParseInt(scanner.Text(), 10, 0)
 			if previous > 0 {
@@ -131,8 +131,8 @@ func dobackup(name string, schedule string, full bool) (fail error) {
 			backuptype = "full"
 		}
 		info.Println("done.")
-		info.Printf("Backup: date=%d files=%d type=%q\n", backup.Date, backup.Count(), backuptype)
-		log.Printf("Backup: date=%d files=%d type=%q\n", backup.Date, backup.Count(), backuptype)
+		info.Printf("Backup: date=%d name=%q files=%d type=%q\n", backup.Date, backup.Name, backup.Count(), backuptype)
+		log.Printf("Backup: date=%d name=%q files=%d type=%q\n", backup.Date, backup.Name, backup.Count(), backuptype)
 	}
 
 	bytes := dumpfiles(files, backup)
