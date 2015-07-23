@@ -90,6 +90,25 @@ func config() {
 		fmt.Print("exclude = ")
 		printlist(cfg.Exclude)
 	}
+
+	if cfg.Expiration.Daily != 0 ||
+		cfg.Expiration.Weekly != 0 ||
+		cfg.Expiration.Monthly != 0 ||
+		cfg.Expiration.Yearly != 0 {
+		fmt.Println("[expiration]")
+		if cfg.Expiration.Daily != 0 {
+			fmt.Printf("daily = %d\n", cfg.Expiration.Daily)
+		}
+		if cfg.Expiration.Weekly != 0 {
+			fmt.Printf("weekly = %d\n", cfg.Expiration.Weekly)
+		}
+		if cfg.Expiration.Monthly != 0 {
+			fmt.Printf("monthly = %d\n", cfg.Expiration.Monthly)
+		}
+		if cfg.Expiration.Yearly != 0 {
+			fmt.Printf("yearly = %d\n", cfg.Expiration.Yearly)
+		}
+	}
 }
 
 func main() {

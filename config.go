@@ -25,6 +25,8 @@ type Config struct {
 
 	Maxtries int
 	Debug    bool
+
+	Expiration struct{ Daily, Weekly, Monthly, Yearly int64 }
 }
 
 var cfg Config

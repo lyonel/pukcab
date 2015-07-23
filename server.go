@@ -605,6 +605,14 @@ func vacuum() {
 	}
 }
 
+func days(val, def int64) int64 {
+	if val >= 0 {
+		return val
+	} else {
+		return def
+	}
+}
+
 func expirebackup() {
 	keep := 3
 	flag.StringVar(&name, "name", "", "Backup name")
@@ -629,13 +637,13 @@ func expirebackup() {
 	if date == -1 {
 		switch schedule {
 		case "daily":
-			date = BackupID(time.Now().Unix() - 14*24*60*60) // 2 weeks
+			date = BackupID(time.Now().Unix() - days(cfg.Expiration.Daily, 2*7)*24*60*60) // 2 weeks
 		case "weekly":
-			date = BackupID(time.Now().Unix() - 42*24*60*60) // 6 weeks
+			date = BackupID(time.Now().Unix() - days(cfg.Expiration.Weekly, 6*7)*24*60*60) // 6 weeks
 		case "monthly":
-			date = BackupID(time.Now().Unix() - 365*24*60*60) // 1 year
+			date = BackupID(time.Now().Unix() - days(cfg.Expiration.Monthly, 365)*24*60*60) // 1 year
 		case "yearly":
-			date = BackupID(time.Now().Unix() - 10*365*24*60*60) // 10 years
+			date = BackupID(time.Now().Unix() - days(cfg.Expiration.Yearly, 10*365)*24*60*60) // 10 years
 		default:
 			failure.Println("Missing expiration")
 			log.Fatal("Client did not provide an expiration")
