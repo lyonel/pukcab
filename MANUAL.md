@@ -136,14 +136,19 @@ The `pukcab` server contains the data files for all clients (in the `vault`) and
 
 :server configuration
 
-parameter   type   default         description
----------- ------ ------------     -------------------------------
-`user`      text   *none*          user name `pukcab` will run under (*mandatory*)
-`vault`     text  `"vault"`        folder where all archive files will be created
-`catalog`   text  `"catalog.db"`   name of the catalog database
-`maxtries` number  `10`            number of retries in case of concurrent client accesses
-`web`       text   *none*          auto-start the web interface on [*host*]:*port* (cf. [listen])
----------- ------ ------------     -------------------------------
+parameter/section     type    default         description
+-------------------- ------- ------------     -------------------------------
+`user`                text    *none*          user name `pukcab` will run under (*mandatory*)
+`vault`               text   `"vault"`        folder where all archive files will be created
+`catalog`             text   `"catalog.db"`   name of the catalog database
+`maxtries`           number   `10`            number of retries in case of concurrent client accesses
+`web`                 text    *none*          auto-start the web interface on [*host*]:*port* (cf. [listen])
+`[expiration]`       section                  specify expiration of standard schedules
+`daily`              number   `14`            retention (in days) of `daily` backups
+`weekly`             number   `42`            retention (in days) of `weekly` backups
+`monthly`            number   `365`           retention (in days) of `monthly` backups
+`yearly`             number   `3650`          retention (in days) of `yearly` backups
+-------------------- ------- ------------     -------------------------------
 
 ### Notes
 
