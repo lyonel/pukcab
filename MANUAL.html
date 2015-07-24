@@ -14,7 +14,7 @@
 <body>
 <header>
 <h1 class="title">Pukcab 1.5</h1>
-<h3 class="date">2015-06-23</h3>
+<h3 class="date">2015-07-24</h3>
 </header>
 <nav id="TOC">
 <ul>
@@ -188,6 +188,11 @@
 name1 = number
 name2 = &quot;text value&quot;
 name3 = [ &quot;list&quot;, &quot;of&quot;, &quot;text&quot;, &quot;values&quot; ]
+[section1]
+name4 = &quot;text value&quot;
+name5 = number
+[section2]
+name6 = &quot;text value&quot;
 ...</code></pre>
 <p>The default is to read <code>/etc/pukcab.conf</code> then <code>~/.pukcabrc</code> (which means that this user-defined file can override values set in the global configuration file).</p>
 <p>Both client and server use the same configuration file format and location, only the values determine the client or server role (a client will have a <code>server</code> parameter set).</p>
@@ -202,7 +207,7 @@ name3 = [ &quot;list&quot;, &quot;of&quot;, &quot;text&quot;, &quot;values&quot;
 <caption>server configuration</caption>
 <thead>
 <tr class="header">
-<th style="text-align: left;">parameter</th>
+<th style="text-align: left;">parameter/section</th>
 <th style="text-align: center;">type</th>
 <th style="text-align: center;">default</th>
 <th style="text-align: left;">description</th>
@@ -239,6 +244,36 @@ name3 = [ &quot;list&quot;, &quot;of&quot;, &quot;text&quot;, &quot;values&quot;
 <td style="text-align: center;"><em>none</em></td>
 <td style="text-align: left;">auto-start the web interface on [<em>host</em>]:<em>port</em> (cf. <a href="#listen">listen</a>)</td>
 </tr>
+<tr class="even">
+<td style="text-align: left;"><code>[expiration]</code></td>
+<td style="text-align: center;">section</td>
+<td style="text-align: center;"></td>
+<td style="text-align: left;">specify expiration of standard schedules</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>daily</code></td>
+<td style="text-align: center;">number</td>
+<td style="text-align: center;"><code>14</code></td>
+<td style="text-align: left;">retention (in days) of <code>daily</code> backups</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>weekly</code></td>
+<td style="text-align: center;">number</td>
+<td style="text-align: center;"><code>42</code></td>
+<td style="text-align: left;">retention (in days) of <code>weekly</code> backups</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>monthly</code></td>
+<td style="text-align: center;">number</td>
+<td style="text-align: center;"><code>365</code></td>
+<td style="text-align: left;">retention (in days) of <code>monthly</code> backups</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>yearly</code></td>
+<td style="text-align: center;">number</td>
+<td style="text-align: center;"><code>3650</code></td>
+<td style="text-align: left;">retention (in days) of <code>yearly</code> backups</td>
+</tr>
 </tbody>
 </table>
 <h3 id="notes-1">Notes</h3>
@@ -252,7 +287,10 @@ name3 = [ &quot;list&quot;, &quot;of&quot;, &quot;text&quot;, &quot;values&quot;
 <pre><code>; all backups will be received and stored by the 'backup' user
 user=&quot;backup&quot;
 vault=&quot;/var/local/backup/vault&quot;
-catalog=&quot;/var/local/backup/catalog.db&quot;</code></pre>
+catalog=&quot;/var/local/backup/catalog.db&quot;
+; keep daily backups longer (4 weeks instead of 2)
+[expiration]
+daily=28</code></pre>
 <h2 id="client">Client</h2>
 <p>The client configuration mainly focuses on what to include in the backup and what to exclude from it.</p>
 <table>

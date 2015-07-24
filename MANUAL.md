@@ -117,6 +117,11 @@ Configuration
 name1 = number
 name2 = "text value"
 name3 = [ "list", "of", "text", "values" ]
+[section1]
+name4 = "text value"
+name5 = number
+[section2]
+name6 = "text value"
 ...
 ~~~~~~~~~~~~~~~~~~~
 
@@ -164,6 +169,9 @@ parameter/section     type    default         description
 user="backup"
 vault="/var/local/backup/vault"
 catalog="/var/local/backup/catalog.db"
+; keep daily backups longer (4 weeks instead of 2)
+[expiration]
+daily=28
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Client
