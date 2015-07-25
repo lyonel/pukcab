@@ -579,7 +579,7 @@ func vacuum() {
 		return
 	}
 
-	var unused, freed int64
+	var unused, kept, freed, remaining int64
 
 	if vaultfiles, err := ioutil.ReadDir(cfg.Vault); err == nil {
 		for _, f := range vaultfiles {
@@ -591,6 +591,9 @@ func vacuum() {
 				} else {
 					freed += f.Size()
 				}
+			} else {
+				kept++
+				remaining += f.Size()
 			}
 		}
 	} else {
@@ -598,7 +601,7 @@ func vacuum() {
 		return
 	}
 
-	log.Printf("Vacuum: removed=%d freed=%d\n", unused, freed)
+	log.Printf("Vacuum: removed=%d kept=%d freed=%d used=%d\n", unused, kept, freed, remaining)
 
 	if err := <-done; err != nil {
 		log.Printf("Could not backup catalog: msg=%q error=warn\n", err)
