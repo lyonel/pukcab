@@ -245,7 +245,7 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 {{template "HOMEMENU" .}}
 <table class="report"><tbody>
 {{if .Name}}<tr><th class="rowtitle">Name</th><td>{{.Name}}</td></tr>{{end}}
-{{if .Major}}<tr><th class="rowtitle">Pukcab</th><td>{{.Major}}.{{.Minor}}</td></tr>{{end}}
+{{if .Major}}<tr><th class="rowtitle">Pukcab</th><td title="{{.Build}}">{{.Major}}.{{.Minor}}</td></tr>{{end}}
 {{if .OS}}<tr><th class="rowtitle">OS</th><td>{{.OS}}/{{if .Arch}}{{.Arch}}{{end}}</td></tr>{{end}}
 {{if .CPUs}}<tr><th class="rowtitle">CPU(s)</th><td>{{.CPUs}}</td></tr>{{end}}
 {{if .Load}}<tr><th class="rowtitle">Load</th><td>{{.Load}}</td></tr>{{end}}

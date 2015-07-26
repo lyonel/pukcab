@@ -29,6 +29,7 @@ type AboutReport struct {
 	Name          string
 	Major         int
 	Minor         int
+	Build         string
 	OS            string
 	Arch          string
 	CPUs          int
@@ -74,6 +75,7 @@ func webhome(w http.ResponseWriter, r *http.Request) {
 		Name:       defaultName,
 		Major:      versionMajor,
 		Minor:      versionMinor,
+		Build:      buildId,
 		OS:         strings.ToTitle(runtime.GOOS[:1]) + runtime.GOOS[1:],
 		Arch:       runtime.GOARCH,
 		CPUs:       runtime.NumCPU(),
