@@ -609,7 +609,7 @@ func vacuum() {
 }
 
 func days(val, def int64) int64 {
-	if val >= 0 {
+	if val > 0 {
 		return val
 	} else {
 		return def
