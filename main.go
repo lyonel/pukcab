@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/mattn/go-sqlite3"
+	"github.com/lyonel/go-sqlite3"
 	"log"
 	"log/syslog"
 	"os"

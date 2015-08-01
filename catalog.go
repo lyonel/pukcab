@@ -8,7 +8,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/mattn/go-sqlite3"
+	"github.com/lyonel/go-sqlite3"
 )
 
 const schemaVersion = 3
