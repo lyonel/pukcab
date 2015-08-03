@@ -507,7 +507,7 @@ func submitfiles() {
 			catalog.Exec("UPDATE backups SET finished=? WHERE date=?", time.Now().Unix(), date)
 			catalog.Exec("UPDATE backups SET files=(SELECT COUNT(*) FROM files WHERE backupid=date) WHERE date=?", date)
 			catalog.Exec("UPDATE backups SET size=(SELECT SUM(size) FROM files WHERE backupid=date) WHERE date=?", date)
-			log.Printf("Finished backup: date=%d name=%q schedule=%q files=%d received=%d duration=%.0f\n", date, name, schedule, files, received, time.Since(started).Seconds())
+			log.Printf("Finished backup: date=%d name=%q schedule=%q files=%d received=%d duration=%.0f elapsed=%.0f\n", date, name, schedule, files, received, time.Since(started).Seconds(), time.Since(time.Unix(int64(date), 0)).Seconds())
 			fmt.Printf("Backup %d complete (%d files)\n", date, files)
 		} else {
 			log.Printf("Received files for backup set: date=%d name=%q schedule=%q files=%d missing=%d received=%d duration=%.0f\n", date, name, schedule, files, missing, received, time.Since(started).Seconds())
