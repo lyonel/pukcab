@@ -85,6 +85,11 @@ Mac OS X     x86-64            64-bit       [ZIP](http://ezix.org/download/?pack
 *any*        *any*             *any*        [Source](http://ezix.org/download/?package=pukcab.ezix.org)[^Go]
 --------     -------------   ---------    ------------------------------------------------------------------------
 
+For RPM-based Linux distributions, YUM repositories are available:
+
+ * [stable](http://ezix.org/software/pukcab.repo)
+ * [beta](http://ezix.org/software/pukcab-beta.repo)
+
 [^RPM]: Linux users should prefer [RPM packages](http://ezix.org/download/?package=rpm.pukcab.ezix.org) or check if their distribution already includes `pukcab`.
 [^Go]: To rebuild `pukcab`, you will need a [Go](http://golang.org) development environment (and some courage).
 
