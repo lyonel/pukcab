@@ -42,8 +42,8 @@ Requirements
 
 `pukcab` has been tested on the following operating systems and platforms^[The main development platform is Fedora Linux x86-64.]:
 
- * Linux 3.*x* on 64-bit Intel or AMD processors
- * Linux 3.*x* on 32-bit Intel or AMD processors^[Some old Pentium III machines may misbehave.]
+ * Linux 4.*x* on 64-bit Intel or AMD processors
+ * Linux 4.*x* on 32-bit Intel or AMD processors^[Some old Pentium III machines may misbehave.]
  * Linux 3.*x* on 32-bit ARM processors
  * Mac OS X on 64-bit Intel processors
 
@@ -90,13 +90,18 @@ For RPM-based Linux distributions, YUM repositories are available:
  * [stable](http://ezix.org/software/pukcab.repo)
  * [beta](http://ezix.org/software/pukcab-beta.repo)
 
+Copy the `.repo` file into `/etc/yum.repos.d` and do either:
+
+ * `sudo yum install pukcab-server`
+ * `sudo yum install pukcab-client`
+
 [^RPM]: Linux users should prefer [RPM packages](http://ezix.org/download/?package=rpm.pukcab.ezix.org) or check if their distribution already includes `pukcab`.
 [^Go]: To rebuild `pukcab`, you will need a [Go](http://golang.org) development environment (and some courage).
 
 On the backup server
 --------------------
 
-1. create a dedicated user -- this user does not need specific privileges (i.e. do *NOT* use `root`)
+1. create a dedicated user, if necessary (usually called `pukcab`) -- this user does not need specific privileges (i.e. do *NOT* use `root`)
 2. allow key-based SSH login for that user
 3. *optional*: allow password-based SSH login and set a password for the dedicated user (if you want to be able to register new clients using that password)
 

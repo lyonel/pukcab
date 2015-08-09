@@ -99,8 +99,8 @@
 <p><code>pukcab</code> was written with UNIX-like operating systems in mind, it is therefore currently unsupported on Microsoft Windows<a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a>.</p>
 <p><code>pukcab</code> has been tested on the following operating systems and platforms<a href="#fn3" class="footnoteRef" id="fnref3"><sup>3</sup></a>:</p>
 <ul>
-<li>Linux 3.<em>x</em> on 64-bit Intel or AMD processors</li>
-<li>Linux 3.<em>x</em> on 32-bit Intel or AMD processors<a href="#fn4" class="footnoteRef" id="fnref4"><sup>4</sup></a></li>
+<li>Linux 4.<em>x</em> on 64-bit Intel or AMD processors</li>
+<li>Linux 4.<em>x</em> on 32-bit Intel or AMD processors<a href="#fn4" class="footnoteRef" id="fnref4"><sup>4</sup></a></li>
 <li>Linux 3.<em>x</em> on 32-bit ARM processors</li>
 <li>Mac OS X on 64-bit Intel processors</li>
 </ul>
@@ -171,9 +171,14 @@
 <li><a href="http://ezix.org/software/pukcab.repo">stable</a></li>
 <li><a href="http://ezix.org/software/pukcab-beta.repo">beta</a></li>
 </ul>
+<p>Copy the <code>.repo</code> file into <code>/etc/yum.repos.d</code> and do either:</p>
+<ul>
+<li><code>sudo yum install pukcab-server</code></li>
+<li><code>sudo yum install pukcab-client</code></li>
+</ul>
 <h2 id="on-the-backup-server">On the backup server</h2>
 <ol type="1">
-<li>create a dedicated user – this user does not need specific privileges (i.e. do <em>NOT</em> use <code>root</code>)</li>
+<li>create a dedicated user, if necessary (usually called <code>pukcab</code>) – this user does not need specific privileges (i.e. do <em>NOT</em> use <code>root</code>)</li>
 <li>allow key-based SSH login for that user</li>
 <li><em>optional</em>: allow password-based SSH login and set a password for the dedicated user (if you want to be able to register new clients using that password)</li>
 </ol>
