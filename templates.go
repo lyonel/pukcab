@@ -299,7 +299,7 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
         <td title="{{.Date | date}}"><a href="/backups/{{.Name}}/{{.Date}}">{{.Date}}</a></td>
         <td title="{{. | status}}"><a href="{{.Name}}">{{.Name}}</a>{{if eq .Name $me}} &#9734;{{end}}</td>
         <td>{{.Schedule}}</td>
-        <td title="{{.Finished}}">{{.Finished | date}}{{if (.Finished | date)}} ({{(.Finished.Sub .Date.Time)}}){{end}}</td>
+        <td {{if (.Finished | date)}} title="{{(.Finished.Sub .Date.Time)}}"{{end}}>{{.Finished | date}}</td>
         <td {{if .Files}}title="{{.Files}} files"{{end}}>{{if .Size}}{{.Size | bytes}}{{end}}</td>
 	</tr>
     {{end}}
