@@ -32,6 +32,10 @@ func (id *BackupID) String() string {
 	return fmt.Sprintf("%d", *id)
 }
 
+func (id *BackupID) Time() time.Time {
+	return time.Unix(int64(*id), 0)
+}
+
 func (id *BackupID) Set(s string) error {
 	switch strings.ToLower(s) {
 	case "now", "latest", "last":
