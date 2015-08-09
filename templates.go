@@ -267,6 +267,12 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 {{if .Vault}}<tr><th class="rowtitle">Vault</th><td><tt>{{.Vault}}</tt></td></tr>{{end}}
 {{if .Catalog}}<tr><th class="rowtitle">Catalog</th><td><tt>{{.Catalog}}</tt></td></tr>{{end}}
 {{if .Maxtries}}<tr><th class="rowtitle">Maxtries</th><td>{{.Maxtries}}</td></tr>{{end}}
+<tr><th class="rowtitle">Expiration</th><td>
+{{if .Expiration.Daily}}<tt>daily={{.Expiration.Daily}}</tt>{{end}}
+{{if .Expiration.Weekly}}<tt>weekly={{.Expiration.Weekly}}</tt>{{end}}
+{{if .Expiration.Monthly}}<tt>monthly={{.Expiration.Monthly}}</tt>{{end}}
+{{if .Expiration.Yearly}}<tt>yearly={{.Expiration.Yearly}}</tt>{{end}}
+</td></tr>
 {{end}}
 {{if .User}}<tr><th class="rowtitle">User</th><td>{{.User}}</td></tr>{{end}}
 <tr><th class="rowtitle">Include</th><td>
