@@ -184,6 +184,20 @@ catalog="/var/local/backup/catalog.db"
 daily=28
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+### Scheduling expiration
+
+This task should be run *every day*, preferably when the system is idle (or at least, not receiving backups from clients).
+
+Use [`cron`](https://en.wikipedia.org/wiki/Cron) to schedule `pukcab expire` to run daily.
+
+On many systems (most Linux distributions), you can also create a script in `/etc/cron.daily/pukcab-expire` with the following content:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#!/bin/sh
+
+exec pukcab expire
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Client
 ------
 
@@ -231,8 +245,19 @@ user="backup"
 server="backupserver.localdomain.net"
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-OS-dependent defaults
----------------------
+### Scheduling backups
+
+Use [`cron`](https://en.wikipedia.org/wiki/Cron) to schedule `pukcab backup` to run whenever you want to take backups.
+
+For daily backups, you can often just create a script in `/etc/cron.daily/pukcab` with the following content:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#!/bin/sh
+
+exec pukcab backup
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+### OS-dependent defaults
 
 `pukcab` tries to apply "sane" defaults, especially when taking a backup. In particular, it will only attempt to backup "real" filesystems and skip temporary files or pseudo-filesystems.
 
