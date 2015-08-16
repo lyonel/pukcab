@@ -392,6 +392,7 @@ Syntax
  * on the [backup server](#server), the [name] option defaults to all backups if not specified
  * on a [backup client](#client), the [name] option is chosen automatically if not specified
  * the [schedule] and [expiration] are chosen automatically if not specified
+ * [schedule] can be a comma-separated list of schedules, in which case any explicit [expiration] will be applied to *all*
 
 `history`
 ---------
