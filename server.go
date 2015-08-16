@@ -617,11 +617,12 @@ func days(val, def int64) int64 {
 }
 
 func expirebackup() {
+	schedules := ""
 	keep := 3
 	flag.StringVar(&name, "name", "", "Backup name")
 	flag.StringVar(&name, "n", "", "-name")
-	flag.StringVar(&schedule, "schedule", defaultSchedule, "Backup schedule")
-	flag.StringVar(&schedule, "r", defaultSchedule, "-schedule")
+	flag.StringVar(&schedules, "schedule", defaultSchedule, "Backup schedule")
+	flag.StringVar(&schedules, "r", defaultSchedule, "-schedule")
 	flag.IntVar(&keep, "keep", keep, "Minimum number of backups to keep")
 	flag.IntVar(&keep, "k", keep, "-keep")
 	flag.Var(&date, "age", "Maximum age/date")
@@ -632,45 +633,48 @@ func expirebackup() {
 	SetupServer()
 	cfg.ServerOnly()
 
-	if schedule == "" {
+	if schedules == "" {
 		failure.Println("Missing backup schedule")
 		log.Fatal("Client did not provide a backup schedule")
-	}
-
-	if date == -1 {
-		switch schedule {
-		case "daily":
-			date = BackupID(time.Now().Unix() - days(cfg.Expiration.Daily, 2*7)*24*60*60) // 2 weeks
-		case "weekly":
-			date = BackupID(time.Now().Unix() - days(cfg.Expiration.Weekly, 6*7)*24*60*60) // 6 weeks
-		case "monthly":
-			date = BackupID(time.Now().Unix() - days(cfg.Expiration.Monthly, 365)*24*60*60) // 1 year
-		case "yearly":
-			date = BackupID(time.Now().Unix() - days(cfg.Expiration.Yearly, 10*365)*24*60*60) // 10 years
-		default:
-			failure.Println("Missing expiration")
-			log.Fatal("Client did not provide an expiration")
-		}
 	}
 
 	if err := opencatalog(); err != nil {
 		LogExit(err)
 	}
 
-	log.Printf("Expiring backups: name=%q schedule=%q date=%d (%v)\n", name, schedule, date, time.Unix(int64(date), 0))
+	for _, schedule = range strings.Split(schedules, ",") {
 
-	tx, _ := catalog.Begin()
-	if _, err := tx.Exec(fmt.Sprintf("CREATE TEMPORARY VIEW expendable AS SELECT backups.date FROM backups WHERE backups.finished IS NOT NULL AND backups.date NOT IN (SELECT date FROM backups AS sets WHERE backups.name=sets.name ORDER BY date DESC LIMIT %d)", keep)); err != nil {
-		tx.Rollback()
-		LogExit(err)
-	}
+		if date == -1 {
+			switch schedule {
+			case "daily":
+				date = BackupID(time.Now().Unix() - days(cfg.Expiration.Daily, 2*7)*24*60*60) // 2 weeks
+			case "weekly":
+				date = BackupID(time.Now().Unix() - days(cfg.Expiration.Weekly, 6*7)*24*60*60) // 6 weeks
+			case "monthly":
+				date = BackupID(time.Now().Unix() - days(cfg.Expiration.Monthly, 365)*24*60*60) // 1 year
+			case "yearly":
+				date = BackupID(time.Now().Unix() - days(cfg.Expiration.Yearly, 10*365)*24*60*60) // 10 years
+			default:
+				failure.Println("Missing expiration")
+				log.Fatal("Client did not provide an expiration")
+			}
+		}
 
-	if _, err := tx.Exec("DELETE FROM backups WHERE date<? AND ? IN (name,'') AND schedule=? AND date IN (SELECT * FROM expendable)", date, name, schedule); err != nil {
-		tx.Rollback()
-		LogExit(err)
+		log.Printf("Expiring backups: name=%q schedule=%q date=%d (%v)\n", name, schedule, date, time.Unix(int64(date), 0))
+
+		tx, _ := catalog.Begin()
+		if _, err := tx.Exec(fmt.Sprintf("CREATE TEMPORARY VIEW expendable AS SELECT backups.date FROM backups WHERE backups.finished IS NOT NULL AND backups.date NOT IN (SELECT date FROM backups AS sets WHERE backups.name=sets.name ORDER BY date DESC LIMIT %d)", keep)); err != nil {
+			tx.Rollback()
+			LogExit(err)
+		}
+
+		if _, err := tx.Exec("DELETE FROM backups WHERE date<? AND ? IN (name,'') AND schedule=? AND date IN (SELECT * FROM expendable)", date, name, schedule); err != nil {
+			tx.Rollback()
+			LogExit(err)
+		}
+		tx.Exec("DROP VIEW expendable")
+		tx.Commit()
 	}
-	tx.Exec("DROP VIEW expendable")
-	tx.Commit()
 
 	vacuum()
 }
