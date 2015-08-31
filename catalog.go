@@ -216,7 +216,7 @@ func reschedule(backup BackupID, name string, s string) (schedule string) {
 	switch {
 	case firstmonthly != 0 && min(backup-firstmonthly, backup-lastyearly) > 365*24*60*60:
 		return "yearly"
-	case firstweekly != 0 && min(backup-firstweekly, backup-lastmonthly) > 30*24*60*60:
+	case firstweekly != 0 && min(backup-firstweekly, backup-lastmonthly) > 31*24*60*60:
 		return "monthly"
 	case earliest != 0 && min(backup-earliest, backup-lastweekly) > 7*24*60*60:
 		return "weekly"
