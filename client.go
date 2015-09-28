@@ -908,6 +908,7 @@ func restore() {
 	date.Set("now")
 
 	directory := ""
+	inplace := false
 
 	flag.StringVar(&name, "name", defaultName, "Backup name")
 	flag.StringVar(&name, "n", defaultName, "-name")
@@ -915,8 +916,18 @@ func restore() {
 	flag.StringVar(&directory, "C", "", "-directory")
 	flag.Var(&date, "date", "Backup set")
 	flag.Var(&date, "d", "-date")
+	flag.BoolVar(&inplace, "in-place", inplace, "Restore in-place")
+	flag.BoolVar(&inplace, "inplace", inplace, "-in-place")
 
 	Setup()
+
+	if inplace {
+		if directory != "" && directory != "/" {
+			failure.Fatal("Inconsistent parameters")
+		} else {
+			directory = "/"
+		}
+	}
 
 	args := []string{"data"}
 	args = append(args, "-date", fmt.Sprintf("%d", date))

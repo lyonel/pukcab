@@ -605,6 +605,25 @@ Default value
 
 :   `false`
 
+`in-place`
+-----------
+
+Change to the root of the filesystem (`/`) before restoring entries from the backup. This has the effect of restoring the files in-place, overwriting current files.
+
+Syntax
+
+:   `--in-place`[`=true`]
+
+:   `--in-place=false`
+
+:   `--inplace`[`=true`]
+
+:   `--inplace=false`
+
+Default value
+
+:   `false` (i.e. extract to the current directory)
+
 `keep`
 ------
 
