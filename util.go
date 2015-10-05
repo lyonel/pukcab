@@ -165,3 +165,12 @@ func DisplayTime(d time.Time) string {
 		return d.Format("Jan _2  2006")
 	}
 }
+
+func Exists(name string) bool {
+	if _, err := os.Stat(name); err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+	}
+	return true
+}

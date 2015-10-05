@@ -310,15 +310,17 @@ func dumpcatalog(what DumpFlags) {
 							if what&Data != 0 && hdr.Typeflag == tar.TypeReg {
 								hdr.Size = size
 							}
-							tw.WriteHeader(&hdr)
+							if hdr.Typeflag != tar.TypeReg || Exists(filepath.Join(cfg.Vault, hash)) {
+								tw.WriteHeader(&hdr)
 
-							if what&Data != 0 && size > 0 && hash != "" {
-								if zdata, err := os.Open(filepath.Join(cfg.Vault, hash)); err == nil {
-									gz, _ := gzip.NewReader(zdata)
-									io.Copy(tw, gz)
-									zdata.Close()
-								} else {
-									log.Println(err)
+								if what&Data != 0 && size > 0 && hash != "" {
+									if zdata, err := os.Open(filepath.Join(cfg.Vault, hash)); err == nil {
+										gz, _ := gzip.NewReader(zdata)
+										io.Copy(tw, gz)
+										zdata.Close()
+									} else {
+										log.Println(err)
+									}
 								}
 							}
 						} else {
