@@ -310,7 +310,10 @@ func dumpcatalog(what DumpFlags) {
 							if what&Data != 0 && hdr.Typeflag == tar.TypeReg {
 								hdr.Size = size
 							}
-							if hdr.Typeflag != tar.TypeReg || Exists(filepath.Join(cfg.Vault, hash)) {
+							if hdr.Typeflag == tar.TypeReg && !Exists(filepath.Join(cfg.Vault, hash)) {
+								log.Printf("Vault corrupted: msg=\"data file missing\" vault=%q hash=%q file=%q error=critical\n", absolute(cfg.Vault), hash, hdr.Name)
+								failure.Println("Missing from vault:", hdr.Name)
+							} else {
 								tw.WriteHeader(&hdr)
 
 								if what&Data != 0 && size > 0 && hash != "" {
