@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/lyonel/go-sqlite3"
 )
@@ -191,6 +192,11 @@ func min(a, b BackupID) BackupID {
 	}
 }
 
+func midnight(backup BackupID) BackupID {
+	y, m, d := backup.Time().Date()
+	return BackupID(time.Date(y, m, d, 0, 0, 0, 0, time.Local).Unix())
+}
+
 func reschedule(backup BackupID, name string, s string) (schedule string) {
 	if s != "auto" && s != "" {
 		return s
@@ -213,12 +219,14 @@ func reschedule(backup BackupID, name string, s string) (schedule string) {
 		return
 	}
 
+	today := midnight(backup)
+
 	switch {
-	case firstmonthly != 0 && min(backup-firstmonthly, backup-lastyearly) > 365*24*60*60:
+	case firstmonthly != 0 && min(today-firstmonthly, today-lastyearly) > 365*24*60*60:
 		return "yearly"
-	case firstweekly != 0 && min(backup-firstweekly, backup-lastmonthly) > 31*24*60*60:
+	case firstweekly != 0 && min(today-firstweekly, today-lastmonthly) > 31*24*60*60:
 		return "monthly"
-	case earliest != 0 && min(backup-earliest, backup-lastweekly) > 7*24*60*60:
+	case earliest != 0 && min(today-earliest, today-lastweekly) > 7*24*60*60:
 		return "weekly"
 	}
 
