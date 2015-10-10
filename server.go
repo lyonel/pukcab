@@ -820,6 +820,38 @@ func fsck(fix bool) {
 			errors += int(n)
 		}
 
+		info.Println("#5: [vault] checking data files")
+		if datafiles, err := tx.Query("SELECT DISTINCT hash FROM files WHERE type IN (?,?)", tar.TypeReg, tar.TypeRegA); err == nil {
+			n := 0
+			defer datafiles.Close()
+			for datafiles.Next() {
+				var hash string
+				if err := datafiles.Scan(&hash); err == nil {
+					if hash != "" && !Exists(filepath.Join(cfg.Vault, hash)) {
+						n++
+						if fix {
+							_, err = tx.Exec("UPDATE files SET type='?' WHERE hash=?", hash)
+							if err != nil {
+								tx.Rollback()
+								LogExit(err)
+							}
+						}
+					}
+				} else {
+					log.Println(err)
+					return
+				}
+			}
+			if n > 0 {
+				fmt.Printf("%d missing datafiles\n", n)
+				log.Printf("Vault check: lostfiles=%d\n", n)
+			}
+			errors += int(n)
+		} else {
+			log.Println(err)
+			return
+		}
+
 		tx.Commit()
 	} else {
 		LogExit(err)
