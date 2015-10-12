@@ -457,7 +457,7 @@ The `restore` command restores [files] as they were at a given [date].
 
 Syntax
 
-:   `pukcab restore` [ --[directory]=_directory_ ] [ --[name]=_name_ ] [ --[date]=_date_ ] [ [_FILES_] ... ]
+:   `pukcab restore` [ --[in-place] ] [ --[directory]=_directory_ ] [ --[name]=_name_ ] [ --[date]=_date_ ] [ [_FILES_] ... ]
 
 ### Notes
 
@@ -934,6 +934,7 @@ sqlite3 catalog.db .schema
 [expiration]: #date
 [listen]: #listen
 [directory]: #directory
+[in-place]: #in-place
 
 [create SSH keys]: https://en.wikipedia.org/wiki/Ssh-keygen
 [OS-dependent]: #os-dependent-defaults
