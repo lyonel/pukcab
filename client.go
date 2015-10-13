@@ -610,13 +610,12 @@ func ping() {
 	info.Println()
 
 	if err := cmd.Start(); err != nil {
-		fmt.Println("Backend error:", cmd.Args, err)
+		fmt.Println("Backend error:", err)
 		log.Fatal(cmd.Args, err)
 	}
 
 	if err := cmd.Wait(); err != nil {
-		fmt.Println("Backend error:", cmd.Args, err)
-		fmt.Println("Backend error:", ExitCode(cmd.ProcessState))
+		fmt.Println("Backend error:", err)
 		log.Fatal(cmd.Args, err)
 	}
 }

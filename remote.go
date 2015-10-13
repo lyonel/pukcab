@@ -35,7 +35,7 @@ func sshcopyid() error {
 }
 
 func ssh(arg ...string) *exec.Cmd {
-	cmd := []string{"-q", "-C", "-oBatchMode=yes", "-oStrictHostKeyChecking=no", "-oUserKnownHostsFile=/dev/null"}
+	cmd := []string{"-C", "-oLogLevel=ERROR", "-oBatchMode=yes", "-oStrictHostKeyChecking=no", "-oUserKnownHostsFile=/dev/null"}
 	if cfg.User != "" {
 		cmd = append(cmd, "-l", cfg.User)
 	}
