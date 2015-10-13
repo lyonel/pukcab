@@ -464,6 +464,7 @@ Syntax
  * the [name] option is chosen automatically if not specified
  * the [date] option automatically selects the last backup
  * this operation currently requires a working `tar` system command (usually GNU tar)
+ * `--in-place` is equivalent to `--directory=/`
 
 `vacuum`
 --------
