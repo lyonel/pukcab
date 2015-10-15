@@ -69,7 +69,7 @@ func LogExit(err error) {
 	if busy(err) {
 		os.Exit(2)
 	} else {
-		log.Printf("Exiting: msg=%q error=fatal\n", err)
+		log.Printf("Exiting: name=%q date=%d msg=%q error=fatal\n", name, date, err)
 		os.Exit(1)
 	}
 }
