@@ -388,7 +388,7 @@ func dumpfiles(files int, backup *Backup) (bytes int64) {
 						}
 
 						if written != hdr.Size {
-							log.Printf("Could not backup file=%q msg=\"size changed during backup\" name=%q date=%d error=warn\n", f, name, date)
+							log.Printf("Could not backup file=%q msg=\"size changed during backup\" name=%q date=%d error=warn\n", f, name, backup.Date)
 						}
 						bytes += written
 					}
@@ -397,7 +397,7 @@ func dumpfiles(files int, backup *Backup) (bytes int64) {
 				}
 				done++
 			} else {
-				log.Printf("Couldn't backup file=%q msg=%q name=%q date=%d error=warn\n", f, err, name, date)
+				log.Printf("Couldn't backup file=%q msg=%q name=%q date=%d error=warn\n", f, err, name, backup.Date)
 			}
 		}
 	})
