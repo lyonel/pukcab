@@ -7,7 +7,7 @@ Introduction
 
 `pukcab` is a lightweight, single-binary backup system for UNIX / Linux systems that stores de-duplicated, compressed and incremental backups on a remote server using just an SSH connection.
 
-De-duplication happens not only between incremental backups of the same system but also between different systems. For example, it allows you to perform full backups of systems running the same OS with only minimal disk space for each additional system^[Basically, only configuration files and user data require disk space.].
+De-duplication happens not only between incremental backups of the same system but also between different systems. For example, it allows you to perform full backups of systems running the same OS with only minimal disk space for each additional system^[Basically, only configuration files and user data require disk space --- that's a blatant lie, the catalog uses disk space, too (but hopefully much less).].
 
 Intended use
 ------------
@@ -905,6 +905,16 @@ Internals
 
 ##Logging
 
+`pukcab` tries to generate useful log records by including easy-to-parse details into the events it sends to [syslog], like in the following examples (from a Linux box):
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Oct 21 08:25:40 server pukcab(newbackup)[16993]: Creating backup set: date=1445391440 name="client" schedule="daily"
+Oct 21 08:36:19 client pukcab(backup)[27001]: Could not backup file="/var/log/httpd/access_log" msg="size changed during backup" name="client" date=1445391440 error=warn
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The [syslog] _APP-NAME_ field includes the command that generated the event: `pukcab(`_command_`)`
+
+The rest of the event uses the following format: _message_ [ [_field_=_value_] ... ]
 
 :fields definition
 
@@ -913,18 +923,19 @@ field                type    unit          description
 `date`               number                backup [date]
 `duration`           number   seconds      execution time of the current command
 `elapsed`            number   seconds      total execution time
-`error`              token                 `err`, `fatal` or `warn`
+`error`              token                 error severity (`fatal` / `warn`)
 `file`                text                 file name
 `files`              number                total number of files
 `msg`                 text                 human-readable error message
 `name`                text                 backup [name]
 `received`           number   bytes        amount of data received by the current command
 `schedule`            text                 backup [schedule]
-`type`               token                 backup type (either `incremental` or `full`)
+`type`               token                 backup type (`incremental` / `full`)
 `sent`               number   bytes        amount of data sent by the current command
 `size`               number   bytes        total amount of data
 -------------------- ------- ------------  ----------------
 
+text values are quoted (`"text value"`)
 
 [_OPTIONS_]: #options
 [_FILES_]: #files
@@ -980,3 +991,4 @@ field                type    unit          description
 [FUSE]: https://en.wikipedia.org/wiki/Filesystem_in_Userspace
 [SQLite]: http://www.sqlite.org/
 [BusyBox]: http://www.busybox.net/
+[syslog]: https://tools.ietf.org/html/rfc5424
