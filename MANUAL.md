@@ -900,6 +900,32 @@ sqlite3 catalog.db .schema
  * this command must be run as the `pukcab` user _on the server_
  * this command will (probably) take very long and block any backup until it has completed
 
+Internals
+=========
+
+##Logging
+
+
+:fields definition
+
+field                type    unit          description
+-------------------- ------- ------------  -------------------------------
+`date`               number                backup [date]
+`duration`           number   seconds      execution time of the current command
+`elapsed`            number   seconds      total execution time
+`error`              token                 `err`, `fatal` or `warn`
+`file`                text                 file name
+`files`              number                total number of files
+`msg`                 text                 human-readable error message
+`name`                text                 backup [name]
+`received`           number   bytes        amount of data received by the current command
+`schedule`            text                 backup [schedule]
+`type`               token                 backup type (either `incremental` or `full`)
+`sent`               number   bytes        amount of data sent by the current command
+`size`               number   bytes        total amount of data
+-------------------- ------- ------------  ----------------
+
+
 [_OPTIONS_]: #options
 [_FILES_]: #files
 [backup]: #backup
