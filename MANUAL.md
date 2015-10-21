@@ -921,21 +921,19 @@ The rest of the event uses the following format: _message_ [ [_field_=_value_] .
 field                type    unit          description
 -------------------- ------- ------------  -------------------------------
 `date`               number                backup [date]
-`duration`           number   seconds      execution time of the current command
+`duration`           number   seconds      execution time
 `elapsed`            number   seconds      total execution time
 `error`              token                 error severity (`fatal` / `warn`)
 `file`                text                 file name
 `files`              number                total number of files
 `msg`                 text                 human-readable error message
 `name`                text                 backup [name]
-`received`           number   bytes        amount of data received by the current command
+`received`           number   bytes        amount of data received
 `schedule`            text                 backup [schedule]
-`type`               token                 backup type (`incremental` / `full`)
-`sent`               number   bytes        amount of data sent by the current command
+`sent`               number   bytes        amount of data sent
 `size`               number   bytes        total amount of data
+`type`               token                 backup type (`incremental` / `full`)
 -------------------- ------- ------------  ----------------
-
-text values are quoted (`"text value"`)
 
 [_OPTIONS_]: #options
 [_FILES_]: #files
