@@ -131,8 +131,8 @@ func dobackup(name string, schedule string, full bool) (fail error) {
 			backuptype = "full"
 		}
 		info.Println("done.")
-		info.Printf("Backup: date=%d name=%q files=%d type=%q\n", backup.Date, backup.Name, backup.Count(), backuptype)
-		log.Printf("Backup: date=%d name=%q files=%d type=%q\n", backup.Date, backup.Name, backup.Count(), backuptype)
+		info.Printf("Backup: date=%d name=%q files=%d type=%s\n", backup.Date, backup.Name, backup.Count(), backuptype)
+		log.Printf("Backup: date=%d name=%q files=%d type=%s\n", backup.Date, backup.Name, backup.Count(), backuptype)
 	}
 
 	bytes := dumpfiles(files, backup)
