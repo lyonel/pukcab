@@ -138,3 +138,7 @@ func LoadAvg() (result float64) {
 func Daemonize() {
 	C.daemonize()
 }
+
+func Renice() {
+	syscall.Setpriority(syscall.PRIO_PGRP, 0, 5)
+}

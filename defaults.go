@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"runtime"
 	"time"
 )
 
@@ -41,4 +42,7 @@ func setDefaults() {
 		defaultSchedule = "yearly"
 	}
 
+	if int(LoadAvg()) > runtime.NumCPU() {
+		Renice()
+	}
 }
