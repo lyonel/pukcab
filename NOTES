@@ -7,6 +7,7 @@ encrypt vault files
  * store keys in catalog
 
 new commands:
+ * `sync`: synchronise local vault with a remote server
  * `store`: directly store a tar file
  * `auto`: connect to server and wait for orders
  * `analysis`
