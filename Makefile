@@ -64,3 +64,6 @@ clean:
 	${PANDOC} -o $@ $<
 
 doc: MANUAL.html MANUAL.pdf
+
+copr: srpm
+	copr build --nowait lyonel/Pukcab pukcab-${VERSION}-*.src.rpm
