@@ -4,15 +4,20 @@ VERSION:=$(shell git describe --tags --long | cut -d - -f 1,2 | tr - .)
 SHORTVERSION:=$(shell git describe --tags --long | cut -d - -f 1 | tr - .)
 PANDOC:=pandoc -V title="Pukcab ${SHORTVERSION}" -V date="`date +%F`" --smart --toc --toc-depth=2
 
+DEPS= github.com/antage/mntent github.com/BurntSushi/toml github.com/lyonel/go-sqlite3
+
 export GOPATH=${PWD}
 
-.PHONY: pukcab clean update release doc
+.PHONY: pukcab clean update release doc dependencies
 
 .SUFFIXES: .md .pdf .html
 
-pukcab:
-	go build -o $@ -ldflags "-X main.buildId \"`git describe --tags` (`date +%Y-%m-%d`)\""
+pukcab: dependencies
+	go build -o $@ -ldflags "-X main.buildId=\"`git describe --tags`-`date +%Y.%m.%d`\""
 	strip $@
+
+dependencies:
+	go get ${DEPS}
 
 pukcab.exe:
 	CC=i686-w64-mingw32-gcc CGO_ENABLED=1 GOOS=windows GOARCH=386 go build -tags windows,!linux,!freebsd,!darwin -o $@
@@ -45,10 +50,6 @@ github:
 
 clean:
 	go clean
-
-update:
-	git submodule update --init --recursive
-	cd src ; go install github.com/*/*
 
 .md.html: md.css
 	${PANDOC} -t html5 --self-contained --css md.css -o $@ $<
