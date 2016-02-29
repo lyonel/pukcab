@@ -38,11 +38,17 @@ arm: arm5 arm7
 pukcab-${VERSION}-${OS}-${ARCH}.zip: pukcab MANUAL.html
 	zip $@ $^
 
+tgz: pukcab-${VERSION}.tar.gz
+
 pukcab-${VERSION}.tar.gz:
 	git archive -o $@ --prefix pukcab-${VERSION}/ HEAD
 
 rpm: pukcab-${VERSION}-${OS}-${ARCH}.zip
 	rpmbuild -bb --target=${ARCH} -D "%arch ${ARCH}" -D "%_rpmdir RPM" -D "%_sourcedir ${PWD}" -D "%_builddir ${PWD}/RPM/BUILD" -D "%_buildrootdir ${PWD}/RPM/BUILDROOT" -D "%VERSION "${VERSION} pukcab.spec
+
+srpm: tgz pukcab.spec.in
+	sed -e s/@@VERSION@@/${VERSION}/g pukcab.spec.in > pukcab.spec
+	rpmbuild -bs -D "%_srcrpmdir ${PWD}" -D "%_sourcedir ${PWD}" pukcab.spec
 
 github:
 	-git push -q git@github.com:/lyonel/pukcab.git
