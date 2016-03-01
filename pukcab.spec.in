@@ -18,6 +18,7 @@ Pukcab is a lightweight, single-binary backup system that stores de-duplicated, 
 %package client
 BuildArch: noarch
 Summary: Simple Network Backup Utility (client)
+Group: Applications/System
 Requires: openssh-clients
 Requires: tar
 Requires: %{name} >= %{version}
@@ -30,6 +31,7 @@ This package ensures a system can act as a pukcab client.
 %package server
 BuildArch: noarch
 Summary: Simple Network Backup Utility (server)
+Group: Applications/System
 Requires: openssh-server
 Requires: %{name} >= %{version}
 
@@ -58,7 +60,7 @@ id pukcab || useradd -r -m -d "%{_localstatedir}/pukcab" pukcab || true
 %files
 %defattr(-,root,root, 0555)
 %doc MANUAL.html
-%config(noreplace) %ghost %{_sysconfdir}/%{name}.conf
+%config(noreplace) %attr(0555 ,root,root) %ghost %{_sysconfdir}/%{name}.conf
 %{_bindir}/*
 
 %files client
