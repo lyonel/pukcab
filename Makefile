@@ -23,6 +23,7 @@ pukcab.exe:
 	CC=i686-w64-mingw32-gcc CGO_ENABLED=1 GOOS=windows GOARCH=386 go build -tags windows,!linux,!freebsd,!darwin -o $@
 
 release: pukcab-${VERSION}-${OS}-${ARCH}.zip pukcab-${VERSION}.tar.gz
+	scp pukcab-${VERSION}.tar.gz pukcab-${VERSION}-${OS}-${ARCH}.zip www.internal:/var/www/html/software/files
 
 i686 i386 386:
 	$(MAKE) CGO_ENABLED=1 GOARCH=386 ARCH=i686 rpm
@@ -66,5 +67,6 @@ clean:
 doc: MANUAL.html MANUAL.pdf
 
 copr: srpm
+	scp pukcab-${VERSION}-*.src.rpm www.internal:/var/www/html/software/files
 	copr build --nowait lyonel/Pukcab pukcab-${VERSION}-*.src.rpm
 	copr build --nowait lyonel/ezIX pukcab-${VERSION}-*.src.rpm
