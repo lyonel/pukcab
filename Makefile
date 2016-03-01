@@ -67,3 +67,4 @@ doc: MANUAL.html MANUAL.pdf
 
 copr: srpm
 	copr build --nowait lyonel/Pukcab pukcab-${VERSION}-*.src.rpm
+	copr build --nowait lyonel/ezIX pukcab-${VERSION}-*.src.rpm
