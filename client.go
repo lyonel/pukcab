@@ -665,7 +665,7 @@ func dashboard() {
 		fmt.Println("First:         ", client.First)
 		for _, schedule := range allschedules {
 			if when, ok := client.Last[schedule]; ok {
-				fmt.Printf("Last %-10s %v\n", schedule, when)
+				fmt.Printf("Last %-10s %v\n", schedule+":", when)
 			}
 		}
 		fmt.Println()
