@@ -584,6 +584,7 @@ func list() {
 }
 
 type Client struct {
+	First time.Time
 	Last  map[string]time.Time
 	Size  int64
 	Count int64
@@ -621,6 +622,9 @@ func dashboard() {
 		switch hdr.Typeflag {
 		case tar.TypeXGlobalHeader:
 			if client, exists := clients[hdr.Name]; exists {
+				if hdr.ModTime.Before(client.First) {
+					client.First = hdr.ModTime
+				}
 				if hdr.ModTime.After(client.Last[hdr.Xattrs["backup.schedule"]]) {
 					client.Last[hdr.Xattrs["backup.schedule"]] = hdr.ModTime
 				}
@@ -632,6 +636,7 @@ func dashboard() {
 				clients[hdr.Name] = client
 			} else {
 				client = Client{Last: make(map[string]time.Time)}
+				client.First = hdr.ModTime
 				client.Last[hdr.Xattrs["backup.schedule"]] = hdr.ModTime
 				client.Size = hdr.Size
 				client.Count++
@@ -655,11 +660,12 @@ func dashboard() {
 	}
 
 	for name, client := range clients {
-		fmt.Println("Name:    ", name)
-		fmt.Println("Backups: ", client.Count)
+		fmt.Println("Name:          ", name)
+		fmt.Println("Backups:       ", client.Count)
+		fmt.Println("First:         ", client.First)
 		for _, schedule := range allschedules {
 			if when, ok := client.Last[schedule]; ok {
-				fmt.Printf("Last %s: %v\n", schedule, when)
+				fmt.Printf("Last %-10s %v\n", schedule, when)
 			}
 		}
 		fmt.Println()
