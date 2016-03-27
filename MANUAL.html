@@ -14,7 +14,7 @@
 <body>
 <header>
 <h1 class="title">Pukcab 1.5</h1>
-<h3 class="date">2015-10-22</h3>
+<h3 class="date">2016-03-27</h3>
 </header>
 <nav id="TOC">
 <ul>
@@ -47,6 +47,7 @@
 <li><a href="#ping"><code>ping</code></a></li>
 <li><a href="#register"><code>register</code></a></li>
 <li><a href="#restore"><code>restore</code></a></li>
+<li><a href="#summary"><code>summary</code></a></li>
 <li><a href="#vacuum"><code>vacuum</code></a></li>
 <li><a href="#verify"><code>verify</code></a></li>
 <li><a href="#web"><code>web</code></a></li>
@@ -506,14 +507,18 @@ exec pukcab backup</code></pre>
 <td style="text-align: left;">restore files</td>
 </tr>
 <tr class="odd">
+<td style="text-align: left;"><a href="#summary">summary</a>,<a href="#summary">dashboard</a></td>
+<td style="text-align: left;">display information about backups</td>
+</tr>
+<tr class="even">
 <td style="text-align: left;"><a href="#vacuum">vacuum</a></td>
 <td style="text-align: left;">vault and catalog clean-up</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><a href="#verify">verify</a>, <a href="#verify">check</a></td>
 <td style="text-align: left;">verify files in a backup</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><a href="#web">web</a></td>
 <td style="text-align: left;">starts the built-in web interface</td>
 </tr>
@@ -676,6 +681,17 @@ exec pukcab backup</code></pre>
 <li>this operation currently requires a working <code>tar</code> system command (usually GNU tar)</li>
 <li><code>--in-place</code> is equivalent to <code>--directory=/</code></li>
 </ul>
+<h2 id="summary"><code>summary</code></h2>
+<p>The <code>summary</code> command lists information about the backup sets stored on the server. Backup sets can be filtered by name.</p>
+<dl>
+<dt>Syntax</dt>
+<dd><p><code>pukcab summary</code> [ –<a href="#name">name</a>=<em>name</em> ]</p>
+</dd>
+</dl>
+<h3 id="notes-11">Notes</h3>
+<ul>
+<li>on server, if <a href="#name">name</a> is not specified, the command lists all backups, regardless of their name</li>
+</ul>
 <h2 id="vacuum"><code>vacuum</code></h2>
 <p>The <code>vacuum</code> command initiates clean-up of the catalog and vault to save disk space.</p>
 <dl>
@@ -683,7 +699,7 @@ exec pukcab backup</code></pre>
 <dd><p><code>pukcab vacuum</code></p>
 </dd>
 </dl>
-<h3 id="notes-11">Notes</h3>
+<h3 id="notes-12">Notes</h3>
 <ul>
 <li>can only be run on the server</li>
 <li>the clean-up may take a while and delay new backups</li>
@@ -695,7 +711,7 @@ exec pukcab backup</code></pre>
 <dd><p><code>pukcab verify</code> [ –<a href="#name">name</a>=<em>name</em> ] [ –<a href="#date">date</a>=<em>date</em> ] [ <a href="#files"><em>FILES</em></a> … ]</p>
 </dd>
 </dl>
-<h3 id="notes-12">Notes</h3>
+<h3 id="notes-13">Notes</h3>
 <ul>
 <li>the <a href="#name">name</a> option is chosen automatically if not specified</li>
 <li>the <a href="#date">date</a> option automatically selects the last backup if not specified</li>
@@ -707,7 +723,7 @@ exec pukcab backup</code></pre>
 <dd><p><code>pukcab web</code> [ –<a href="#listen">listen</a>=[<em>host</em>]:<em>port</em> ]</p>
 </dd>
 </dl>
-<h3 id="notes-13">Notes</h3>
+<h3 id="notes-14">Notes</h3>
 <ul>
 <li>by default, <code>pukcab</code> listens on <code>localhost</code> on port 8080</li>
 <li>available features depend on the local system’s role (client or server)</li>
