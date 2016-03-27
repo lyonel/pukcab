@@ -163,6 +163,8 @@ func main() {
 		expire()
 	case "info", "list":
 		list()
+	case "dashboard", "summary":
+		dashboard()
 	case "history", "versions":
 		history()
 	case "config", "cfg":
@@ -220,6 +222,7 @@ func main() {
     register    send identity to the server
     restore     restore files from backup
     resume      continue a partial backup
+    summary     display a dashboard of existing backups
     verify      verify a backup
     version     display version information
     web         start the built-in web server

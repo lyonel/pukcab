@@ -302,6 +302,7 @@ Synopsis
 [ping], [test]              check server connectivity
 [register]                  register to backup server
 [restore]                   restore files
+[summary],[dashboard]       display information about backups
 [vacuum]                    vault and catalog clean-up
 [verify], [check]           verify files in a backup
 [web]                       starts the built-in web interface
@@ -465,6 +466,19 @@ Syntax
  * the [date] option automatically selects the last backup
  * this operation currently requires a working `tar` system command (usually GNU tar)
  * `--in-place` is equivalent to `--directory=/`
+
+`summary`
+-----------
+
+The `summary` command lists information about the backup sets stored on the server. Backup sets can be filtered by name.
+
+Syntax
+
+:   `pukcab summary` [ --[name]=_name_ ]
+
+### Notes
+
+ * on server, if [name] is not specified, the command lists all backups, regardless of their name
 
 `vacuum`
 --------
@@ -958,6 +972,8 @@ field                type    unit          description
 [test]: #ping
 [register]: #register
 [web]: #web
+[dashboard]: #summary
+[summary]: #summary
 
 [name]: #name
 [date]: #date
