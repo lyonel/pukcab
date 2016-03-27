@@ -34,7 +34,7 @@ func upgradecatalog(v int) (int, error) {
 		if _, err := tx.Exec(`
 ALTER TABLE files RENAME to oldfiles;
 CREATE TABLE files(backupid INTEGER NOT NULL,
-                        hash TEXT COLLATE NOCASE NOT NULL DEFAULT '',
+                        hash TEXT NOT NULL DEFAULT '',
                         type CHAR(1) NOT NULL DEFAULT '?',
                         nameid INTEGER NOT NULL DEFAULT 0,
                         linknameid INTEGER NOT NULL DEFAULT 0,
@@ -114,7 +114,7 @@ CREATE TABLE IF NOT EXISTS backups(name TEXT NOT NULL,
 			files INTEGER,
 			size INTEGER);
 CREATE TABLE IF NOT EXISTS files(backupid INTEGER NOT NULL,
-			hash TEXT COLLATE NOCASE NOT NULL DEFAULT '',
+			hash TEXT NOT NULL DEFAULT '',
 			type CHAR(1) NOT NULL DEFAULT '?',
 			nameid INTEGER NOT NULL DEFAULT 0,
 			linknameid INTEGER NOT NULL DEFAULT 0,
