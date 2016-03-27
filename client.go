@@ -534,7 +534,7 @@ func list() {
 					fmt.Println("Duration:", hdr.ChangeTime.Sub(hdr.ModTime))
 				}
 				if !hdr.AccessTime.IsZero() && hdr.AccessTime.Unix() != 0 {
-					fmt.Println("Running: ", time.Now().Sub(hdr.AccessTime))
+					fmt.Println("Active:  ", time.Now().Sub(hdr.AccessTime))
 				}
 				if hdr.Size > 0 {
 					fmt.Println("Size:    ", Bytes(uint64(hdr.Size)))
