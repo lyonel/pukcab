@@ -163,6 +163,8 @@ func main() {
 		expire()
 	case "info", "list":
 		list()
+	case "dashboard", "summary":
+		dashboard()
 	case "history", "versions":
 		history()
 	case "config", "cfg":

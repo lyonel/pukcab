@@ -583,6 +583,89 @@ func list() {
 	}
 }
 
+type Client struct {
+	Last  map[string]time.Time
+	Size  int64
+	Count int64
+}
+
+func dashboard() {
+	date = 0
+	name = ""
+	flag.StringVar(&name, "name", name, "Backup name")
+	flag.StringVar(&name, "n", name, "-name")
+	Setup()
+
+	if len(flag.Args()) != 0 {
+		failure.Fatal("Too many parameters: ", strings.Join(flag.Args(), " "))
+	}
+
+	if name == "" && !cfg.IsServer() {
+		name = defaultName
+	}
+
+	if name == "*" {
+		name = ""
+	}
+
+	if date == 0 && len(flag.Args()) != 0 {
+		date.Set("now")
+	}
+
+	backup := NewBackup(cfg)
+	backup.Init(date, name)
+
+	clients := make(map[string]Client)
+	schedules := make(map[string]struct{})
+	if err := process("metadata", backup, func(hdr tar.Header) {
+		switch hdr.Typeflag {
+		case tar.TypeXGlobalHeader:
+			if client, exists := clients[hdr.Name]; exists {
+				if hdr.ModTime.After(client.Last[hdr.Xattrs["backup.schedule"]]) {
+					client.Last[hdr.Xattrs["backup.schedule"]] = hdr.ModTime
+				}
+				if hdr.Size > client.Size {
+					client.Size = hdr.Size
+				}
+				client.Count++
+
+				clients[hdr.Name] = client
+			} else {
+				client = Client{Last: make(map[string]time.Time)}
+				client.Last[hdr.Xattrs["backup.schedule"]] = hdr.ModTime
+				client.Size = hdr.Size
+				client.Count++
+
+				clients[hdr.Name] = client
+			}
+			schedules[hdr.Xattrs["backup.schedule"]] = struct{}{}
+		}
+	}, flag.Args()...); err != nil {
+		failure.Println(err)
+		log.Fatal(err)
+	}
+
+	delete(schedules, "daily")
+	delete(schedules, "weekly")
+	delete(schedules, "monthly")
+	delete(schedules, "yearly")
+	allschedules := []string{"daily", "weekly", "monthly", "yearly"}
+	for s, _ := range schedules {
+		allschedules = append(allschedules, s)
+	}
+
+	for name, client := range clients {
+		fmt.Println("Name:    ", name)
+		fmt.Println("Backups: ", client.Count)
+		for _, schedule := range allschedules {
+			if when, ok := client.Last[schedule]; ok {
+				fmt.Printf("Last %s: %v\n", schedule, when)
+			}
+		}
+		fmt.Println()
+	}
+}
+
 func ping() {
 	Setup()
 
