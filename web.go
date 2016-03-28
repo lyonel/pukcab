@@ -43,6 +43,12 @@ type ConfigReport struct {
 	Config
 }
 
+type DashboardReport struct {
+	Report
+	Schedules []string
+	Clients   []Client
+}
+
 type BackupsReport struct {
 	Report
 	Names, Schedules []string
@@ -97,6 +103,107 @@ func webconfig(w http.ResponseWriter, r *http.Request) {
 		Config: cfg,
 	}
 	pages.ExecuteTemplate(w, "CONFIG", report)
+}
+
+func webdashboard(w http.ResponseWriter, r *http.Request) {
+	date = 0
+	name = ""
+
+	req := strings.SplitN(r.RequestURI[1:], "/", 3)
+	if len(req) > 1 && len(req[1]) > 0 {
+		name = req[1]
+	}
+	if len(req) > 2 && len(req[2]) > 0 {
+		http.Error(w, "Invalid request", http.StatusNotAcceptable)
+		return
+	}
+
+	if name == "" && !cfg.IsServer() {
+		name = defaultName
+	}
+
+	if name == "*" {
+		name = ""
+	}
+
+	backup := NewBackup(cfg)
+	backup.Init(date, name)
+
+	clients := make(map[string]Client)
+	schedules := make(map[string]struct{})
+	if err := process("metadata", backup, func(hdr tar.Header) {
+		switch hdr.Typeflag {
+		case tar.TypeXGlobalHeader:
+			if client, exists := clients[hdr.Name]; exists {
+				client.Name = hdr.Name
+				if hdr.ModTime.Before(client.First) {
+					client.First = hdr.ModTime
+				}
+				if hdr.ModTime.After(client.Last[hdr.Xattrs["backup.schedule"]]) {
+					client.Last[hdr.Xattrs["backup.schedule"]] = hdr.ModTime
+				}
+				if hdr.Size > client.Size {
+					client.Size = hdr.Size
+				}
+				client.Count++
+
+				clients[hdr.Name] = client
+			} else {
+				client.Name = hdr.Name
+				client = Client{Last: make(map[string]time.Time)}
+				client.First = hdr.ModTime
+				client.Last[hdr.Xattrs["backup.schedule"]] = hdr.ModTime
+				client.Size = hdr.Size
+				client.Count++
+
+				clients[hdr.Name] = client
+			}
+			schedules[hdr.Xattrs["backup.schedule"]] = struct{}{}
+		}
+	}, flag.Args()...); err != nil {
+		log.Println(err)
+		http.Error(w, "Backend error: "+err.Error(), http.StatusServiceUnavailable)
+		return
+	}
+
+	report := &DashboardReport{
+		Report: Report{
+			Title: "Dashboard",
+		},
+		Schedules: []string{"daily", "weekly", "monthly", "yearly"},
+		Clients:   []Client{},
+	}
+
+	delete(schedules, "daily")
+	delete(schedules, "weekly")
+	delete(schedules, "monthly")
+	delete(schedules, "yearly")
+	for s, _ := range schedules {
+		report.Schedules = append(report.Schedules, s)
+	}
+
+	names := []string{}
+	for _, c := range clients {
+		if c.Name != "" {
+			names = append(names, c.Name)
+		}
+	}
+	sort.Strings(names)
+
+	for _, c := range names {
+		report.Clients = append(report.Clients, clients[c])
+	}
+
+	if len(report.Clients) >= 0 {
+		//for i, j := 0, len(report.Backups)-1; i < j; i, j = i+1, j-1 {
+		//report.Backups[i], report.Backups[j] = report.Backups[j], report.Backups[i]
+		//}
+		if err := pages.ExecuteTemplate(w, "DASHBOARD", report); err != nil {
+			log.Println(err)
+			http.Error(w, "Internal error: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
 }
 
 func webinfo(w http.ResponseWriter, r *http.Request) {
@@ -393,6 +500,7 @@ func web() {
 	setuptemplate(webparts)
 
 	http.HandleFunc("/css/", stylesheets)
+	http.HandleFunc("/dashboard/", webdashboard)
 	http.HandleFunc("/info/", webinfo)
 	http.HandleFunc("/list/", webinfo)
 	http.HandleFunc("/backups/", webinfo)

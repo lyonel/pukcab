@@ -214,6 +214,7 @@ tr.total td.total {
 
 const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 <a href="/">Home</a>
+<a href="/dashboard">Dashboard</a>
 <a href="/backups">Backups</a>
 {{if isserver}}<a href="/tools">Tools</a>{{end}}
 </div>{{end}}
@@ -286,6 +287,31 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 {{end}}
 </td></tr>
 </tbody></table>
+{{template "FOOTER" .}}{{end}}
+
+{{define "DASHBOARD"}}{{template "HEADER" .}}
+<div class="submenu">
+{{if not isserver}}<a class="label" href="/dashboard/">&#9733;</a>{{end}}
+<a class="label" href="/dashboard/*">All</a>
+</div>
+{{$me := hostname}}
+{{$count := len .Clients}}
+{{$schedules := .Schedules}}
+<table class="report">
+<thead><tr><th>Name</th><th>First backup</th>{{range .Schedules}}<th>Last {{.}}</th>{{end}}</tr></thead>
+	{{with .Clients}}
+<tbody>
+    {{range .}}
+        <td><a href="../backups/{{.Name}}">{{.Name}}</a>{{if eq .Name $me}} &#9734;{{end}}</td>
+        <td>{{.First | date}}</td>
+        {{$last := .Last}}
+	{{range $s := $schedules}}<td>{{(index $last $s) | date}}</td>{{end}}
+	</tr>
+    {{end}}
+{{end}}
+</tbody>
+</table>
+    {{if not $count}}<div class="placeholder">empty list</div>{{end}}
 {{template "FOOTER" .}}{{end}}
 
 {{define "BACKUPS"}}{{template "HEADER" .}}

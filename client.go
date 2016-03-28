@@ -584,6 +584,7 @@ func list() {
 }
 
 type Client struct {
+	Name  string
 	First time.Time
 	Last  map[string]time.Time
 	Size  int64
@@ -635,6 +636,7 @@ func dashboard() {
 
 				clients[hdr.Name] = client
 			} else {
+				client.Name = hdr.Name
 				client = Client{Last: make(map[string]time.Time)}
 				client.First = hdr.ModTime
 				client.Last[hdr.Xattrs["backup.schedule"]] = hdr.ModTime
