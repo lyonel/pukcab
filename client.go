@@ -622,28 +622,30 @@ func dashboard() {
 	if err := process("metadata", backup, func(hdr tar.Header) {
 		switch hdr.Typeflag {
 		case tar.TypeXGlobalHeader:
-			if client, exists := clients[hdr.Name]; exists {
-				if hdr.ModTime.Before(client.First) {
+			if !hdr.ChangeTime.IsZero() && hdr.ChangeTime.Unix() != 0 {
+				if client, exists := clients[hdr.Name]; exists {
+					if hdr.ModTime.Before(client.First) {
+						client.First = hdr.ModTime
+					}
+					if hdr.ModTime.After(client.Last[hdr.Xattrs["backup.schedule"]]) {
+						client.Last[hdr.Xattrs["backup.schedule"]] = hdr.ModTime
+					}
+					if hdr.Size > client.Size {
+						client.Size = hdr.Size
+					}
+					client.Count++
+
+					clients[hdr.Name] = client
+				} else {
+					client.Name = hdr.Name
+					client = Client{Last: make(map[string]time.Time)}
 					client.First = hdr.ModTime
-				}
-				if hdr.ModTime.After(client.Last[hdr.Xattrs["backup.schedule"]]) {
 					client.Last[hdr.Xattrs["backup.schedule"]] = hdr.ModTime
-				}
-				if hdr.Size > client.Size {
 					client.Size = hdr.Size
+					client.Count++
+
+					clients[hdr.Name] = client
 				}
-				client.Count++
-
-				clients[hdr.Name] = client
-			} else {
-				client.Name = hdr.Name
-				client = Client{Last: make(map[string]time.Time)}
-				client.First = hdr.ModTime
-				client.Last[hdr.Xattrs["backup.schedule"]] = hdr.ModTime
-				client.Size = hdr.Size
-				client.Count++
-
-				clients[hdr.Name] = client
 			}
 			schedules[hdr.Xattrs["backup.schedule"]] = struct{}{}
 		}
