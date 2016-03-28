@@ -150,8 +150,8 @@ func webdashboard(w http.ResponseWriter, r *http.Request) {
 
 					clients[hdr.Name] = client
 				} else {
-					client.Name = hdr.Name
 					client = Client{Last: make(map[string]time.Time)}
+					client.Name = hdr.Name
 					client.First = hdr.ModTime
 					client.Last[hdr.Xattrs["backup.schedule"]] = hdr.ModTime
 					client.Size = hdr.Size
@@ -185,15 +185,13 @@ func webdashboard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	names := []string{}
-	for _, c := range clients {
-		if c.Name != "" {
-			names = append(names, c.Name)
-		}
+	for n, _ := range clients {
+		names = append(names, n)
 	}
 	sort.Strings(names)
 
-	for _, c := range names {
-		report.Clients = append(report.Clients, clients[c])
+	for _, n := range names {
+		report.Clients = append(report.Clients, clients[n])
 	}
 
 	if len(report.Clients) >= 0 {
