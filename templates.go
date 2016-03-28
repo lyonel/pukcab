@@ -303,7 +303,7 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 <tbody>
     {{range .}}
         <td><a href="../backups/{{.Name}}">{{.Name}}</a>{{if eq .Name $me}} &#9734;{{end}}</td>
-        <td>{{.First | dateshort}}</td>
+        <td title="{{.First | date}}">{{.First | dateshort}}</td>
         {{$last := .Last}}
 	{{range $s := $schedules}}<td title="{{(index $last $s) | date}}">{{(index $last $s) | dateshort}}</td>{{end}}
 	</tr>
@@ -613,9 +613,9 @@ func DateExpander(args ...interface{}) string {
 
 	switch duration := time.Since(t); {
 	case t.After(midnight):
-		return t.Format("Today 15:04")
+		return t.Format("today 15:04")
 	case t.After(midnight.AddDate(0, 0, -1)):
-		return t.Format("Yesterday 15:04")
+		return t.Format("yesterday 15:04")
 	case duration < 7*24*time.Hour:
 		return t.Format("Monday 15:04")
 	case duration < 365*24*time.Hour:
