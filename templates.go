@@ -298,11 +298,12 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 {{$count := len .Clients}}
 {{$schedules := .Schedules}}
 <table class="report">
-<thead><tr><th>Name</th><th>First backup</th>{{range .Schedules}}<th>Last {{.}}</th>{{end}}</tr></thead>
+<thead><tr><th>Name</th><th>Backups</th><th>First backup</th>{{range .Schedules}}<th>Last {{.}}</th>{{end}}</tr></thead>
 	{{with .Clients}}
 <tbody>
     {{range .}}
         <td><a href="../backups/{{.Name}}">{{.Name}}</a>{{if eq .Name $me}} &#9734;{{end}}</td>
+        <td title="{{.Size | bytes}}">{{.Count}}</td>
         <td title="{{.First | date}}">{{.First | dateshort}}</td>
         {{$last := .Last}}
 	{{range $s := $schedules}}<td title="{{(index $last $s) | date}}">{{(index $last $s) | dateshort}}</td>{{end}}
