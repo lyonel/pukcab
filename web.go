@@ -481,6 +481,7 @@ func web() {
 
 	pages = pages.Funcs(template.FuncMap{
 		"date":        DateExpander,
+		"dateshort":   DateShort,
 		"dateRFC1123": func(args ...interface{}) string { return DateFormat(time.RFC1123, args...) },
 		"dateRFC3339": func(args ...interface{}) string { return DateFormat(time.RFC3339, args...) },
 		"bytes":       BytesExpander,

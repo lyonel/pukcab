@@ -303,9 +303,9 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 <tbody>
     {{range .}}
         <td><a href="../backups/{{.Name}}">{{.Name}}</a>{{if eq .Name $me}} &#9734;{{end}}</td>
-        <td>{{.First | date}}</td>
+        <td>{{.First | dateshort}}</td>
         {{$last := .Last}}
-	{{range $s := $schedules}}<td>{{(index $last $s) | date}}</td>{{end}}
+	{{range $s := $schedules}}<td title="{{(index $last $s) | date}}">{{(index $last $s) | dateshort}}</td>{{end}}
 	</tr>
     {{end}}
 {{end}}
@@ -623,6 +623,44 @@ func DateExpander(args ...interface{}) string {
 	}
 
 	return t.Format("2 Jan 2006 15:04")
+}
+
+func DateShort(args ...interface{}) string {
+	ok := false
+	var t time.Time
+	if len(args) == 1 {
+		t, ok = args[0].(time.Time)
+
+		if !ok {
+			var d BackupID
+			if d, ok = args[0].(BackupID); ok {
+				t = time.Unix(int64(d), 0)
+			}
+		}
+	}
+	if !ok {
+		return fmt.Sprint(args...)
+	}
+
+	if t.IsZero() || t.Unix() == 0 {
+		return ""
+	}
+
+	now := time.Now().Local()
+	midnight := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+
+	switch duration := time.Since(t); {
+	case t.After(midnight):
+		return t.Format("today")
+	case t.After(midnight.AddDate(0, 0, -1)):
+		return t.Format("yesterday")
+	case duration < 7*24*time.Hour:
+		return t.Format("Monday")
+	case duration < 365*24*time.Hour:
+		return t.Format("2 January")
+	}
+
+	return t.Format("2 Jan 2006")
 }
 
 func DateFormat(format string, args ...interface{}) string {
