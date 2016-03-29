@@ -306,7 +306,8 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
         <td title="{{.Size | bytes}}">{{.Count}}</td>
         <td title="{{.First | date}}">{{.First | dateshort}}</td>
         {{$last := .Last}}
-	{{range $s := $schedules}}<td title="{{(index $last $s) | date}}">{{(index $last $s) | dateshort}}</td>{{end}}
+        {{$name := .Name}}
+	{{range $s := $schedules}}<td title="{{(index $last $s) | date}}"><a href="/backups/{{$name}}/{{(index $last $s).Unix}}">{{(index $last $s) | dateshort}}</a></td>{{end}}
 	</tr>
     {{end}}
 {{end}}
