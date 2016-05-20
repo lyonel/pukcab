@@ -471,13 +471,19 @@ func webdryrun(w http.ResponseWriter, r *http.Request) {
 
 func web() {
 	listen := ""
+	root := ""
 	flag.StringVar(&listen, "listen", listen, "Address to listen to")
 	flag.StringVar(&listen, "l", listen, "-listen")
+	flag.StringVar(&root, "root", root, "Web root URI")
 	Setup()
 
 	verbose = false // disable verbose mode when using web ui
+	if root == "" {
+		root = cfg.WebRoot
+	}
 
 	pages = pages.Funcs(template.FuncMap{
+		"root":        func() string { return root },
 		"date":        DateExpander,
 		"dateshort":   DateShort,
 		"dateRFC1123": func(args ...interface{}) string { return DateFormat(time.RFC1123, args...) },

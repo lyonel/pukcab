@@ -158,6 +158,7 @@ parameter/section     type    default         description
 `catalog`             text   `"catalog.db"`   name of the catalog database
 `maxtries`           number   `10`            number of retries in case of concurrent client accesses
 `web`                 text    *none*          auto-start the web interface on [*host*]:*port* (cf. [listen])
+`webroot`             text    *none*          base URI of the web interface
 `[expiration]`       section                  specify expiration of standard schedules
 `daily`              number   `14`            retention (in days) of `daily` backups
 `weekly`             number   `42`            retention (in days) of `weekly` backups
@@ -515,7 +516,7 @@ The `web` command starts the built-in web interface.
 
 Syntax
 
-:   `pukcab web` [ --[listen]=[_host_]:_port_ ]
+:   `pukcab web` [ --[listen]=[_host_]:_port_ ] [ --[root]=_URI_ ]
 
 ### Notes
 

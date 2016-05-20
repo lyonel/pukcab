@@ -213,10 +213,10 @@ tr.total td.total {
 `
 
 const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
-<a href="/">Home</a>
-<a href="/dashboard">Dashboard</a>
-<a href="/backups">Backups</a>
-{{if isserver}}<a href="/tools">Tools</a>{{end}}
+<a href="{{root}}/">Home</a>
+<a href="{{root}}/dashboard">Dashboard</a>
+<a href="{{root}}/backups">Backups</a>
+{{if isserver}}<a href="{{root}}/tools">Tools</a>{{end}}
 </div>{{end}}
 {{define "BROWSEMENU"}}
 <div class="submenu">
@@ -224,13 +224,13 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 </div>{{end}}
 {{define "TOOLSMENU"}}
 <div class="submenu">
-<a class="label" href="/tools/vacuum" onclick="return confirm('This may take a while and cannot be interrupted.\n\nAre you sure?')">Vacuum</a>
+<a class="label" href="{{root}}/tools/vacuum" onclick="return confirm('This may take a while and cannot be interrupted.\n\nAre you sure?')">Vacuum</a>
 </div>{{end}}
 {{define "HEADER"}}<!DOCTYPE html>
 <html>
 <head>
 <title>{{.Title}}</title>
-<link rel="stylesheet" href="/css/default.css">
+<link rel="stylesheet" href="{{root}}/css/default.css">
 <body>
 <h1>{{.Title}}</h1>{{template "MAINMENU" .}}{{end}}
 {{define "FOOTER"}}<div class="footer">{{now}}</div>
@@ -238,14 +238,14 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 </html>{{end}}
 {{define "HOMEMENU"}}
 <div class="submenu">
-<a class="label" href="/about">About</a>
-<a class="label" href="/config">Configuration</a>
+<a class="label" href="{{root}}/about">About</a>
+<a class="label" href="{{root}}/config">Configuration</a>
 </div>{{end}}
 
 {{define "HOME"}}{{template "HEADER" .}}
 {{template "HOMEMENU" .}}
 <table class="report"><tbody>
-{{if .Name}}<tr><th class="rowtitle">Name</th><td>{{.Name}}</td></tr>{{end}}
+{{if .Name}}<tr><th class="rowtitle">Name</th><td>{{.Name}}</td><tr>{{end}}
 {{if .Major}}<tr><th class="rowtitle">Pukcab</th><td title="{{.Build}}">{{.Major}}.{{.Minor}}</td></tr>{{end}}
 {{if .OS}}<tr><th class="rowtitle">OS</th><td>{{.OS}}/{{if .Arch}}{{.Arch}}{{end}}</td></tr>{{end}}
 {{if .CPUs}}<tr><th class="rowtitle">CPU(s)</th><td>{{.CPUs}}</td></tr>{{end}}
@@ -291,8 +291,8 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 
 {{define "DASHBOARD"}}{{template "HEADER" .}}
 <div class="submenu">
-{{if not isserver}}<a class="label" href="/dashboard/">&#9733;</a>{{end}}
-<a class="label" href="/dashboard/*">All</a>
+{{if not isserver}}<a class="label" href="{{root}}/dashboard/">&#9733;</a>{{end}}
+<a class="label" href="{{root}}/dashboard/*">All</a>
 </div>
 {{$me := hostname}}
 {{$count := len .Clients}}
@@ -304,10 +304,10 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
     {{range .}}
         <td><a href="../backups/{{.Name}}">{{.Name}}</a>{{if eq .Name $me}} &#9734;{{end}}</td>
         <td title="{{.Size | bytes}}">{{.Count}}</td>
-        <td title="{{.First | date}}"><a href="/backups/{{.Name}}/{{.First.Unix}}">{{.First | dateshort}}</a></td>
+        <td title="{{.First | date}}"><a href="{{root}}/backups/{{.Name}}/{{.First.Unix}}">{{.First | dateshort}}</a></td>
         {{$last := .Last}}
         {{$name := .Name}}
-	{{range $s := $schedules}}<td title="{{(index $last $s) | date}}"><a href="/backups/{{$name}}/{{(index $last $s).Unix}}">{{(index $last $s) | dateshort}}</a></td>{{end}}
+	{{range $s := $schedules}}<td title="{{(index $last $s) | date}}"><a href="{{root}}/backups/{{$name}}/{{(index $last $s).Unix}}">{{(index $last $s) | dateshort}}</a></td>{{end}}
 	</tr>
     {{end}}
 {{end}}
@@ -318,9 +318,9 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 
 {{define "BACKUPS"}}{{template "HEADER" .}}
 <div class="submenu">
-{{if not isserver}}<a class="label" href="/backups/">&#9733;</a>{{end}}
-<a class="label" href="/backups/*">All</a>
-<a class="label" href="/new/">New...</a>
+{{if not isserver}}<a class="label" href="{{root}}/backups/">&#9733;</a>{{end}}
+<a class="label" href="{{root}}/backups/*">All</a>
+<a class="label" href="{{root}}/new/">New...</a>
 </div>
 {{$me := hostname}}
 {{$count := len .Backups}}
@@ -330,7 +330,7 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 <tbody>
     {{range .}}
 	<tr class="{{. | status}} {{.Schedule}}">
-        <td title="{{.Date | date}}"><a href="/backups/{{.Name}}/{{.Date}}">{{.Date}}</a></td>
+        <td title="{{.Date | date}}"><a href="{{root}}/backups/{{.Name}}/{{.Date}}">{{.Date}}</a></td>
         <td title="{{. | status}}"><a href="{{.Name}}">{{.Name}}</a>{{if eq .Name $me}} &#9734;{{end}}</td>
         <td>{{.Schedule}}</td>
         <td {{if (.Finished | date)}} title="{{(.Finished.Sub .Date.Time)}}"{{end}}>{{.Finished | date}}</td>
@@ -354,7 +354,7 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 {{with .Backups}}
 {{$me := hostname}}
     {{range .}}
-<div class="submenu">{{if .Files}}<a href="/dav/{{.Name}}/{{.Date}}">Open</a><a href="" {{if ne $me .Name}}onclick="return confirm('This backup seems to be from a different system ({{.Name}}).\n\nAre you sure you want to verify it on {{$me}}?')"{{end}}>&#10003; Verify</a>{{end}}<a href="/delete/{{.Name}}/{{.Date}}" onclick="return confirm('Are you sure?')" class="caution">&#10006; Delete</a></div>
+<div class="submenu">{{if .Files}}<a href="{{root}}/dav/{{.Name}}/{{.Date}}">Open</a><a href="" {{if ne $me .Name}}onclick="return confirm('This backup seems to be from a different system ({{.Name}}).\n\nAre you sure you want to verify it on {{$me}}?')"{{end}}>&#10003; Verify</a>{{end}}<a href="{{root}}/delete/{{.Name}}/{{.Date}}" onclick="return confirm('Are you sure?')" class="caution">&#10006; Delete</a></div>
 <table class="report">
 <tbody>
 	<tr><th class="rowtitle">ID</th><td class="{{. | status}}" title="{{. | status}}">{{.Date}}</td></tr>
@@ -371,7 +371,7 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 {{template "FOOTER" .}}{{end}}
 
 {{define "NEW"}}{{template "HEADER" .}}
-<div class="submenu"><a href="/start/">Start</a></div>
+<div class="submenu"><a href="{{root}}/start/">Start</a></div>
 <table class="report"><tbody>
 <tr><th class="rowtitle">Name</th><td>{{hostname}}</td></tr>
 {{if .Server}}
@@ -417,7 +417,7 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 
 {{define "BUSY"}}{{template "HEADER" .}}
 <div class="submenu">
-<a class="label" href="/">Cancel</a>
+<a class="label" href="{{root}}/">Cancel</a>
 </div>
 <div class="placeholder">Busy, retrying...</div>
 {{template "FOOTER" .}}{{end}}
@@ -467,9 +467,9 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 {{define "BROWSEROOT"}}{{template "HEADER" .}}
 {{template "BROWSEMENU"}}
 <ul>
-   <li><a href="/dav/.../">All backups...</a></li>
+   <li><a href="{{root}}/dav/.../">All backups...</a></li>
 {{range .Names}}
-   <li><a href="/dav/{{.}}/">{{.}}</a></li>
+   <li><a href="{{root}}/dav/{{.}}/">{{.}}</a></li>
 {{end}}
 </ul>
 {{template "FOOTER" .}}{{end}}
@@ -520,7 +520,7 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 {{template "BROWSEMENU"}}
 <ul>
 {{range .Backups}}
-   <li><a href="/dav/{{.Name}}/{{.Date}}/">{{.Date}}</a></li>
+   <li><a href="{{root}}/dav/{{.Name}}/{{.Date}}/">{{.Date}}</a></li>
 {{end}}
 </ul>
 {{template "FOOTER" .}}{{end}}
@@ -580,7 +580,7 @@ const webparts = `{{define "MAINMENU"}}<div class="mainmenu">
 <h2 title="{{.Date | date}}">{{.Date}}</h2>
 <table>
 {{range .Items}}
-    <tr class="ls"><td>{{.FileInfo.Mode}}</td><td class="user" title="{{.Uid}}">{{.Uname}}</td><td class="group" title="{{.Gid}}">{{.Gname}}</td><td class="size" {{if .Size}}title="{{.Size}}"{{end}}>{{if .Size}}{{.Size | bytes}}{{end}}</td><td class="date"><a href="/history/{{$name}}{{.Name}}">{{.ModTime | date}}</a></td><td>{{if eq .Typeflag '5'}}&#8227;{{end}}</td><td class="name type{{.Typeflag}}"><a title="{{.Name}}" {{if eq .Typeflag '5'}}href="/dav/{{$name}}/{{$date}}{{.Name}}/"{{end}}>{{.Name | basename}}</a>{{if eq .Typeflag '2'}} → <a href="{{.Xattrs.href}}/">{{.Linkname}}</a>{{end}}</td></tr>
+    <tr class="ls"><td>{{.FileInfo.Mode}}</td><td class="user" title="{{.Uid}}">{{.Uname}}</td><td class="group" title="{{.Gid}}">{{.Gname}}</td><td class="size" {{if .Size}}title="{{.Size}}"{{end}}>{{if .Size}}{{.Size | bytes}}{{end}}</td><td class="date"><a href="{{root}}/history/{{$name}}{{.Name}}">{{.ModTime | date}}</a></td><td>{{if eq .Typeflag '5'}}&#8227;{{end}}</td><td class="name type{{.Typeflag}}"><a title="{{.Name}}" {{if eq .Typeflag '5'}}href="{{root}}/dav/{{$name}}/{{$date}}{{.Name}}/"{{end}}>{{.Name | basename}}</a>{{if eq .Typeflag '2'}} → <a href="{{.Xattrs.href}}/">{{.Linkname}}</a>{{end}}</td></tr>
 {{end}}
 </table>
 {{template "FOOTER" .}}{{end}}
