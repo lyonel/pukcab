@@ -14,7 +14,7 @@
 <body>
 <header>
 <h1 class="title">Pukcab 1.5</h1>
-<h3 class="date">2016-09-29</h3>
+<h3 class="date">2016-10-17</h3>
 </header>
 <nav id="TOC">
 <ul>
@@ -579,13 +579,14 @@ exec pukcab backup</code></pre>
 <p>The <code>delete</code> command discards the backup taken at a given <a href="#date">date</a>.</p>
 <dl>
 <dt>Syntax</dt>
-<dd><p><code>pukcab delete</code> [ –<a href="#name">name</a>=<em>name</em> ] –<a href="#date">date</a>=<em>date</em></p>
+<dd><p><code>pukcab delete</code> [ –<a href="#name">name</a>=<em>name</em> ] [ –<a href="#date">date</a>=<em>date</em> ]</p>
 </dd>
 </dl>
 <h3 id="notes-4">Notes</h3>
 <ul>
 <li>the <a href="#name">name</a> option is chosen automatically if not specified</li>
-<li>the <a href="#date">date</a> must be specified</li>
+<li>the <a href="#date">date</a> must be specified, unless <code>--force</code> is used</li>
+<li><em>all</em> backups for a given <a href="#name">name</a> will be deleted if no <a href="#date">date</a> is specified (<code>--force</code> must be used in that case)</li>
 </ul>
 <h2 id="expire"><code>expire</code></h2>
 <p>The <code>expire</code> command discards backups following a given <a href="#schedule">schedule</a> which are older than a given <a href="#date">age (or date)</a>.</p>
