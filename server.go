@@ -524,7 +524,7 @@ func submitfiles() {
 }
 
 func purgebackup() {
-	date = 0
+	date = -1
 	flag.StringVar(&name, "name", "", "Backup name")
 	flag.StringVar(&name, "n", "", "-name")
 	flag.Var(&date, "date", "Backup set")
@@ -538,7 +538,7 @@ func purgebackup() {
 		log.Fatal("Client did not provide a backup name")
 	}
 
-	if date == 0 {
+	if date == -1 && !force {
 		failure.Println("Missing backup date")
 		log.Fatal("Client did not provide a backup date")
 	}
@@ -547,7 +547,7 @@ func purgebackup() {
 		LogExit(err)
 	}
 
-	if r, err := catalog.Exec("DELETE FROM backups WHERE date=? AND name=?", date, name); err != nil {
+	if r, err := catalog.Exec("DELETE FROM backups WHERE ? IN (date,-1) AND name=?", date, name); err != nil {
 		LogExit(err)
 	} else {
 		if n, _ := r.RowsAffected(); n < 1 {

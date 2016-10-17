@@ -859,6 +859,9 @@ func purge() {
 	if name != "" {
 		args = append(args, "-name", name)
 	}
+	if force {
+		args = append(args, "-force")
+	}
 	args = append(args, flag.Args()...)
 	cmd := remotecommand(args...)
 

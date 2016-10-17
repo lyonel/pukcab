@@ -362,12 +362,13 @@ The `delete` command discards the backup taken at a given [date].
 
 Syntax
 
-:   `pukcab delete` [ --[name]=_name_ ] --[date]=_date_
+:   `pukcab delete` [ --[name]=_name_ ] [ --[date]=_date_ ]
 
 ### Notes
 
  * the [name] option is chosen automatically if not specified
- * the [date] must be specified
+ * the [date] must be specified, unless `--force` is used
+ * *all* backups for a given [name] will be deleted if no [date] is specified (`--force` must be used in that case)
 
 `expire`
 --------
