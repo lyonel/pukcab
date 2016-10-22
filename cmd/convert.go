@@ -139,11 +139,7 @@ func main() {
 				Size:         size.Int64,
 			}
 			log.Printf("Processing backup date=%d name=%s schedule=%s files=%d\n", backup.Date, backup.Name, backup.Schedule, backup.Files)
-			if err := backups.Put(Encode(backup.Date), Encode(backup)); err != nil {
-				return err
-			}
-
-			fileset, err := filesets.CreateBucketIfNotExists(Encode(backup.Date))
+			fileset, err := filesets.CreateBucket(Encode(backup.Date))
 			if err != nil {
 				return err
 			}
@@ -206,13 +202,15 @@ func main() {
 			if err := sqlfiles.Err(); err != nil {
 				return err
 			}
-			return nil
+
+			return backups.Put(Encode(backup.Date), Encode(backup))
 		})
 		if err != nil {
-			log.Fatal(err)
+			log.Println("Skipped:", err)
+			err = nil
+		} else {
+			log.Printf("Done processed=%d\n", nfiles)
 		}
-
-		log.Printf("Done processed=%d\n", nfiles)
 
 		count++
 		if max != 0 && count >= max {
