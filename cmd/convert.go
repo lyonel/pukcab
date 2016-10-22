@@ -11,36 +11,32 @@ import (
 	"path"
 )
 
-type Backup struct {
-	Name,
-	Schedule string `json:",omitempty"`
-
-	Date,
-	Finished,
-	Files,
-	Size,
-	Lastmodified int64 `json:",omitempty"`
+type BackupMetadata struct {
+	Name         string `json:"name,omitempty"`
+	Schedule     string `json:"schedule,omitempty"`
+	Date         int64  `json:"date,omitempty"`
+	Finished     int64  `json:"finished,omitempty"`
+	Files        int64  `json:"files,omitempty"`
+	Size         int64  `json:"size,omitempty"`
+	Lastmodified int64  `json:"lastmodified,omitempty"`
 }
 
-type File struct {
-	Path string `json:"-"`
-
-	Hash,
-	Type,
-	Target,
-	Owner,
-	Group string `json:",omitempty"`
-
-	Size,
-	Birth,
-	Access,
-	Modify,
-	Change,
-	Mode,
-	Uid,
-	Gid,
-	DevMajor,
-	DevMinor int64 `json:",omitempty"`
+type FileMetadata struct {
+	Hash     string `json:"hash,omitempty"`
+	Type     string `json:"type,omitempty"`
+	Target   string `json:"target,omitempty"`
+	Owner    string `json:"owner,omitempty"`
+	Group    string `json:"group,omitempty"`
+	Size     int64  `json:"size,omitempty"`
+	Created  int64  `json:"created,omitempty"`
+	Accessed int64  `json:"accessed,omitempty"`
+	Modified int64  `json:"modified,omitempty"`
+	Changed  int64  `json:"changed,omitempty"`
+	Mode     int64  `json:"mode,omitempty"`
+	Uid      int64  `json:"uid,omitempty"`
+	Gid      int64  `json:"gid,omitempty"`
+	DevMajor int64  `json:"devmajor,omitempty"`
+	DevMinor int64  `json:"devminor,omitempty"`
 }
 
 func Encode(v interface{}) []byte {
@@ -61,7 +57,7 @@ func MkPath(root *bolt.Bucket, name string) (*bolt.Bucket, error) {
 	}
 }
 
-func Store(root *bolt.Bucket, name string, meta *File) error {
+func Store(root *bolt.Bucket, name string, meta *FileMetadata) error {
 	cwd, err := MkPath(root, name)
 	if err != nil {
 		return err
@@ -129,7 +125,7 @@ func main() {
 			if err != nil {
 				return err
 			}
-			backup := Backup{
+			backup := BackupMetadata{
 				Name:         name.String,
 				Schedule:     schedule.String,
 				Date:         date.Int64,
@@ -174,14 +170,15 @@ func main() {
 					&devminor); err != nil {
 					return err
 				}
-				file := &File{
+				file := &FileMetadata{
 					Hash:     hash.String,
 					Type:     filetype.String,
 					Target:   linkname.String,
 					Size:     size.Int64,
-					Birth:    birth.Int64,
-					Access:   access.Int64,
-					Modify:   modify.Int64,
+					Created:  birth.Int64,
+					Accessed: access.Int64,
+					Modified: modify.Int64,
+					Changed:  change.Int64,
 					Mode:     mode.Int64,
 					Uid:      uid.Int64,
 					Gid:      gid.Int64,
