@@ -121,10 +121,6 @@ func main() {
 			if err != nil {
 				return err
 			}
-			filesets, err := tx.CreateBucketIfNotExists([]byte("files"))
-			if err != nil {
-				return err
-			}
 			backup := BackupMetadata{
 				Name:         name.String,
 				Schedule:     schedule.String,
@@ -135,7 +131,11 @@ func main() {
 				Size:         size.Int64,
 			}
 			log.Printf("Processing backup date=%d name=%s schedule=%s files=%d\n", backup.Date, backup.Name, backup.Schedule, backup.Files)
-			fileset, err := filesets.CreateBucket(Encode(backup.Date))
+			backupset, err := backups.CreateBucket(Encode(backup.Date))
+			if err != nil {
+				return err
+			}
+			fileset, err := backupset.CreateBucket([]byte("files"))
 			if err != nil {
 				return err
 			}
@@ -200,7 +200,7 @@ func main() {
 				return err
 			}
 
-			return backups.Put(Encode(backup.Date), Encode(backup))
+			return backupset.Put([]byte("info"), Encode(backup))
 		})
 		if err != nil {
 			log.Println("Skipped:", err)
