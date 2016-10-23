@@ -207,9 +207,9 @@ func main() {
 			err = nil
 		} else {
 			log.Printf("Done processed=%d\n", nfiles)
+			count++
 		}
 
-		count++
 		if max != 0 && count >= max {
 			break
 		}
