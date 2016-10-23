@@ -16,6 +16,9 @@ pukcab: dependencies
 	go build -o $@ -ldflags "-X main.buildId=\"`git describe --tags`-`date +%Y.%m.%d`\""
 	strip $@
 
+convert: dependencies
+	go build cmd/convert.go
+
 dependencies:
 	go get -u ${DEPS}
 

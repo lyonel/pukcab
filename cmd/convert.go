@@ -100,7 +100,7 @@ func main() {
 	defer sqlbackups.Close()
 
 	for sqlbackups.Next() {
-		nfiles := 0
+		var tsize, nfiles int64
 		var (
 			name, schedule                            sql.NullString
 			date, finished, lastmodified, files, size sql.NullInt64
@@ -194,10 +194,18 @@ func main() {
 					return err
 				} else {
 					nfiles++
+					tsize += size.Int64
 				}
 			}
 			if err := sqlfiles.Err(); err != nil {
 				return err
+			}
+
+			if nfiles != backup.Files {
+				log.Printf("Warning files=%d expected=%d\n", nfiles, backup.Files)
+			}
+			if tsize != backup.Size {
+				log.Printf("Warning size=%d expected=%d\n", tsize, backup.Size)
 			}
 
 			return backupset.Put([]byte("info"), Encode(backup))
@@ -206,7 +214,7 @@ func main() {
 			log.Println("Skipped:", err)
 			err = nil
 		} else {
-			log.Printf("Done processed=%d\n", nfiles)
+			log.Printf("Done files=%d size=%d\n", nfiles, tsize)
 			count++
 		}
 
