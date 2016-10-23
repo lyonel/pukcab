@@ -4,7 +4,7 @@ VERSION:=$(shell git describe --tags --long | cut -d - -f 1,2 | tr - .)
 SHORTVERSION:=$(shell git describe --tags --long | cut -d - -f 1 | tr - .)
 PANDOC:=pandoc -V title="Pukcab ${SHORTVERSION}" -V date="`date +%F`" --smart --toc --toc-depth=2
 
-DEPS= github.com/antage/mntent github.com/BurntSushi/toml github.com/lyonel/go-sqlite3
+DEPS= github.com/antage/mntent github.com/BurntSushi/toml github.com/lyonel/go-sqlite3 github.com/boltdb/bolt
 
 export GOPATH=${PWD}
 
@@ -17,7 +17,7 @@ pukcab: dependencies
 	strip $@
 
 dependencies:
-	go get ${DEPS}
+	go get -u ${DEPS}
 
 pukcab.exe:
 	CC=i686-w64-mingw32-gcc CGO_ENABLED=1 GOOS=windows GOARCH=386 go build -tags windows,!linux,!freebsd,!darwin -o $@
