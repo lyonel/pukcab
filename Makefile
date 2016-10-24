@@ -20,7 +20,7 @@ convert: dependencies
 	go build cmd/convert.go
 
 dependencies:
-	go get -u ${DEPS}
+	go get ${DEPS}
 
 pukcab.exe:
 	CC=i686-w64-mingw32-gcc CGO_ENABLED=1 GOOS=windows GOARCH=386 go build -tags windows,!linux,!freebsd,!darwin -o $@
