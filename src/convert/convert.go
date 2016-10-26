@@ -8,36 +8,9 @@ import (
 	"github.com/boltdb/bolt"
 	_ "github.com/lyonel/go-sqlite3"
 	"log"
+	"meta"
 	"path"
 )
-
-type BackupMetadata struct {
-	Name         string `json:"name,omitempty"`
-	Schedule     string `json:"schedule,omitempty"`
-	Date         int64  `json:"date,omitempty"`
-	Finished     int64  `json:"finished,omitempty"`
-	Files        int64  `json:"files,omitempty"`
-	Size         int64  `json:"size,omitempty"`
-	Lastmodified int64  `json:"lastmodified,omitempty"`
-}
-
-type FileMetadata struct {
-	Hash     string `json:"hash,omitempty"`
-	Type     string `json:"type,omitempty"`
-	Target   string `json:"target,omitempty"`
-	Owner    string `json:"owner,omitempty"`
-	Group    string `json:"group,omitempty"`
-	Size     int64  `json:"size,omitempty"`
-	Created  int64  `json:"created,omitempty"`
-	Accessed int64  `json:"accessed,omitempty"`
-	Modified int64  `json:"modified,omitempty"`
-	Changed  int64  `json:"changed,omitempty"`
-	Mode     int64  `json:"mode,omitempty"`
-	Uid      int64  `json:"uid,omitempty"`
-	Gid      int64  `json:"gid,omitempty"`
-	DevMajor int64  `json:"devmajor,omitempty"`
-	DevMinor int64  `json:"devminor,omitempty"`
-}
 
 func Encode(v interface{}) []byte {
 	result, _ := json.Marshal(v)
@@ -57,13 +30,13 @@ func MkPath(root *bolt.Bucket, name string) (*bolt.Bucket, error) {
 	}
 }
 
-func Store(root *bolt.Bucket, name string, meta *FileMetadata) error {
+func Store(root *bolt.Bucket, name string, mf *meta.FileMetadata) error {
 	cwd, err := MkPath(root, name)
 	if err != nil {
 		return err
 	}
 
-	if err := cwd.Put([]byte("."), Encode(meta)); err != nil {
+	if err := cwd.Put([]byte("."), Encode(mf)); err != nil {
 		return err
 	}
 	return nil
@@ -73,11 +46,11 @@ func main() {
 	count := 0
 	max := 3
 	catalog := "catalog.db"
-	meta := "META"
+	metadata := "META"
 
 	flag.IntVar(&max, "max", 0, "Maximum number of backups to convert")
 	flag.StringVar(&catalog, "i", "catalog.db", "Input file")
-	flag.StringVar(&meta, "o", "META", "Output file")
+	flag.StringVar(&metadata, "o", "META", "Output file")
 
 	flag.Parse()
 
@@ -87,7 +60,7 @@ func main() {
 	}
 	defer sqldb.Close()
 
-	db, err := bolt.Open(meta, 0640, nil)
+	db, err := bolt.Open(metadata, 0640, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -121,7 +94,7 @@ func main() {
 			if err != nil {
 				return err
 			}
-			backup := BackupMetadata{
+			backup := &meta.BackupMetadata{
 				Name:         name.String,
 				Schedule:     schedule.String,
 				Date:         date.Int64,
@@ -170,7 +143,7 @@ func main() {
 					&devminor); err != nil {
 					return err
 				}
-				file := &FileMetadata{
+				file := &meta.FileMetadata{
 					Hash:     hash.String,
 					Type:     filetype.String,
 					Target:   linkname.String,

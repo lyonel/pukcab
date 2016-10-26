@@ -12,12 +12,11 @@ export GOPATH=${PWD}
 
 .SUFFIXES: .md .pdf .html
 
-pukcab: dependencies
-	go build -o $@ -ldflags "-X main.buildId=\"`git describe --tags`-`date +%Y.%m.%d`\""
-	strip $@
+bin/pukcab: dependencies
+	go install pukcab
 
-convert: dependencies
-	go build cmd/convert.go
+bin/convert: dependencies
+	go install convert
 
 dependencies:
 	go get ${DEPS}
