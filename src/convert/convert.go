@@ -30,7 +30,7 @@ func MkPath(root *bolt.Bucket, name string) (*bolt.Bucket, error) {
 	}
 }
 
-func Store(root *bolt.Bucket, name string, mf *meta.FileMetadata) error {
+func Store(root *bolt.Bucket, name string, mf *meta.File) error {
 	cwd, err := MkPath(root, name)
 	if err != nil {
 		return err
@@ -94,7 +94,7 @@ func main() {
 			if err != nil {
 				return err
 			}
-			backup := &meta.BackupMetadata{
+			backup := &meta.Backup{
 				Name:         name.String,
 				Schedule:     schedule.String,
 				Date:         date.Int64,
@@ -143,7 +143,7 @@ func main() {
 					&devminor); err != nil {
 					return err
 				}
-				file := &meta.FileMetadata{
+				file := &meta.File{
 					Hash:     hash.String,
 					Type:     filetype.String,
 					Target:   linkname.String,
