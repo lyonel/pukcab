@@ -134,7 +134,11 @@ func mkPath(root *bolt.Bucket, name string) (*bolt.Bucket, error) {
 	}
 }
 
-func store(root *bolt.Bucket, name string, mf *File) error {
+func store(bucket *bolt.Bucket, name string, mf *File) error {
+	root, err := bucket.CreateBucketIfNotExists([]byte("files"))
+	if err != nil {
+		return err
+	}
 	cwd, err := mkPath(root, name)
 	if err != nil {
 		return err
