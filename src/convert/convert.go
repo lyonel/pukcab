@@ -45,26 +45,27 @@ func Store(root *bolt.Bucket, name string, mf *meta.File) error {
 func main() {
 	count := 0
 	max := 3
-	catalog := "catalog.db"
+	catalogdb := "catalog.db"
 	metadata := "META"
 
 	flag.IntVar(&max, "max", 0, "Maximum number of backups to convert")
-	flag.StringVar(&catalog, "i", "catalog.db", "Input file")
+	flag.StringVar(&catalogdb, "i", "catalog.db", "Input file")
 	flag.StringVar(&metadata, "o", "META", "Output file")
 
 	flag.Parse()
 
-	sqldb, err := sql.Open("sqlite3", catalog)
+	sqldb, err := sql.Open("sqlite3", catalogdb)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer sqldb.Close()
 
-	db, err := bolt.Open(metadata, 0640, nil)
+	catalog := meta.New(metadata)
+	err = catalog.Open()
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer db.Close()
+	defer catalog.Close()
 
 	sqlbackups, err := sqldb.Query("SELECT name, schedule, date, finished, lastmodified, files, size FROM backups ORDER BY date DESC")
 	if err != nil {
@@ -89,31 +90,24 @@ func main() {
 			log.Fatal(err)
 		}
 
-		err = db.Update(func(tx *bolt.Tx) error {
-			backups, err := tx.CreateBucketIfNotExists([]byte("backups"))
+		err = catalog.Update(func(tx *meta.Tx) error {
+			log.Printf("Processing backup date=%d name=%s schedule=%s files=%d\n", date.Int64, name.String, schedule.String, files.Int64)
+			backupset, err := tx.CreateBackup(date.Int64)
 			if err != nil {
 				return err
 			}
-			backup := &meta.Backup{
-				Name:         name.String,
-				Schedule:     schedule.String,
-				Date:         date.Int64,
-				Finished:     finished.Int64,
-				Lastmodified: lastmodified.Int64,
-				Files:        files.Int64,
-				Size:         size.Int64,
-			}
-			log.Printf("Processing backup date=%d name=%s schedule=%s files=%d\n", backup.Date, backup.Name, backup.Schedule, backup.Files)
-			backupset, err := backups.CreateBucket(Encode(backup.Date))
-			if err != nil {
-				return err
-			}
-			fileset, err := backupset.CreateBucket([]byte("files"))
+			backupset.Name = name.String
+			backupset.Schedule = schedule.String
+			backupset.Finished = finished.Int64
+			backupset.Lastmodified = lastmodified.Int64
+			backupset.Files = files.Int64
+			backupset.Size = size.Int64
+			err = backupset.Save()
 			if err != nil {
 				return err
 			}
 
-			sqlfiles, err := sqldb.Query("SELECT hash, type, names.name AS name, linknames.name AS linkname, size, birth, access, modify, change, mode, uid, gid, username, groupname, devmajor, devminor FROM files,names,names AS linknames WHERE backupid=? AND names.id=nameid AND linknames.id=linknameid", backup.Date)
+			sqlfiles, err := sqldb.Query("SELECT hash, type, names.name AS name, linknames.name AS linkname, size, birth, access, modify, change, mode, uid, gid, username, groupname, devmajor, devminor FROM files,names,names AS linknames WHERE backupid=? AND names.id=nameid AND linknames.id=linknameid", backupset.Date)
 			if err != nil {
 				return err
 			}
@@ -144,6 +138,7 @@ func main() {
 					return err
 				}
 				file := &meta.File{
+					Path:     name.String,
 					Hash:     hash.String,
 					Type:     filetype.String,
 					Target:   linkname.String,
@@ -163,7 +158,7 @@ func main() {
 				if file.Type != string(tar.TypeSymlink) && file.Type != string(tar.TypeLink) {
 					file.Target = ""
 				}
-				if err := Store(fileset, name.String, file); err != nil {
+				if err := backupset.AddFile(file); err != nil {
 					return err
 				} else {
 					nfiles++
@@ -174,14 +169,14 @@ func main() {
 				return err
 			}
 
-			if nfiles != backup.Files {
-				log.Printf("Warning files=%d expected=%d\n", nfiles, backup.Files)
+			if nfiles != backupset.Files {
+				log.Printf("Warning files=%d expected=%d\n", nfiles, backupset.Files)
 			}
-			if tsize != backup.Size {
-				log.Printf("Warning size=%d expected=%d\n", tsize, backup.Size)
+			if tsize != backupset.Size {
+				log.Printf("Warning size=%d expected=%d\n", tsize, backupset.Size)
 			}
 
-			return backupset.Put([]byte("info"), Encode(backup))
+			return nil
 		})
 		if err != nil {
 			log.Println("Skipped:", err)
