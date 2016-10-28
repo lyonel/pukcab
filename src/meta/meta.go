@@ -137,6 +137,19 @@ func mkPath(root *bolt.Bucket, name string) (*bolt.Bucket, error) {
 	}
 }
 
+func cd(root *bolt.Bucket, name string) *bolt.Bucket {
+	dir, base := path.Split(name)
+	if base == "" {
+		return root
+	} else {
+		parent := cd(root, path.Clean(dir))
+		if parent == nil {
+			return nil
+		}
+		return parent.Bucket([]byte(base))
+	}
+}
+
 func store(bucket *bolt.Bucket, name string, mf *File) error {
 	root, err := bucket.CreateBucketIfNotExists([]byte("files"))
 	if err != nil {
@@ -251,8 +264,23 @@ func (backup *Backup) Delete() error {
 	}
 }
 
-func (backup *Backup) File(path string) (*File, error) {
-	return nil, nil
+func (backup *Backup) File(filepath string) (*File, error) {
+	if backup.bucket == nil {
+		return nil, ErrNotOpen
+	}
+	root := backup.bucket.Bucket([]byte("files"))
+	if root == nil {
+		return nil, ErrNotFound
+	}
+	if bucket := cd(root, filepath); bucket != nil {
+		file := &File{
+			Path: path.Clean(filepath),
+		}
+
+		err := json.Unmarshal(bucket.Get([]byte(".")), file)
+		return file, err
+	}
+	return nil, ErrNotFound
 }
 
 func (backup *Backup) AddFile(file *File) error {
@@ -262,6 +290,46 @@ func (backup *Backup) AddFile(file *File) error {
 	return store(backup.bucket, file.Path, file)
 }
 
-func (backup *Backup) ForEach(fn func(*File) error) error {
+func ls(prefix string, bucket *bolt.Bucket, fn func(*File) error) error {
+	if bucket == nil {
+		return ErrNotFound
+	}
+
+	file := &File{
+		Path: path.Clean(prefix),
+	}
+	fileinfo := bucket.Get([]byte("."))
+	if len(fileinfo) > 0 {
+		if err := json.Unmarshal(fileinfo, file); err == nil {
+			err = fn(file)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	cursor := bucket.Cursor()
+	if cursor == nil {
+		return ErrNotFound
+	}
+	for name, empty := cursor.First(); name != nil; name, empty = cursor.Next() {
+		if empty == nil { // subdirectory
+			if err := ls(path.Join(prefix, string(name)), bucket.Bucket(name), fn); err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
+}
+
+func (backup *Backup) ForEach(fn func(*File) error) error {
+	if backup.bucket == nil {
+		return ErrNotOpen
+	}
+	root := backup.bucket.Bucket([]byte("files"))
+	if root == nil {
+		return ErrNotFound
+	}
+	return ls("/", root, fn)
 }
