@@ -6,17 +6,27 @@ import (
 	"path"
 )
 
+// Catalog represents a collection of backups
+//
+// All the functions on Catalog will return a ErrNotOpen if accessed before Open() is called.
 type Catalog struct {
 	db   *bolt.DB
 	path string
 }
 
+// Tx represents a read-only or read/write transaction on a catalog.
+//
+// Read-only transactions can be used for retrieving information about backups and individual files.
+// Read/write transactions can create and remove backups or individual files.
 type Tx struct {
 	catalog *Catalog
 	tx      *bolt.Tx
 	backups *bolt.Bucket
 }
 
+// Backup represents a backup set.
+//
+// Backup sets are uniquely identified by their date (a 64 bit integer UNIX epoch timestamp) and contain files stored in a tree-like hierarchy.
 type Backup struct {
 	Name         string `json:"name,omitempty"`
 	Schedule     string `json:"schedule,omitempty"`
@@ -30,6 +40,7 @@ type Backup struct {
 	bucket *bolt.Bucket
 }
 
+// File represents an individual file.
 type File struct {
 	Path     string `json:"-"`
 	Hash     string `json:"hash,omitempty"`
@@ -56,22 +67,31 @@ var (
 	ErrExists   = bolt.ErrBucketExists
 )
 
+// New creates a new catalog associated to a given file.
+// The file is not accessed nor created until Open() is called.
 func New(p string) *Catalog {
 	return &Catalog{
 		path: p,
 	}
 }
 
+// Open opens a catalog.
+// If the file does not exist then it will be created automatically.
 func (catalog *Catalog) Open() error {
 	db, err := bolt.Open(catalog.path, 0640, nil)
 	catalog.db = db
 	return err
 }
 
+// Close releases all catalog resources.
+// All transactions must be closed before closing the catalog.
 func (catalog *Catalog) Close() error {
 	return catalog.db.Close()
 }
 
+// Begin starts a new transaction.
+// Multiple read-only transactions can be used concurrently but only one write transaction can be used at a time.
+// Starting multiple write transactions will cause the calls to block and be serialized until the current write transaction finishes.
 func (catalog *Catalog) Begin(writable bool) (*Tx, error) {
 	tx, err := catalog.db.Begin(writable)
 	result := &Tx{
@@ -103,18 +123,32 @@ func (catalog *Catalog) transaction(writable bool, fn func(*Tx) error) error {
 	}
 }
 
+// Update executes a function within the context of a read-write managed transaction.
+// If no error is returned from the function then the transaction is committed.
+// If an error is returned then the entire transaction is rolled back.
+// Any error that is returned from the function or returned from the commit is returned from the Update() method.
+//
+// Attempting to manually commit or rollback within the function will cause a panic.
 func (catalog *Catalog) Update(fn func(*Tx) error) error {
 	return catalog.transaction(true, fn)
 }
 
+// View executes a function within the context of a managed read-only transaction.
+// Any error that is returned from the function is returned from the View() method.
+//
+// Attempting to manually rollback within the function will cause a panic.
 func (catalog *Catalog) View(fn func(*Tx) error) error {
 	return catalog.transaction(false, fn)
 }
 
+// Commit writes all changes to disk.
+// Returns an error if a disk write error occurs, or if Commit is called on a read-only transaction.
 func (transaction *Tx) Commit() error {
 	return transaction.tx.Commit()
 }
 
+// Rollback closes the transaction and ignores all previous updates.
+// Read-only transactions must be rolled back and not committed.
 func (transaction *Tx) Rollback() error {
 	return transaction.tx.Rollback()
 }
@@ -166,6 +200,8 @@ func store(bucket *bolt.Bucket, name string, mf *File) error {
 	return nil
 }
 
+// Backup retrieves an existing backup identified by its date.
+// Returns an error if the backup does not exist.
 func (transaction *Tx) Backup(date int64) (*Backup, error) {
 	if transaction.backups == nil {
 		return nil, ErrNotOpen
@@ -184,6 +220,8 @@ func (transaction *Tx) Backup(date int64) (*Backup, error) {
 	}
 }
 
+// CreateBackup creates a new backup identified by its date.
+// Returns an error if the backup already exists.
 func (transaction *Tx) CreateBackup(date int64) (*Backup, error) {
 	if transaction.backups == nil {
 		return nil, ErrNotOpen
@@ -202,6 +240,7 @@ func (transaction *Tx) CreateBackup(date int64) (*Backup, error) {
 	}
 }
 
+// CreateBackupIfNotExists creates a new backup or retrieves an existing backup.
 func (transaction *Tx) CreateBackupIfNotExists(date int64) (*Backup, error) {
 	if transaction.backups == nil {
 		return nil, ErrNotOpen
@@ -220,6 +259,8 @@ func (transaction *Tx) CreateBackupIfNotExists(date int64) (*Backup, error) {
 	}
 }
 
+// Delete deletes an existing backup identified by its date.
+// Returns an error if the backup does not exist.
 func (transaction *Tx) Delete(date int64) error {
 	if transaction.backups == nil {
 		return ErrNotOpen
@@ -227,6 +268,9 @@ func (transaction *Tx) Delete(date int64) error {
 	return transaction.backups.DeleteBucket(encode(date))
 }
 
+// ForEach executes a function for each backup.
+// If the provided function returns an error then the iteration is stopped and the error is returned to the caller.
+// The provided function must not modify the backup; this will result in undefined behavior.
 func (transaction *Tx) ForEach(fn func(*Backup) error) error {
 	if transaction.backups == nil {
 		return ErrNotOpen
@@ -249,6 +293,7 @@ func (transaction *Tx) ForEach(fn func(*Backup) error) error {
 	return nil
 }
 
+// Save records any modification of a backup to the catalog.
 func (backup *Backup) Save() error {
 	if backup.bucket == nil {
 		return ErrNotOpen
@@ -256,6 +301,7 @@ func (backup *Backup) Save() error {
 	return backup.bucket.Put([]byte("info"), encode(backup))
 }
 
+// Delete deletes a backup.
 func (backup *Backup) Delete() error {
 	if backup.tx == nil {
 		return ErrNotOpen
@@ -264,6 +310,8 @@ func (backup *Backup) Delete() error {
 	}
 }
 
+// File retrieves an existing file within a backup.
+// Returns an error if the file does not exist.
 func (backup *Backup) File(filepath string) (*File, error) {
 	if backup.bucket == nil {
 		return nil, ErrNotOpen
@@ -283,6 +331,7 @@ func (backup *Backup) File(filepath string) (*File, error) {
 	return nil, ErrNotFound
 }
 
+// AddFile records or updates a file within a backup.
 func (backup *Backup) AddFile(file *File) error {
 	if backup.bucket == nil {
 		return ErrNotOpen
@@ -323,6 +372,9 @@ func ls(prefix string, bucket *bolt.Bucket, fn func(*File) error) error {
 	return nil
 }
 
+// ForEach executes a function for each file within a backup.
+// If the provided function returns an error then the iteration is stopped and the error is returned to the caller.
+// The provided function must not modify the backup; this will result in undefined behavior.
 func (backup *Backup) ForEach(fn func(*File) error) error {
 	if backup.bucket == nil {
 		return ErrNotOpen
