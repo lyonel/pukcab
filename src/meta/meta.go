@@ -91,10 +91,11 @@ func (catalog *Catalog) Begin(writable bool) (*Tx, error) {
 func (catalog *Catalog) transaction(writable bool, fn func(*Tx) error) error {
 	if tx, err := catalog.Begin(writable); err == nil {
 		if err = fn(tx); err == nil {
-			return tx.Commit()
-		} else {
-			return tx.Rollback()
+			if writable {
+				return tx.Commit()
+			}
 		}
+		return tx.Rollback()
 	} else {
 		return err
 	}
@@ -212,6 +213,24 @@ func (transaction *Tx) Delete(date int64) error {
 }
 
 func (transaction *Tx) ForEach(fn func(*Backup) error) error {
+	if transaction.backups == nil {
+		return ErrNotOpen
+	}
+
+	cursor := transaction.backups.Cursor()
+	for id, _ := cursor.First(); id != nil; id, _ = cursor.Next() {
+		var date int64
+		if err := json.Unmarshal(id, &date); err == nil {
+			if backup, err := transaction.Backup(date); err == nil {
+				err = fn(backup)
+			}
+			if err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	}
 	return nil
 }
 
