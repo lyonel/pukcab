@@ -94,8 +94,10 @@ func (catalog *Catalog) transaction(writable bool, fn func(*Tx) error) error {
 			if writable {
 				return tx.Commit()
 			}
+			return tx.Rollback()
 		}
-		return tx.Rollback()
+		tx.Rollback()
+		return err
 	} else {
 		return err
 	}
