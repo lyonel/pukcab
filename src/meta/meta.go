@@ -6,20 +6,20 @@ import (
 	"path"
 )
 
-// Catalog represents a collection of backups
+// Index represents a collection of backups
 //
-// All the functions on Catalog will return a ErrNotOpen if accessed before Open() is called.
-type Catalog struct {
+// All the functions on Index will return a ErrNotOpen if accessed before Open() is called.
+type Index struct {
 	db   *bolt.DB
 	path string
 }
 
-// Tx represents a read-only or read/write transaction on a catalog.
+// Tx represents a read-only or read/write transaction on an index.
 //
 // Read-only transactions can be used for retrieving information about backups and individual files.
 // Read/write transactions can create and remove backups or individual files.
 type Tx struct {
-	catalog *Catalog
+	index   *Index
 	tx      *bolt.Tx
 	backups *bolt.Bucket
 }
@@ -67,36 +67,36 @@ var (
 	ErrExists   = bolt.ErrBucketExists
 )
 
-// New creates a new catalog associated to a given file.
+// New creates a new index associated to a given file.
 // The file is not accessed nor created until Open() is called.
-func New(p string) *Catalog {
-	return &Catalog{
+func New(p string) *Index {
+	return &Index{
 		path: p,
 	}
 }
 
-// Open opens a catalog.
+// Open opens an index.
 // If the file does not exist then it will be created automatically.
-func (catalog *Catalog) Open() error {
-	db, err := bolt.Open(catalog.path, 0640, nil)
-	catalog.db = db
+func (index *Index) Open() error {
+	db, err := bolt.Open(index.path, 0640, nil)
+	index.db = db
 	return err
 }
 
-// Close releases all catalog resources.
-// All transactions must be closed before closing the catalog.
-func (catalog *Catalog) Close() error {
-	return catalog.db.Close()
+// Close releases all index resources.
+// All transactions must be closed before closing the index.
+func (index *Index) Close() error {
+	return index.db.Close()
 }
 
 // Begin starts a new transaction.
 // Multiple read-only transactions can be used concurrently but only one write transaction can be used at a time.
 // Starting multiple write transactions will cause the calls to block and be serialized until the current write transaction finishes.
-func (catalog *Catalog) Begin(writable bool) (*Tx, error) {
-	tx, err := catalog.db.Begin(writable)
+func (index *Index) Begin(writable bool) (*Tx, error) {
+	tx, err := index.db.Begin(writable)
 	result := &Tx{
-		catalog: catalog,
-		tx:      tx,
+		index: index,
+		tx:    tx,
 	}
 	if writable {
 		result.backups, err = result.tx.CreateBucketIfNotExists([]byte("backups"))
@@ -108,8 +108,8 @@ func (catalog *Catalog) Begin(writable bool) (*Tx, error) {
 	return result, err
 }
 
-func (catalog *Catalog) transaction(writable bool, fn func(*Tx) error) error {
-	if tx, err := catalog.Begin(writable); err == nil {
+func (index *Index) transaction(writable bool, fn func(*Tx) error) error {
+	if tx, err := index.Begin(writable); err == nil {
 		if err = fn(tx); err == nil {
 			if writable {
 				return tx.Commit()
@@ -129,16 +129,16 @@ func (catalog *Catalog) transaction(writable bool, fn func(*Tx) error) error {
 // Any error that is returned from the function or returned from the commit is returned from the Update() method.
 //
 // Attempting to manually commit or rollback within the function will cause a panic.
-func (catalog *Catalog) Update(fn func(*Tx) error) error {
-	return catalog.transaction(true, fn)
+func (index *Index) Update(fn func(*Tx) error) error {
+	return index.transaction(true, fn)
 }
 
 // View executes a function within the context of a managed read-only transaction.
 // Any error that is returned from the function is returned from the View() method.
 //
 // Attempting to manually rollback within the function will cause a panic.
-func (catalog *Catalog) View(fn func(*Tx) error) error {
-	return catalog.transaction(false, fn)
+func (index *Index) View(fn func(*Tx) error) error {
+	return index.transaction(false, fn)
 }
 
 // Commit writes all changes to disk.
@@ -293,7 +293,7 @@ func (transaction *Tx) ForEach(fn func(*Backup) error) error {
 	return nil
 }
 
-// Save records any modification of a backup to the catalog.
+// Save records any modification of a backup to the index.
 func (backup *Backup) Save() error {
 	if backup.bucket == nil {
 		return ErrNotOpen
