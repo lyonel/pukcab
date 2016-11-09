@@ -385,3 +385,20 @@ func (backup *Backup) ForEach(fn func(*File) error) error {
 	}
 	return ls("/", root, fn)
 }
+
+// Glob executes a function for each file matching a shell pattern within a backup.
+// If the provided function returns an error then the iteration is stopped and the error is returned to the caller.
+// The provided function must not modify the backup; this will result in undefined behavior.
+func (backup *Backup) Glob(pattern string, fn func(*File) error) error {
+	return backup.ForEach(func(f *File) error {
+		name := f.Path
+		if !path.IsAbs(pattern) {
+			name = path.Base(f.Path)
+		}
+		if matched, err := path.Match(pattern, name); matched && err == nil {
+			return fn(f)
+		} else {
+			return err
+		}
+	})
+}
