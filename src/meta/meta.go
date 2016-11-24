@@ -78,6 +78,9 @@ func New(p string) *Index {
 // Open opens an index.
 // If the file does not exist then it will be created automatically.
 func (index *Index) Open() error {
+	if index.db != nil {
+		return nil
+	}
 	db, err := bolt.Open(index.path, 0640, nil)
 	index.db = db
 	return err
@@ -86,7 +89,13 @@ func (index *Index) Open() error {
 // Close releases all index resources.
 // All transactions must be closed before closing the index.
 func (index *Index) Close() error {
-	return index.db.Close()
+	if index.db != nil {
+		result := index.db.Close()
+		index.db = nil
+		return result
+	} else {
+		return nil
+	}
 }
 
 // Begin starts a new transaction.
@@ -109,6 +118,11 @@ func (index *Index) Begin(writable bool) (*Tx, error) {
 }
 
 func (index *Index) transaction(writable bool, fn func(*Tx) error) error {
+	if err := index.Open(); err != nil {
+		return err
+	} else {
+		defer index.Close()
+	}
 	if tx, err := index.Begin(writable); err == nil {
 		if err = fn(tx); err == nil {
 			if writable {
