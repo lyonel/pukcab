@@ -117,23 +117,30 @@ func (index *Index) Begin(writable bool) (*Tx, error) {
 	return result, err
 }
 
+func (index *Index) cleanup(err error) error {
+	if err == nil {
+		return index.Close()
+	} else {
+		index.Close()
+		return err
+	}
+}
+
 func (index *Index) transaction(writable bool, fn func(*Tx) error) error {
 	if err := index.Open(); err != nil {
 		return err
-	} else {
-		defer index.Close()
 	}
 	if tx, err := index.Begin(writable); err == nil {
 		if err = fn(tx); err == nil {
 			if writable {
-				return tx.Commit()
+				return index.cleanup(tx.Commit())
 			}
-			return tx.Rollback()
+			return index.cleanup(tx.Rollback())
 		}
 		tx.Rollback()
-		return err
+		return index.cleanup(err)
 	} else {
-		return err
+		return index.cleanup(err)
 	}
 }
 
