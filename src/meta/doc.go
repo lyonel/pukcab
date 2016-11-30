@@ -5,13 +5,11 @@ Package meta implements functions for the manipulation of Pukcab index files ("c
 Caveats
 
 The database uses a read-only, memory-mapped data file to ensure that
-applications cannot corrupt the database, however, this means that keys and
-values returned cannot be changed. Writing to a read-only byte slice
-will cause Go to panic.
+applications cannot corrupt the database. However, transactions mean that only one
+process can access the index file at a given time, ANY other (read or write) access will
+block.
 
-Keys and values retrieved from the database are only valid for the life of
-the transaction. When used outside the transaction, these byte slices can
-point to different data or can point to invalid memory which will cause a panic.
+Transactions should therefore be kept as short as possible.
 
 
 */
