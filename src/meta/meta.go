@@ -407,7 +407,7 @@ func (backup *Backup) ForEach(fn func(*File) error) error {
 	return ls("/", root, fn)
 }
 
-// Glob executes a function for each file matching at least one of the provided shell patterns.
+// Glob executes a function for each file matching any of the provided shell patterns.
 // If the provided function returns an error then the iteration is stopped and the error is returned to the caller.
 // The provided function must not modify the backup; this will result in undefined behavior.
 func (backup *Backup) Glob(patterns []string, fn func(*File) error) error {
