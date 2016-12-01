@@ -4,14 +4,16 @@ import (
 	"encoding/json"
 	"github.com/boltdb/bolt"
 	"path"
+	"time"
 )
 
 // Index represents a collection of backups
 //
 // All the functions on Index will return a ErrNotOpen if accessed before Open() is called.
 type Index struct {
-	db   *bolt.DB
-	path string
+	db      *bolt.DB
+	options *bolt.Options
+	path    string
 }
 
 // Tx represents a read-only or read/write transaction on an index.
@@ -75,13 +77,31 @@ func New(p string) *Index {
 	}
 }
 
+// Timeout returns the current index timeout.
+// If no timeout is defined (transactions block indefinitely), returns 0.
+func (index *Index) Timeout() time.Duration {
+	if index.options == nil {
+		return 0
+	}
+	return index.options.Timeout
+}
+
+// SetTimeout defines the timeout after which blocked transactions fail.
+// If no timeout is set (or set to 0), transactions block indefinitely.
+func (index *Index) SetTimeout(timeout time.Duration) {
+	if index.options == nil {
+		index.options = &bolt.Options{}
+	}
+	index.options.Timeout = timeout
+}
+
 // Open opens an index.
 // If the file does not exist then it will be created automatically.
 func (index *Index) Open() error {
 	if index.db != nil {
 		return nil
 	}
-	db, err := bolt.Open(index.path, 0640, nil)
+	db, err := bolt.Open(index.path, 0640, index.options)
 	index.db = db
 	return err
 }
