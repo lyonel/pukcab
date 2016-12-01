@@ -301,9 +301,9 @@ func (transaction *Tx) CreateBackupIfNotExists(date int64) (*Backup, error) {
 	}
 }
 
-// Delete deletes an existing backup identified by its date.
+// DeleteBackup deletes an existing backup identified by its date.
 // Returns an error if the backup does not exist.
-func (transaction *Tx) Delete(date int64) error {
+func (transaction *Tx) DeleteBackup(date int64) error {
 	if transaction.backups == nil {
 		return ErrNotOpen
 	}
@@ -348,7 +348,7 @@ func (backup *Backup) Delete() error {
 	if backup.tx == nil {
 		return ErrNotOpen
 	} else {
-		return backup.tx.Delete(backup.Date)
+		return backup.tx.DeleteBackup(backup.Date)
 	}
 }
 
