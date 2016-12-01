@@ -67,6 +67,7 @@ var (
 	ErrOpen     = bolt.ErrDatabaseOpen
 	ErrNotFound = bolt.ErrBucketNotFound
 	ErrExists   = bolt.ErrBucketExists
+	ErrTimeout  = bolt.ErrTimeout
 )
 
 // New creates a new index associated to a given file.
