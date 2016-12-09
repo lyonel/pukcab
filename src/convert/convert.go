@@ -10,6 +10,7 @@ import (
 	"log"
 	"meta"
 	"path"
+	"time"
 )
 
 func Encode(v interface{}) []byte {
@@ -61,11 +62,7 @@ func main() {
 	defer sqldb.Close()
 
 	catalog := meta.New(metadata)
-	err = catalog.Open()
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer catalog.Close()
+	catalog.SetTimeout(10 * time.Second)
 
 	sqlbackups, err := sqldb.Query("SELECT name, schedule, date, finished, lastmodified, files, size FROM backups ORDER BY date DESC")
 	if err != nil {
@@ -178,12 +175,14 @@ func main() {
 
 			return nil
 		})
+
 		if err != nil {
 			log.Println("Skipped:", err)
 			err = nil
 		} else {
 			log.Printf("Done files=%d size=%d\n", nfiles, tsize)
 			count++
+			time.Sleep(time.Second)
 		}
 
 		if max != 0 && count >= max {
@@ -197,5 +196,4 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 }
