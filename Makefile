@@ -8,7 +8,7 @@ DEPS= github.com/antage/mntent github.com/BurntSushi/toml github.com/lyonel/go-s
 
 export GOPATH=${PWD}
 
-.PHONY: pukcab clean update release doc dependencies
+.PHONY: pukcab clean update release doc dependencies godoc
 
 .SUFFIXES: .md .pdf .html
 
@@ -72,3 +72,7 @@ copr: srpm
 	scp pukcab-${VERSION}-*.src.rpm www.internal:/var/www/html/software/files
 	copr build --nowait lyonel/Pukcab pukcab-${VERSION}-*.src.rpm
 	copr build --nowait lyonel/ezIX pukcab-${VERSION}-*.src.rpm
+
+godoc:
+	godoc -http :6060 &
+	open http://localhost:6060/pkg
