@@ -148,23 +148,29 @@ func (index *Index) Begin(writable bool) (*Tx, error) {
 				err = ErrSchemaMismatch
 			}
 			return result, err
-		}
-
-		if writable {
-			if root, err := result.tx.CreateBucket([]byte("configuration")); err == nil {
-				info := &Info{
-					Schema:      Schema,
-					Application: Application,
-				}
-				root.Put([]byte("info"), encode(info))
-			}
-			result.backups, err = result.tx.CreateBucketIfNotExists([]byte("backups"))
 		} else {
-			if result.backups = result.tx.Bucket([]byte("backups")); result.backups == nil {
-				err = ErrNotFound
+
+			if writable {
+				if root, err := result.tx.CreateBucket([]byte("configuration")); err == nil {
+					root.Put([]byte("info"), encode(
+						Info{
+							Schema:      Schema,
+							Application: Application,
+						}))
+				}
+				result.backups, err = result.tx.CreateBucketIfNotExists([]byte("backups"))
+			} else {
+				if result.backups = result.tx.Bucket([]byte("backups")); result.backups == nil {
+					if info.Schema != 0 { // there was supposed to be a schema
+						err = ErrNotFound
+					}
+				}
+				if info.Schema != 0 && info.Schema < Schema-10 { // schema is too old
+					err = ErrSchemaMismatch
+				}
 			}
+			return result, err
 		}
-		return result, err
 	} else {
 		return &Tx{}, err
 	}
