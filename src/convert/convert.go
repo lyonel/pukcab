@@ -63,6 +63,16 @@ func main() {
 
 	catalog := meta.New(metadata)
 	catalog.SetTimeout(10 * time.Second)
+	if info, err := catalog.Info(); err == nil {
+		if info.Schema != 0 {
+			log.Println("Schema version:", info.Schema)
+		}
+		if info.Application != "" {
+			log.Println("Application:", info.Application)
+		}
+	} else {
+		log.Fatal("Error: ", err)
+	}
 
 	sqlbackups, err := sqldb.Query("SELECT name, schedule, date, finished, lastmodified, files, size FROM backups ORDER BY date DESC")
 	if err != nil {
