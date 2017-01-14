@@ -137,26 +137,37 @@ func (index *Index) Close() error {
 // Multiple read-only transactions can be used concurrently but only one write transaction can be used at a time.
 // Starting multiple write transactions will cause the calls to block and be serialized until the current write transaction finishes.
 func (index *Index) Begin(writable bool) (*Tx, error) {
-	tx, err := index.db.Begin(writable)
-	result := &Tx{
-		index: index,
-		tx:    tx,
-	}
-	if writable {
-		if root, err := result.tx.CreateBucket([]byte("configuration")); err == nil {
-			info := &Info{
-				Schema:      Schema,
-				Application: Application,
+	if tx, err := index.db.Begin(writable); err == nil {
+		result := &Tx{
+			index: index,
+			tx:    tx,
+		}
+
+		if info, err := result.Info(); err != nil || info.Schema > Schema {
+			if err == nil {
+				err = ErrSchemaMismatch
 			}
-			root.Put([]byte("info"), encode(info))
+			return result, err
 		}
-		result.backups, err = result.tx.CreateBucketIfNotExists([]byte("backups"))
+
+		if writable {
+			if root, err := result.tx.CreateBucket([]byte("configuration")); err == nil {
+				info := &Info{
+					Schema:      Schema,
+					Application: Application,
+				}
+				root.Put([]byte("info"), encode(info))
+			}
+			result.backups, err = result.tx.CreateBucketIfNotExists([]byte("backups"))
+		} else {
+			if result.backups = result.tx.Bucket([]byte("backups")); result.backups == nil {
+				err = ErrNotFound
+			}
+		}
+		return result, err
 	} else {
-		if result.backups = result.tx.Bucket([]byte("backups")); result.backups == nil {
-			err = ErrNotFound
-		}
+		return &Tx{}, err
 	}
-	return result, err
 }
 
 func (index *Index) cleanup(err error) error {
@@ -209,6 +220,7 @@ func (index *Index) View(fn func(*Tx) error) error {
 //
 // A read-only transaction is automatically created to get these details.
 func (index *Index) Info() (info *Info, err error) {
+	info = &Info{}
 	err = index.View(func(tx *Tx) error {
 		info, err = tx.Info()
 		return err
@@ -371,11 +383,17 @@ func (transaction *Tx) ForEach(fn func(*Backup) error) error {
 // Info returns details about the index.
 // nil may be returned in case of an error.
 func (transaction *Tx) Info() (*Info, error) {
-	info := &Info{}
-	if bucket := transaction.tx.Bucket([]byte("configuration")); bucket != nil {
-		json.Unmarshal(bucket.Get([]byte("info")), info)
+	if transaction.tx == nil {
+		return &Info{}, ErrNotOpen
 	}
-	return info, nil
+	if bucket := transaction.tx.Bucket([]byte("configuration")); bucket != nil {
+		info := &Info{}
+		if err := json.Unmarshal(bucket.Get([]byte("info")), info); err != nil {
+			return &Info{}, err
+		}
+		return info, nil
+	}
+	return &Info{}, nil
 }
 
 // Save records any modification of a backup to the index.
