@@ -2,6 +2,7 @@ package meta
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/boltdb/bolt"
 	"path"
 	"time"
@@ -62,12 +63,25 @@ type File struct {
 	DevMinor int64  `json:"devminor,omitempty"`
 }
 
+// Schema/version information
+type Info struct {
+	Schema      int    `json:"schema,omitempty"`
+	Application string `json:"application,omitempty"`
+}
+
+const (
+	Schema      = 1
+	Application = "Pukcab"
+)
+
 var (
-	ErrNotOpen  = bolt.ErrDatabaseNotOpen
-	ErrOpen     = bolt.ErrDatabaseOpen
-	ErrNotFound = bolt.ErrBucketNotFound
-	ErrExists   = bolt.ErrBucketExists
-	ErrTimeout  = bolt.ErrTimeout
+	ErrNotOpen         = bolt.ErrDatabaseNotOpen
+	ErrOpen            = bolt.ErrDatabaseOpen
+	ErrNotFound        = bolt.ErrBucketNotFound
+	ErrExists          = bolt.ErrBucketExists
+	ErrTimeout         = bolt.ErrTimeout
+	ErrVersionMismatch = bolt.ErrVersionMismatch
+	ErrSchemaMismatch  = errors.New("schema mismatch")
 )
 
 // New creates a new index associated to a given file.
@@ -129,6 +143,13 @@ func (index *Index) Begin(writable bool) (*Tx, error) {
 		tx:    tx,
 	}
 	if writable {
+		if root, err := result.tx.CreateBucket([]byte("configuration")); err == nil {
+			info := &Info{
+				Schema:      Schema,
+				Application: Application,
+			}
+			root.Put([]byte("info"), encode(info))
+		}
 		result.backups, err = result.tx.CreateBucketIfNotExists([]byte("backups"))
 	} else {
 		if result.backups = result.tx.Bucket([]byte("backups")); result.backups == nil {
@@ -181,6 +202,18 @@ func (index *Index) Update(fn func(*Tx) error) error {
 // Attempting to manually rollback within the function will cause a panic.
 func (index *Index) View(fn func(*Tx) error) error {
 	return index.transaction(false, fn)
+}
+
+// Info returns details about the index.
+// nil may be returned in case of an error.
+//
+// A read-only transaction is automatically created to get these details.
+func (index *Index) Info() (info *Info, err error) {
+	err = index.View(func(tx *Tx) error {
+		info, err = tx.Info()
+		return err
+	})
+	return info, err
 }
 
 // Commit writes all changes to disk.
@@ -333,6 +366,16 @@ func (transaction *Tx) ForEach(fn func(*Backup) error) error {
 		}
 	}
 	return nil
+}
+
+// Info returns details about the index.
+// nil may be returned in case of an error.
+func (transaction *Tx) Info() (*Info, error) {
+	info := &Info{}
+	if bucket := transaction.tx.Bucket([]byte("configuration")); bucket != nil {
+		json.Unmarshal(bucket.Get([]byte("info")), info)
+	}
+	return info, nil
 }
 
 // Save records any modification of a backup to the index.
