@@ -6,30 +6,26 @@ PANDOC:=pandoc -V title="Pukcab ${SHORTVERSION}" -V date="`date +%F`" --smart --
 
 export GOPATH=${PWD}
 
-.PHONY: pukcab clean update release doc dependencies pukcab-deps convert-deps godoc
+.PHONY: pukcab clean update release doc godoc dependencies
 
 .SUFFIXES: .md .pdf .html
 
-bin/pukcab: pukcab-deps
+bin/pukcab: dependencies
+	@cd src/pukcab ; ../../bin/govend
 	go install pukcab
 
-bin/convert: convert-deps
+bin/convert: dependencies
+	@cd src/convert ; ../../bin/govend
 	go install convert
 
 bin/govend:
 	go get https://github.com/govend/govend
 
-dependencies: pukcab-deps convert-deps
-
-pukcab-deps: bin/govend
-	cd src/pukcab ; ../../bin/govend
-
-convert-deps: bin/govend
-	cd src/convert ; ../../bin/govend
+dependencies: bin/govend
 
 update: bin/govend
-	cd src/pukcab ; ../../bin/govend -t -v -u
-	cd src/convert ; ../../bin/govend -t -v -u
+	@cd src/pukcab ; ../../bin/govend -t -v -u
+	@cd src/convert ; ../../bin/govend -t -v -u
 
 pukcab.exe:
 	CC=i686-w64-mingw32-gcc CGO_ENABLED=1 GOOS=windows GOARCH=386 go build -tags windows,!linux,!freebsd,!darwin -o $@
