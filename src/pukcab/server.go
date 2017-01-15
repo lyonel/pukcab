@@ -20,7 +20,7 @@ import (
 	"syscall"
 	"time"
 
-	"tar"
+	"pukcab/tar"
 )
 
 type DumpFlags int

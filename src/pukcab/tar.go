@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"tar"
+	"pukcab/tar"
 )
 
 // paxHeader formats a single pax record, prefixing it with the appropriate length

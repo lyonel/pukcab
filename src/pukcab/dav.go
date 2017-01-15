@@ -14,7 +14,7 @@ import (
 	"syscall"
 	"time"
 
-	"tar"
+	"pukcab/tar"
 )
 
 const StatusMulti = 207
