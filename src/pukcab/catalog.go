@@ -5,12 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	_ "meta"
 	"os"
 	"strconv"
 	"time"
 
 	"github.com/lyonel/go-sqlite3"
+	_ "pukcab/meta"
 )
 
 const schemaVersion = 3
