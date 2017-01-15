@@ -8,7 +8,6 @@ import (
 	"database/sql"
 	"encoding/gob"
 	"errors"
-	"ezix.org/tar"
 	"flag"
 	"fmt"
 	"io"
@@ -20,6 +19,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"tar"
 )
 
 type DumpFlags int

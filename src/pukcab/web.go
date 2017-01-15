@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/gob"
-	"ezix.org/tar"
 	"flag"
 	"fmt"
 	"html/template"
@@ -18,6 +17,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"tar"
 )
 
 type Report struct {

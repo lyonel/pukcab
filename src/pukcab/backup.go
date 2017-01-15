@@ -1,7 +1,7 @@
 package main
 
 import (
-	"ezix.org/tar"
+	"github.com/antage/mntent"
 	"io/ioutil"
 	"log"
 	"os"
@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/antage/mntent"
+	"tar"
 )
 
 type Backup struct {

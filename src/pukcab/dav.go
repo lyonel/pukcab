@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/gob"
-	"ezix.org/tar"
 	"fmt"
 	"io"
 	"log"
@@ -14,6 +13,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"tar"
 )
 
 const StatusMulti = 207

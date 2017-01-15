@@ -5,7 +5,6 @@ import (
 	"compress/gzip"
 	"encoding/gob"
 	"errors"
-	"ezix.org/tar"
 	"flag"
 	"fmt"
 	"io"
@@ -16,6 +15,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"tar"
 )
 
 func backup() {

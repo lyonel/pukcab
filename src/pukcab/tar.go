@@ -1,10 +1,11 @@
 package main
 
 import (
-	"ezix.org/tar"
 	"fmt"
 	"strconv"
 	"strings"
+
+	"tar"
 )
 
 // paxHeader formats a single pax record, prefixing it with the appropriate length
