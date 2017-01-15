@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	"ezix.org/tar"
 	"flag"
 	"github.com/boltdb/bolt"
 	_ "github.com/lyonel/go-sqlite3"
@@ -11,6 +10,8 @@ import (
 	"meta"
 	"path"
 	"time"
+
+	"pukcab/tar"
 )
 
 func Encode(v interface{}) []byte {
