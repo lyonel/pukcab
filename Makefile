@@ -19,7 +19,7 @@ bin/convert: dependencies
 	go install convert
 
 bin/govend:
-	go get https://github.com/govend/govend
+	go get github.com/govend/govend
 
 dependencies: bin/govend
 
