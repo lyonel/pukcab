@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/lyonel/go-sqlite3"
-	_ "pukcab/meta"
 )
 
 const schemaVersion = 3

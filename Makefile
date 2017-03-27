@@ -14,10 +14,6 @@ bin/pukcab: dependencies
 	@cd src/pukcab ; ../../bin/govend
 	go install pukcab
 
-bin/convert: dependencies
-	@cd src/convert ; ../../bin/govend
-	go install convert
-
 bin/govend:
 	go get github.com/govend/govend
 
