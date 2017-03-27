@@ -39,3 +39,7 @@ improve `restore` command usability
 `expire` command
  * expire all/several schedules at once (i.e. not just the current schedule)
  * delete old failed backups (provided recent ones succeeded)
+
+use Git as back-end storage (vault + catalog)
+ * use branches for schedules (daily→master, weekly, monthly, yearly)
+ * backups are annotated tags (w/ JSON-encoded backup info in tag comment)
