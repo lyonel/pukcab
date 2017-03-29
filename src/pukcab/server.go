@@ -14,6 +14,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -121,6 +122,11 @@ func newbackup() {
 
 	// Now, get ready to receive file list
 	filelist := ""
+	empty, err := repository.NewBlob(strings.NewReader(""))
+	if err != nil {
+		LogExit(err)
+	}
+	manifest := git.Manifest{}
 	tx, _ := catalog.Begin()
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
@@ -129,6 +135,7 @@ func newbackup() {
 			f = scanner.Text()
 		}
 		filelist += f + "\000"
+		manifest[path.Join("META", f, "...")] = git.File(empty)
 		if _, err := tx.Exec("INSERT INTO files (backupid,nameid) VALUES(?,?)", date, nameid(tx, filepath.Clean(f))); err != nil {
 			tx.Rollback()
 			LogExit(err)
@@ -137,11 +144,7 @@ func newbackup() {
 	tx.Exec("UPDATE backups SET lastmodified=? WHERE date=?", time.Now().Unix(), date)
 	tx.Commit()
 
-	if manifest, err := repository.NewBlob(strings.NewReader(filelist)); err == nil {
-		tree, err := repository.NewTree(git.Manifest{"MANIFEST": git.File(manifest)})
-		if err != nil {
-			LogExit(err)
-		}
+	if tree, err := repository.NewTree(manifest); err == nil {
 		previous := []git.Hash{}
 		if head := repository.Reference(name); head.Target() != "" {
 			previous = append(previous, head.Target())
