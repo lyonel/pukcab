@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"strconv"
 	"time"
 
+	"ezix.org/src/pkg/git"
 	"github.com/lyonel/go-sqlite3"
 )
 
@@ -16,6 +18,7 @@ const schemaVersion = 3
 
 var catalog *sql.DB
 var catalogconn *sqlite3.SQLiteConn
+var repository *git.Repository
 
 type Catalog interface {
 	Exec(query string, args ...interface{}) (sql.Result, error)
@@ -80,6 +83,12 @@ UPDATE META SET value=3 WHERE name='schema';
 
 func opencatalog() error {
 	if err := os.MkdirAll(cfg.Vault, 0700); err != nil {
+		return err
+	}
+
+	if r, err := git.Create(filepath.Join(cfg.Vault, ".git")); err == nil {
+		repository = r
+	} else {
 		return err
 	}
 

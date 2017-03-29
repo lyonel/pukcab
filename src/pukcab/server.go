@@ -20,6 +20,7 @@ import (
 	"syscall"
 	"time"
 
+	"ezix.org/src/pkg/git"
 	"pukcab/tar"
 )
 
@@ -119,6 +120,7 @@ func newbackup() {
 	log.Printf("Creating backup set: date=%d name=%q schedule=%q\n", date, name, schedule)
 
 	// Now, get ready to receive file list
+	filelist := ""
 	tx, _ := catalog.Begin()
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
@@ -126,6 +128,7 @@ func newbackup() {
 		if err != nil {
 			f = scanner.Text()
 		}
+		filelist += f + "\000"
 		if _, err := tx.Exec("INSERT INTO files (backupid,nameid) VALUES(?,?)", date, nameid(tx, filepath.Clean(f))); err != nil {
 			tx.Rollback()
 			LogExit(err)
@@ -133,6 +136,27 @@ func newbackup() {
 	}
 	tx.Exec("UPDATE backups SET lastmodified=? WHERE date=?", time.Now().Unix(), date)
 	tx.Commit()
+
+	if manifest, err := repository.NewBlob(strings.NewReader(filelist)); err == nil {
+		tree, err := repository.NewTree(git.Manifest{"MANIFEST": git.File(manifest)})
+		if err != nil {
+			LogExit(err)
+		}
+		previous := []git.Hash{}
+		if head := repository.Reference(name); head.Target() != "" {
+			previous = append(previous, head.Target())
+		}
+		commit, err := repository.NewCommit(tree.ID(), previous, git.BlameMe(), git.BlameMe(), "", "New backup")
+		if err != nil {
+			LogExit(err)
+		}
+		_, err = repository.UpdateBranch(name, commit.ID())
+		if err != nil {
+			LogExit(err)
+		}
+	} else {
+		LogExit(err)
+	}
 
 	fmt.Println(date)
 
