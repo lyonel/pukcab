@@ -121,8 +121,7 @@ func newbackup() {
 	log.Printf("Creating backup set: date=%d name=%q schedule=%q\n", date, name, schedule)
 
 	// Now, get ready to receive file list
-	filelist := ""
-	empty, err := repository.NewBlob(strings.NewReader(""))
+	empty, err := repository.NewEmptyBlob()
 	if err != nil {
 		LogExit(err)
 	}
@@ -134,7 +133,6 @@ func newbackup() {
 		if err != nil {
 			f = scanner.Text()
 		}
-		filelist += f + "\000"
 		manifest[path.Join("META", f, "...")] = git.File(empty)
 		if _, err := tx.Exec("INSERT INTO files (backupid,nameid) VALUES(?,?)", date, nameid(tx, filepath.Clean(f))); err != nil {
 			tx.Rollback()
@@ -144,20 +142,12 @@ func newbackup() {
 	tx.Exec("UPDATE backups SET lastmodified=? WHERE date=?", time.Now().Unix(), date)
 	tx.Commit()
 
-	if tree, err := repository.NewTree(manifest); err == nil {
-		previous := []git.Hash{}
-		if head := repository.Reference(name); head.Target() != "" {
-			previous = append(previous, head.Target())
-		}
-		commit, err := repository.NewCommit(tree.ID(), previous, git.BlameMe(), git.BlameMe(), "", "New backup")
-		if err != nil {
-			LogExit(err)
-		}
-		_, err = repository.UpdateBranch(name, commit.ID())
-		if err != nil {
-			LogExit(err)
-		}
-	} else {
+	_, err = repository.CommitToBranch(name, manifest, git.BlameMe(), git.BlameMe(),
+		"New backup\n"+
+			"\n"+
+			fmt.Sprintf(`{%q: %d, %q: %q, %q: %q}`, "date", date, "name", name, "schedule", schedule)+
+			"\n")
+	if err != nil {
 		LogExit(err)
 	}
 
