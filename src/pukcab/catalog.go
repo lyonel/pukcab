@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"ezix.org/src/pkg/git"
@@ -306,5 +308,21 @@ func autocheckpoint(catalog Catalog, enable bool) {
 		catalog.Exec("PRAGMA wal_autocheckpoint = 1000")
 	} else {
 		catalog.Exec("PRAGMA wal_autocheckpoint = 0")
+	}
+}
+
+func metaname(p string) string {
+	return path.Join("META", p, "...")
+}
+
+func dataname(p string) string {
+	return path.Join("DATA", p)
+}
+
+func realname(path string) string {
+	if strings.HasPrefix(path, "META/") && strings.HasSuffix(path, "/...") {
+		return strings.TrimPrefix(strings.TrimSuffix(path, "/..."), "META/")
+	} else {
+		return strings.TrimPrefix(path, "DATA/")
 	}
 }
