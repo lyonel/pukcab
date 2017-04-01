@@ -7,6 +7,7 @@ import (
 	"crypto/sha512"
 	"database/sql"
 	"encoding/gob"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -444,6 +445,7 @@ func submitfiles() {
 	}
 	log.Printf("Receiving files for backup set: date=%d name=%q schedule=%q files=%d missing=%d\n", date, name, schedule, files, missing)
 
+	manifest := git.Manifest{}
 	var received int64
 	tr := tar.NewReader(os.Stdin)
 
@@ -473,6 +475,16 @@ func submitfiles() {
 			}
 			if hdr.ChangeTime.IsZero() {
 				hdr.ChangeTime = time.Unix(0, 0)
+			}
+
+			if metadata, err := json.Marshal(HeaderMeta(hdr)); err == nil {
+				if meta, err := repository.NewBlob(bytes.NewReader(metadata)); err == nil {
+					manifest[metaname(hdr.Name)] = git.File(meta)
+				} else {
+					LogExit(err)
+				}
+			} else {
+				LogExit(err)
 			}
 
 			catalog.Exec("UPDATE backups SET lastmodified=? WHERE date=?", time.Now().Unix(), date)
@@ -539,6 +551,24 @@ func submitfiles() {
 			}
 		}
 	}
+
+	if parent := repository.Reference(name); parent.Target() != "" {
+		repository.Recurse(parent, func(path string, node git.Node) error {
+			if _, defined := manifest[path]; !defined {
+				manifest[path] = node
+			}
+			return nil
+		})
+	}
+	_, err := repository.CommitToBranch(name, manifest, git.BlameMe(), git.BlameMe(),
+		"Submit files\n"+
+			"\n"+
+			fmt.Sprintf(`{%q: %d, %q: %q, %q: %q, %q: %d}`, "date", date, "name", name, "schedule", schedule, "files", len(manifest))+
+			"\n")
+	if err != nil {
+		LogExit(err)
+	}
+	repository.TagBranch(name, fmt.Sprintf("%d", date))
 
 	catalog.Exec("UPDATE backups SET lastmodified=NULL WHERE date=?", date)
 	checkpoint(catalog, false)
