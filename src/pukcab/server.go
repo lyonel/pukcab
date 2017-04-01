@@ -150,7 +150,7 @@ func newbackup() {
 		catalog.Exec("WITH previousbackups AS (SELECT date FROM backups WHERE name=? AND date<? ORDER BY date DESC LIMIT 2), newfiles AS (SELECT nameid from files where backupid=?) INSERT OR REPLACE INTO files (backupid,hash,type,nameid,linknameid,size,birth,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor) SELECT ?,hash,type,nameid,linknameid,size,birth,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor FROM (SELECT * FROM files WHERE type!='?' AND nameid IN newfiles AND backupid IN previousbackups ORDER BY backupid) GROUP BY nameid", name, date, date, date)
 		catalog.Exec("UPDATE backups SET lastmodified=? WHERE date=?", time.Now().Unix(), date)
 
-		if previous := repository.Reference(name); previous.Target() != "" {
+		if previous := repository.Reference(name); git.Valid(previous) {
 			repository.Recurse(previous, func(path string, node git.Node) error {
 				if _, ok := manifest[metaname(realname(path))]; ok {
 					manifest[path] = node
@@ -490,7 +490,10 @@ func submitfiles() {
 
 			switch hdr.Typeflag {
 			case tar.TypeReg, tar.TypeRegA:
-				blob, err := repository.NewBlob(&TarReader{Reader: *tr, size: hdr.Size})
+				blob, err := repository.NewBlob(&TarReader{
+					Reader: *tr,
+					size:   hdr.Size,
+				})
 				if err != nil {
 					LogExit(err)
 				}
@@ -559,7 +562,7 @@ func submitfiles() {
 		}
 	}
 
-	if previous := repository.Reference(name); previous.Target() != "" {
+	if previous := repository.Reference(name); git.Valid(previous) {
 		repository.Recurse(previous, func(path string, node git.Node) error {
 			if _, defined := manifest[path]; !defined {
 				manifest[path] = node
