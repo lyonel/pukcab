@@ -468,7 +468,7 @@ func submitfiles() {
 			}
 
 			if metadata, err := json.Marshal(HeaderMeta(hdr)); err == nil {
-				if meta, err := repository.NewBlob(bytes.NewReader(metadata)); err == nil {
+				if meta, err := repository.NewBlob(bytes.NewReader(append(metadata, '\n'))); err == nil {
 					manifest[metaname(hdr.Name)] = git.File(meta)
 				} else {
 					LogExit(err)
