@@ -152,6 +152,7 @@ func newbackup() {
 		LogExit(err)
 	}
 
+	repository.TagBranch(name, fmt.Sprintf("%d", date))
 	fmt.Println(date)
 
 	if !full {
@@ -175,6 +176,7 @@ func newbackup() {
 			}
 		}
 	}
+	repository.TagBranch(name, fmt.Sprintf("%d", date))
 
 	if err := catalog.QueryRow("SELECT MAX(date) AS previous FROM backups WHERE finished AND name=?", name).Scan(&previous); err == nil {
 		fmt.Println(int64(previous))

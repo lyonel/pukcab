@@ -41,5 +41,21 @@ improve `restore` command usability
  * delete old failed backups (provided recent ones succeeded)
 
 use Git as back-end storage (vault + catalog)
- * use branches for schedules (daily→master, weekly, monthly, yearly)
- * backups are annotated tags (w/ JSON-encoded backup info in tag comment)
+ * use branches for hosts
+ * in-progress backups are lightweight tags
+ * complete backups are annotated tags (w/ JSON-encoded backup info in tag comment)
+ * store data in repository under `DATA` (full tree, files and symlinks only)
+ * store JSON metadata in repository under `META`/path/to/file/`...`
+ * `newbackup`
+   - first commit to create the metadata placeholder (empty `...` files)
+   - second commit to re-use existing metadata/data (only previous backup for now)
+   - create lightweight tag
+ * `submitfiles`
+   - new commit each time submitfiles is run
+   - update tag (use annotated tag when backup is complete)
+ * `dumpcatalog`
+ * `expirebackup`
+   - simplify commit history
+ * `purgebackup`
+   - delete all backups for a host: delete branch
+   - otherwise delete tag
