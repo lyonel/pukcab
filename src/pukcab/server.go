@@ -144,38 +144,28 @@ func newbackup() {
 	tx.Exec("UPDATE backups SET lastmodified=? WHERE date=?", time.Now().Unix(), date)
 	tx.Commit()
 
-	commit, err := repository.CommitToBranch(name, manifest, git.BlameMe(), git.BlameMe(),
-		"New backup\n"+
-			"\n"+
-			fmt.Sprintf(`{%q: %d, %q: %q, %q: %q, %q: %d}`, "date", date, "name", name, "schedule", schedule, "files", len(manifest))+
-			"\n")
-	if err != nil {
-		LogExit(err)
-	}
-
-	repository.TagBranch(name, fmt.Sprintf("%d", date))
 	fmt.Println(date)
 
 	if !full {
 		catalog.Exec("WITH previousbackups AS (SELECT date FROM backups WHERE name=? AND date<? ORDER BY date DESC LIMIT 2), newfiles AS (SELECT nameid from files where backupid=?) INSERT OR REPLACE INTO files (backupid,hash,type,nameid,linknameid,size,birth,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor) SELECT ?,hash,type,nameid,linknameid,size,birth,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor FROM (SELECT * FROM files WHERE type!='?' AND nameid IN newfiles AND backupid IN previousbackups ORDER BY backupid) GROUP BY nameid", name, date, date, date)
 		catalog.Exec("UPDATE backups SET lastmodified=? WHERE date=?", time.Now().Unix(), date)
 
-		if parent := commit.Parent(); len(parent) > 0 {
-			reused := 0
-			if err = repository.Recurse(parent[0], func(path string, node git.Node) error {
+		if previous := repository.Reference(name); previous.Target() != "" {
+			repository.Recurse(previous, func(path string, node git.Node) error {
 				if _, ok := manifest[metaname(realname(path))]; ok {
 					manifest[path] = node
-					reused++
 				}
 				return nil
-			}); err == nil {
-				repository.CommitToBranch(name, manifest, git.BlameMe(), git.BlameMe(),
-					"Prepare incremental backup\n"+
-						"\n"+
-						fmt.Sprintf(`{%q: %d, %q: %q, %q: %q, %q: %d}`, "date", date, "name", name, "schedule", schedule, "files", len(manifest)-reused)+
-						"\n")
-			}
+			})
 		}
+	}
+	_, err = repository.CommitToBranch(name, manifest, git.BlameMe(), git.BlameMe(),
+		"New backup\n"+
+			"\n"+
+			fmt.Sprintf(`{%q: %d, %q: %q, %q: %q, %q: %d}`, "date", date, "name", name, "schedule", schedule, "files", len(manifest))+
+			"\n")
+	if err != nil {
+		LogExit(err)
 	}
 	repository.TagBranch(name, fmt.Sprintf("%d", date))
 
@@ -552,8 +542,8 @@ func submitfiles() {
 		}
 	}
 
-	if parent := repository.Reference(name); parent.Target() != "" {
-		repository.Recurse(parent, func(path string, node git.Node) error {
+	if previous := repository.Reference(name); previous.Target() != "" {
+		repository.Recurse(previous, func(path string, node git.Node) error {
 			if _, defined := manifest[path]; !defined {
 				manifest[path] = node
 			}
