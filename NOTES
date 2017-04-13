@@ -47,8 +47,8 @@ use Git as back-end storage (vault + catalog)
  * store data in repository under `DATA` (full tree, files and symlinks only)
  * store JSON metadata in repository under `META`/path/to/file/`...`
  * `newbackup`
-   - first commit to create the metadata placeholder (empty `...` files)
-   - second commit to re-use existing metadata/data (only previous backup for now)
+   - create the metadata placeholder (empty `...` files)
+   - commit to re-use existing metadata/data (only previous backup for now)
    - create lightweight tag
  * `submitfiles`
    - new commit each time submitfiles is run

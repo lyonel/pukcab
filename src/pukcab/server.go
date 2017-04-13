@@ -7,7 +7,6 @@ import (
 	//"crypto/sha512"
 	"database/sql"
 	"encoding/gob"
-	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -476,12 +475,8 @@ func submitfiles() {
 				hdr.ChangeTime = time.Unix(0, 0)
 			}
 
-			if metadata, err := json.Marshal(HeaderMeta(hdr)); err == nil {
-				if meta, err := repository.NewBlob(bytes.NewReader(append(metadata, '\n'))); err == nil {
-					manifest[metaname(hdr.Name)] = git.File(meta)
-				} else {
-					LogExit(err)
-				}
+			if meta, err := repository.NewBlob(bytes.NewReader([]byte(JSON(HeaderMeta(hdr))))); err == nil {
+				manifest[metaname(hdr.Name)] = git.File(meta)
 			} else {
 				LogExit(err)
 			}
@@ -570,11 +565,7 @@ func submitfiles() {
 			return nil
 		})
 	}
-	_, err := repository.CommitToBranch(name, manifest, git.BlameMe(), git.BlameMe(),
-		"Submit files\n"+
-			"\n"+
-			fmt.Sprintf(`{%q: %d, %q: %q, %q: %q, %q: %d}`, "date", date, "name", name, "schedule", schedule, "files", len(manifest))+
-			"\n")
+	commit, err := repository.CommitToBranch(name, manifest, git.BlameMe(), git.BlameMe(), "Submit files\n")
 	if err != nil {
 		LogExit(err)
 	}
@@ -586,6 +577,16 @@ func submitfiles() {
 	missing = 0
 	if err := catalog.QueryRow("SELECT COUNT(*) FROM files WHERE backupid=? AND type='?'", date).Scan(&missing); err == nil {
 		if missing == 0 {
+			repository.UnTag(fmt.Sprintf("%d", date))
+			repository.NewTag(fmt.Sprintf("%d", date), commit.ID(), commit.Type(), git.BlameMe(),
+				JSON(BackupMeta{
+					Date:     date,
+					Name:     name,
+					Schedule: schedule,
+					Files:    int64(files),
+					Size:     received,
+				}))
+
 			catalog.Exec("DELETE FROM files WHERE backupid=? AND type='X'", date)
 			catalog.Exec("UPDATE backups SET finished=? WHERE date=?", time.Now().Unix(), date)
 			catalog.Exec("UPDATE backups SET files=(SELECT COUNT(*) FROM files WHERE backupid=date) WHERE date=?", date)

@@ -1,10 +1,19 @@
 package main
 
 import (
+	"encoding/json"
 	"os"
 
 	"pukcab/tar"
 )
+
+type BackupMeta struct {
+	Date     BackupID `json:"-"`
+	Name     string   `json:"-"`
+	Schedule string   `json:"schedule,omitempty"`
+	Files    int64    `json:"files,omitempty"`
+	Size     int64    `json:"size,omitempty"`
+}
 
 type Meta struct {
 	Path       string            `json:"-"`
@@ -76,5 +85,13 @@ func HeaderMeta(h *tar.Header) Meta {
 		Devmajor:   h.Devmajor,
 		Devminor:   h.Devminor,
 		Attributes: h.Xattrs,
+	}
+}
+
+func JSON(v interface{}) string {
+	if b, err := json.Marshal(v); err == nil {
+		return string(b) + "\n"
+	} else {
+		return ""
 	}
 }
