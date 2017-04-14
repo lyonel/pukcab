@@ -585,6 +585,7 @@ func submitfiles() {
 					Schedule: schedule,
 					Files:    int64(files),
 					Size:     received,
+					Finished: time.Now().Unix(),
 				}))
 
 			catalog.Exec("DELETE FROM files WHERE backupid=? AND type='X'", date)

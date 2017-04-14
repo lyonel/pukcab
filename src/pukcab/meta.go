@@ -13,6 +13,7 @@ type BackupMeta struct {
 	Schedule string   `json:"schedule,omitempty"`
 	Files    int64    `json:"files,omitempty"`
 	Size     int64    `json:"size,omitempty"`
+	Finished int64    `json:"finished,omitempty"`
 }
 
 type Meta struct {
