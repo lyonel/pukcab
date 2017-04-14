@@ -90,6 +90,7 @@ func opencatalog() error {
 
 	if r, err := git.Create(filepath.Join(cfg.Vault, ".git")); err == nil {
 		repository = r
+		repository.Describe("Pukcab vault")
 	} else {
 		return err
 	}
