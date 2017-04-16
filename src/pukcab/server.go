@@ -166,7 +166,7 @@ func newbackup() {
 	if err != nil {
 		LogExit(err)
 	}
-	repository.TagBranch(name, fmt.Sprintf("%d", date))
+	repository.TagBranch(name, date.String())
 
 	if err := catalog.QueryRow("SELECT MAX(date) AS previous FROM backups WHERE finished AND name=?", name).Scan(&previous); err == nil {
 		fmt.Println(int64(previous))
@@ -569,7 +569,7 @@ func submitfiles() {
 	if err != nil {
 		LogExit(err)
 	}
-	repository.TagBranch(name, fmt.Sprintf("%d", date))
+	repository.TagBranch(name, date.String())
 
 	catalog.Exec("UPDATE backups SET lastmodified=NULL WHERE date=?", date)
 	checkpoint(catalog, false)
@@ -577,8 +577,8 @@ func submitfiles() {
 	missing = 0
 	if err := catalog.QueryRow("SELECT COUNT(*) FROM files WHERE backupid=? AND type='?'", date).Scan(&missing); err == nil {
 		if missing == 0 {
-			repository.UnTag(fmt.Sprintf("%d", date))
-			repository.NewTag(fmt.Sprintf("%d", date), commit.ID(), commit.Type(), git.BlameMe(),
+			repository.UnTag(date.String())
+			repository.NewTag(date.String(), commit.ID(), commit.Type(), git.BlameMe(),
 				JSON(BackupMeta{
 					Date:     date,
 					Name:     name,

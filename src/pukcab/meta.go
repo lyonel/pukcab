@@ -2,7 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"ezix.org/src/pkg/git"
 	"os"
+	"path"
+	"strconv"
+	"time"
 
 	"pukcab/tar"
 )
@@ -95,4 +99,53 @@ func JSON(v interface{}) string {
 	} else {
 		return ""
 	}
+}
+
+func unixtime(t int64) time.Time {
+	if t == 0 {
+		return time.Time{}
+	} else {
+		return time.Unix(t, 0)
+	}
+}
+
+func Backups() (list []Backup) {
+	backups := make(map[BackupID]BackupMeta)
+	for _, ref := range repository.Tags() {
+		if date, err := strconv.ParseInt(path.Base(ref.Name()), 10, 64); err == nil && date > 0 {
+			b := BackupMeta{
+				Date: BackupID(date),
+			}
+			if obj, err := repository.Object(ref); err == nil {
+				if tag, ok := obj.(git.Tag); ok {
+					json.Unmarshal([]byte(tag.Text()), &b)
+				}
+			}
+			backups[b.Date] = b
+		}
+	}
+
+	branches := repository.Branches()
+	for d := range backups {
+		ref := repository.Reference(d.String())
+		for _, branch := range branches {
+			if repository.Ancestor(ref, branch) {
+				meta := backups[d]
+				meta.Name = path.Base(branch.Name())
+				backups[d] = meta
+			}
+		}
+	}
+
+	for _, b := range backups {
+		list = append(list, Backup{
+			Date:     b.Date,
+			Name:     b.Name,
+			Schedule: b.Schedule,
+			Started:  unixtime(int64(b.Date)),
+			Finished: unixtime(b.Finished),
+		})
+	}
+
+	return list
 }
