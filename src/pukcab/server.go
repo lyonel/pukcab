@@ -165,11 +165,7 @@ func newbackup() {
 			})
 		}
 	}
-	_, err = repository.CommitToBranch(name, manifest, git.BlameMe(), git.BlameMe(),
-		"New backup\n"+
-			"\n"+
-			fmt.Sprintf(`{%q: %d, %q: %q, %q: %q, %q: %d}`, "date", date, "name", name, "schedule", schedule, "files", len(manifest))+
-			"\n")
+	_, err = repository.CommitToBranch(name, manifest, git.BlameMe(), git.BlameMe(), "New backup\n")
 	if err != nil {
 		LogExit(err)
 	}
