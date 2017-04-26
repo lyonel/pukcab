@@ -13,12 +13,13 @@ import (
 )
 
 type BackupMeta struct {
-	Date     BackupID `json:"-"`
-	Name     string   `json:"-"`
-	Schedule string   `json:"schedule,omitempty"`
-	Files    int64    `json:"files,omitempty"`
-	Size     int64    `json:"size,omitempty"`
-	Finished int64    `json:"finished,omitempty"`
+	Date         BackupID `json:"-"`
+	Name         string   `json:"-"`
+	Schedule     string   `json:"schedule,omitempty"`
+	Files        int64    `json:"files,omitempty"`
+	Size         int64    `json:"size,omitempty"`
+	Finished     int64    `json:"finished,omitempty"`
+	LastModified int64    `json:"-"`
 }
 
 type Meta struct {
@@ -118,7 +119,10 @@ func Backups() (list []Backup) {
 				Date: BackupID(date),
 			}
 			if obj, err := repository.Object(ref); err == nil {
-				if tag, ok := obj.(git.Tag); ok {
+				switch tag := obj.(type) {
+				case git.Commit:
+					b.LastModified = tag.Author().Date().Unix()
+				case git.Tag:
 					json.Unmarshal([]byte(tag.Text()), &b)
 				}
 			}
@@ -140,11 +144,12 @@ func Backups() (list []Backup) {
 
 	for _, b := range backups {
 		list = append(list, Backup{
-			Date:     b.Date,
-			Name:     b.Name,
-			Schedule: b.Schedule,
-			Started:  unixtime(int64(b.Date)),
-			Finished: unixtime(b.Finished),
+			Date:         b.Date,
+			Name:         b.Name,
+			Schedule:     b.Schedule,
+			Started:      unixtime(int64(b.Date)),
+			Finished:     unixtime(b.Finished),
+			LastModified: unixtime(b.LastModified),
 		})
 	}
 
