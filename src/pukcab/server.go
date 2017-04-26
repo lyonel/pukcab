@@ -101,17 +101,24 @@ func newbackup() {
 		}
 	}
 
-	var previous SQLInt
-	if err := catalog.QueryRow("SELECT MAX(date) AS previous FROM backups WHERE lastmodified AND name=? AND ?-lastmodified<3600", name, time.Now().Unix()).Scan(&previous); err == nil {
-		if previous != 0 && !force {
-			failure.Println("Another backup is already running")
-			LogExit(errors.New("Another backup is already running"))
+	// Check if we already have a backup running for this client
+	if backups := Backups(name); len(backups) > 0 {
+		for _, b := range backups {
+			if time.Since(b.LastModified).Hours() < 1 && !force { // a backup was modified less than 1 hour ago
+				failure.Println("Another backup is already running")
+				LogExit(errors.New("Another backup is already running"))
+			}
 		}
 	}
 
+	// Generate and record a new backup ID
 	if err := retry(cfg.Maxtries, func() error {
 		date = BackupID(time.Now().Unix())
 		schedule = reschedule(date, name, schedule)
+		if git.Valid(repository.Reference(date.String())) { // this backup ID already exists
+			return errors.New("Duplicate id")
+		}
+		repository.TagBranch(name, date.String())
 		_, err := catalog.Exec("INSERT INTO backups (date,name,schedule,lastmodified,size) VALUES(?,?,?,?,0)", date, name, schedule, date)
 		return err
 	}); err != nil {
@@ -168,11 +175,16 @@ func newbackup() {
 	}
 	repository.TagBranch(name, date.String())
 
-	if err := catalog.QueryRow("SELECT MAX(date) AS previous FROM backups WHERE finished AND name=?", name).Scan(&previous); err == nil {
-		fmt.Println(int64(previous))
-	} else {
-		fmt.Println(0) // no previous backup
+	// Check if we have a complete backup for this client
+	if backups := Backups(name); len(backups) > 0 {
+		for i := len(backups) - 1; i >= 0; i-- {
+			if !backups[i].Finished.IsZero() {
+				fmt.Println(backups[i].Finished.Unix())
+				return
+			}
+		}
 	}
+	fmt.Println(0) // no previous backup
 }
 
 func dumpcatalog(what DumpFlags) {

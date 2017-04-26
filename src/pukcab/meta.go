@@ -111,7 +111,11 @@ func unixtime(t int64) time.Time {
 	}
 }
 
-func Backups() (list []Backup) {
+func Backups(name string) (list []Backup) {
+	if name == "" {
+		name = "*" // empty filter = no filter
+	}
+
 	backups := make(map[BackupID]BackupMeta)
 	for _, ref := range repository.Tags() {
 		if date, err := strconv.ParseInt(path.Base(ref.Name()), 10, 64); err == nil && date > 0 {
@@ -143,30 +147,32 @@ func Backups() (list []Backup) {
 	}
 
 	for _, b := range backups {
-		list = append(list, Backup{
-			Date:         b.Date,
-			Name:         b.Name,
-			Schedule:     b.Schedule,
-			Started:      unixtime(int64(b.Date)),
-			Finished:     unixtime(b.Finished),
-			LastModified: unixtime(b.LastModified),
-		})
+		if matched, err := path.Match(name, b.Name); matched && err == nil {
+			list = append(list, Backup{
+				Date:         b.Date,
+				Name:         b.Name,
+				Schedule:     b.Schedule,
+				Started:      unixtime(int64(b.Date)),
+				Finished:     unixtime(b.Finished),
+				LastModified: unixtime(b.LastModified),
+			})
+		}
 	}
 
-	sort.Sort(ByDate(list))
+	sort.Sort(bydate(list))
 	return list
 }
 
-type ByDate []Backup
+type bydate []Backup
 
-func (a ByDate) Len() int {
+func (a bydate) Len() int {
 	return len(a)
 }
 
-func (a ByDate) Swap(i, j int) {
+func (a bydate) Swap(i, j int) {
 	a[i], a[j] = a[j], a[i]
 }
 
-func (a ByDate) Less(i, j int) bool {
+func (a bydate) Less(i, j int) bool {
 	return a[i].Date < a[j].Date
 }
