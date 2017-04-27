@@ -116,11 +116,10 @@ func newbackup() {
 		date = BackupID(time.Now().Unix())
 		schedule = reschedule(date, name, schedule)
 		if git.Valid(repository.Reference(date.String())) { // this backup ID already exists
-			return errors.New("Duplicate id")
+			return errors.New("Duplicate backup ID")
 		}
-		repository.TagBranch(name, date.String())
-		_, err := catalog.Exec("INSERT INTO backups (date,name,schedule,lastmodified,size) VALUES(?,?,?,?,0)", date, name, schedule, date)
-		return err
+		catalog.Exec("INSERT INTO backups (date,name,schedule,lastmodified,size) VALUES(?,?,?,?,0)", date, name, schedule, date)
+		return repository.TagBranch(name, date.String())
 	}); err != nil {
 		LogExit(err)
 	}
