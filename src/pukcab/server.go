@@ -150,6 +150,7 @@ func newbackup() {
 	tx.Exec("UPDATE backups SET lastmodified=? WHERE date=?", time.Now().Unix(), date)
 	tx.Commit()
 
+	// report new backup ID
 	fmt.Println(date)
 
 	if !full {
@@ -584,7 +585,7 @@ func submitfiles() {
 
 	missing = 0
 	if err := catalog.QueryRow("SELECT COUNT(*) FROM files WHERE backupid=? AND type='?'", date).Scan(&missing); err == nil {
-		if missing == 0 {
+		if missing == 0 { // the backup is complete, tag it
 			repository.UnTag(date.String())
 			repository.NewTag(date.String(), commit.ID(), commit.Type(), git.BlameMe(),
 				JSON(BackupMeta{
@@ -594,6 +595,7 @@ func submitfiles() {
 					Files:    int64(files),
 					Size:     received,
 					Finished: time.Now().Unix(),
+					// note: LastModified is 0
 				}))
 
 			catalog.Exec("DELETE FROM files WHERE backupid=? AND type='X'", date)
