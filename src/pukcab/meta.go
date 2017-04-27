@@ -111,9 +111,13 @@ func unixtime(t int64) time.Time {
 	}
 }
 
-func Backups(name string) (list []Backup) {
+func Backups(name string, schedule string) (list []Backup) {
+	// empty filter = no filter
 	if name == "" {
-		name = "*" // empty filter = no filter
+		name = "*"
+	}
+	if schedule == "" {
+		schedule = "*"
 	}
 
 	backups := make(map[BackupID]BackupMeta)
@@ -147,7 +151,9 @@ func Backups(name string) (list []Backup) {
 	}
 
 	for _, b := range backups {
-		if matched, err := path.Match(name, b.Name); matched && err == nil {
+		nameok, _ := path.Match(name, b.Name)
+		scheduleok, _ := path.Match(schedule, b.Schedule)
+		if nameok && (b.Schedule == "" || scheduleok) {
 			list = append(list, Backup{
 				Date:         b.Date,
 				Name:         b.Name,

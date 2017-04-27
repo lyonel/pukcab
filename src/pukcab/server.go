@@ -102,7 +102,7 @@ func newbackup() {
 	}
 
 	// Check if we already have a backup running for this client
-	if backups := Backups(name); len(backups) > 0 {
+	if backups := Backups(name, "*"); len(backups) > 0 {
 		for _, b := range backups {
 			if time.Since(b.LastModified).Hours() < 1 && !force { // a backup was modified less than 1 hour ago
 				failure.Println("Another backup is already running")
@@ -172,7 +172,7 @@ func newbackup() {
 	repository.TagBranch(name, date.String())
 
 	// Check if we have a complete backup for this client
-	if backups := Backups(name); len(backups) > 0 {
+	if backups := Backups(name, "*"); len(backups) > 0 {
 		for i := len(backups) - 1; i >= 0; i-- {
 			if !backups[i].Finished.IsZero() {
 				fmt.Println(backups[i].Finished.Unix())
