@@ -2,13 +2,13 @@ package main
 
 import (
 	"encoding/json"
-	"ezix.org/src/pkg/git"
 	"os"
 	"path"
 	"sort"
 	"strconv"
 	"time"
 
+	"ezix.org/src/pkg/git"
 	"pukcab/tar"
 )
 
@@ -138,7 +138,16 @@ func Finished(list []Backup) (backups []Backup) {
 	return backups
 }
 
-func Before(list []Backup, date BackupID) (backups []Backup) {
+func Get(date BackupID, list []Backup) Backup {
+	for _, b := range list {
+		if b.Date == date {
+			return b
+		}
+	}
+	return Backup{}
+}
+
+func Before(date BackupID, list []Backup) (backups []Backup) {
 	for _, b := range list {
 		if b.Date <= date {
 			backups = append(backups, b)
@@ -147,7 +156,7 @@ func Before(list []Backup, date BackupID) (backups []Backup) {
 	return backups
 }
 
-func After(list []Backup, date BackupID) (backups []Backup) {
+func After(date BackupID, list []Backup) (backups []Backup) {
 	for _, b := range list {
 		if b.Date >= date {
 			backups = append(backups, b)
@@ -156,7 +165,7 @@ func After(list []Backup, date BackupID) (backups []Backup) {
 	return backups
 }
 
-func Backups(name string, schedule string) (list []Backup) {
+func Backups(repository *git.Repository, name string, schedule string) (list []Backup) {
 	// empty filter = no filter
 	if name == "" {
 		name = "*"

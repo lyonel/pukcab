@@ -331,3 +331,22 @@ func realname(path string) string {
 		return strings.TrimPrefix(path, "DATA/")
 	}
 }
+
+func countfiles(repository *git.Repository, date BackupID) (files int, missing int) {
+	empty, _ := repository.NewEmptyBlob()
+	if ref := repository.Reference(date.String()); git.Valid(ref) {
+		if err := repository.Recurse(repository.Reference(date.String()),
+			func(name string, node git.Node) error {
+				if ismeta(name) {
+					files++
+					if node.ID() == empty.ID() { // metadata is empty
+						missing++
+					}
+				}
+				return nil
+			}); err != nil {
+			LogExit(err)
+		}
+	}
+	return
+}

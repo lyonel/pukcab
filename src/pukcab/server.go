@@ -102,7 +102,7 @@ func newbackup() {
 	}
 
 	// Check if we already have a backup running for this client
-	if backups := Backups(name, "*"); len(backups) > 0 {
+	if backups := Backups(repository, name, "*"); len(backups) > 0 {
 		for _, b := range backups {
 			if time.Since(b.LastModified).Hours() < 1 && !force { // a backup was modified less than 1 hour ago
 				failure.Println("Another backup is already running")
@@ -171,16 +171,12 @@ func newbackup() {
 	}
 	repository.TagBranch(name, date.String())
 
-	// Check if we have a complete backup for this client
-	if backups := Backups(name, "*"); len(backups) > 0 {
-		for i := len(backups) - 1; i >= 0; i-- {
-			if !backups[i].Finished.IsZero() {
-				fmt.Println(backups[i].Finished.Unix())
-				return
-			}
-		}
+	// Find the most recent complete backup for this client
+	if previous := Last(Finished(Backups(repository, name, "*"))); !previous.Finished.IsZero() {
+		fmt.Println(previous.Date)
+	} else {
+		fmt.Println(0) // no previous backup
 	}
-	fmt.Println(0) // no previous backup
 }
 
 func dumpcatalog(what DumpFlags) {
@@ -427,28 +423,19 @@ func submitfiles() {
 		LogExit(err)
 	}
 
-	files := 0
 	started := time.Now()
-	catalog.QueryRow("SELECT COUNT(*) FROM files WHERE backupid=?", date).Scan(&files)
 
-	if files == 0 {
-		var lastdate SQLInt
-		catalog.QueryRow("SELECT MAX(date) FROM backups WHERE name=? AND schedule=?", name, schedule).Scan(&lastdate)
-		date = BackupID(lastdate)
+	backups := Backups(repository, name, "*")
+	if Get(date, backups).Date == 0 { // we couldn't find this backup
+		date = Last(backups).Date
 	}
-
-	files = 0
-	catalog.QueryRow("SELECT COUNT(*) FROM files WHERE backupid=?", date).Scan(&files)
-	missing := 0
-	catalog.QueryRow("SELECT COUNT(*) FROM files WHERE backupid=? AND type='?'", date).Scan(&missing)
-
-	var finished SQLInt
-	catalog.QueryRow("SELECT name,schedule,finished FROM backups WHERE date=?", date).Scan(&name, &schedule, &finished)
-
-	if finished != 0 {
+	if !Get(date, backups).Finished.IsZero() {
 		failure.Printf("Error: backup set date=%d is already complete\n", date)
 		log.Fatalf("Error: backup set date=%d is already complete\n", date)
 	}
+
+	files, missing := countfiles(repository, date)
+
 	log.Printf("Receiving files for backup set: date=%d name=%q schedule=%q files=%d missing=%d\n", date, name, schedule, files, missing)
 
 	manifest := git.Manifest{}
@@ -582,33 +569,30 @@ func submitfiles() {
 	catalog.Exec("UPDATE backups SET lastmodified=NULL WHERE date=?", date)
 	checkpoint(catalog, false)
 
-	missing = 0
-	if err := catalog.QueryRow("SELECT COUNT(*) FROM files WHERE backupid=? AND type='?'", date).Scan(&missing); err == nil {
-		if missing == 0 { // the backup is complete, tag it
-			repository.UnTag(date.String())
-			repository.NewTag(date.String(), commit.ID(), commit.Type(), git.BlameMe(),
-				JSON(BackupMeta{
-					Date:     date,
-					Name:     name,
-					Schedule: schedule,
-					Files:    int64(files),
-					Size:     received,
-					Finished: time.Now().Unix(),
-					// note: LastModified is 0
-				}))
+	files, missing = countfiles(repository, date)
 
-			catalog.Exec("DELETE FROM files WHERE backupid=? AND type='X'", date)
-			catalog.Exec("UPDATE backups SET finished=? WHERE date=?", time.Now().Unix(), date)
-			catalog.Exec("UPDATE backups SET files=(SELECT COUNT(*) FROM files WHERE backupid=date) WHERE date=?", date)
-			catalog.Exec("UPDATE backups SET size=(SELECT SUM(size) FROM files WHERE backupid=date) WHERE date=?", date)
-			log.Printf("Finished backup: date=%d name=%q schedule=%q files=%d received=%d duration=%.0f elapsed=%.0f\n", date, name, schedule, files, received, time.Since(started).Seconds(), time.Since(time.Unix(int64(date), 0)).Seconds())
-			fmt.Printf("Backup %d complete (%d files)\n", date, files)
-		} else {
-			log.Printf("Received files for backup set: date=%d name=%q schedule=%q files=%d missing=%d received=%d duration=%.0f\n", date, name, schedule, files, missing, received, time.Since(started).Seconds())
-			fmt.Printf("Received %d files for backup %d (%d files to go)\n", files-missing, date, missing)
-		}
+	if missing == 0 { // the backup is complete, tag it
+		repository.UnTag(date.String())
+		repository.NewTag(date.String(), commit.ID(), commit.Type(), git.BlameMe(),
+			JSON(BackupMeta{
+				Date:     date,
+				Name:     name,
+				Schedule: schedule,
+				Files:    int64(files),
+				Size:     received,
+				Finished: time.Now().Unix(),
+				// note: LastModified is 0
+			}))
+
+		catalog.Exec("DELETE FROM files WHERE backupid=? AND type='X'", date)
+		catalog.Exec("UPDATE backups SET finished=? WHERE date=?", time.Now().Unix(), date)
+		catalog.Exec("UPDATE backups SET files=(SELECT COUNT(*) FROM files WHERE backupid=date) WHERE date=?", date)
+		catalog.Exec("UPDATE backups SET size=(SELECT SUM(size) FROM files WHERE backupid=date) WHERE date=?", date)
+		log.Printf("Finished backup: date=%d name=%q schedule=%q files=%d received=%d duration=%.0f elapsed=%.0f\n", date, name, schedule, files, received, time.Since(started).Seconds(), time.Since(time.Unix(int64(date), 0)).Seconds())
+		fmt.Printf("Backup %d complete (%d files)\n", date, files)
 	} else {
-		LogExit(err)
+		log.Printf("Received files for backup set: date=%d name=%q schedule=%q files=%d missing=%d received=%d duration=%.0f\n", date, name, schedule, files, missing, received, time.Since(started).Seconds())
+		fmt.Printf("Received %d files for backup %d (%d files to go)\n", files-missing, date, missing)
 	}
 }
 
