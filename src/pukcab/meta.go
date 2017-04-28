@@ -111,6 +111,51 @@ func unixtime(t int64) time.Time {
 	}
 }
 
+func First(list []Backup) (first Backup) {
+	for _, b := range list {
+		if first.Date == 0 || b.Date < first.Date {
+			first = b
+		}
+	}
+	return first
+}
+
+func Last(list []Backup) (last Backup) {
+	for _, b := range list {
+		if b.Date > last.Date {
+			last = b
+		}
+	}
+	return last
+}
+
+func Finished(list []Backup) (backups []Backup) {
+	for _, b := range list {
+		if !b.Finished.IsZero() {
+			backups = append(backups, b)
+		}
+	}
+	return backups
+}
+
+func Before(list []Backup, date BackupID) (backups []Backup) {
+	for _, b := range list {
+		if b.Date <= date {
+			backups = append(backups, b)
+		}
+	}
+	return backups
+}
+
+func After(list []Backup, date BackupID) (backups []Backup) {
+	for _, b := range list {
+		if b.Date >= date {
+			backups = append(backups, b)
+		}
+	}
+	return backups
+}
+
 func Backups(name string, schedule string) (list []Backup) {
 	// empty filter = no filter
 	if name == "" {

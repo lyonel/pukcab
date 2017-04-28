@@ -320,8 +320,12 @@ func dataname(p string) string {
 	return path.Join("DATA", p)
 }
 
+func ismeta(path string) bool {
+	return strings.HasPrefix(path, "META/") && strings.HasSuffix(path, "/...")
+}
+
 func realname(path string) string {
-	if strings.HasPrefix(path, "META/") && strings.HasSuffix(path, "/...") {
+	if ismeta(path) {
 		return strings.TrimPrefix(strings.TrimSuffix(path, "/..."), "META/")
 	} else {
 		return strings.TrimPrefix(path, "DATA/")
