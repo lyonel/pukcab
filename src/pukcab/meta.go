@@ -156,6 +156,26 @@ func Before(date BackupID, list []Backup) (backups []Backup) {
 	return backups
 }
 
+func Filter(name string, schedule string, list []Backup) (backups []Backup) {
+	// empty filter = no filter
+	if name == "" {
+		name = "*"
+	}
+	if schedule == "" {
+		schedule = "*"
+	}
+
+	for _, b := range list {
+		nameok, _ := path.Match(name, b.Name)
+		scheduleok, _ := path.Match(schedule, b.Schedule)
+		if nameok && (b.Schedule == "" || scheduleok) {
+			backups = append(backups, b)
+		}
+	}
+
+	return backups
+}
+
 func After(date BackupID, list []Backup) (backups []Backup) {
 	for _, b := range list {
 		if b.Date >= date {

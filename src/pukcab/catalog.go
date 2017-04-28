@@ -184,18 +184,6 @@ func nameid(c Catalog, s string) (id int64) {
 	return id
 }
 
-func first(c Catalog, name string, schedule string) (id BackupID) {
-	var date SQLInt
-	c.QueryRow("SELECT MIN(date) FROM backups WHERE finished AND ? IN ('', name) AND ? IN ('', schedule)", name, schedule).Scan(&date)
-	return BackupID(date)
-}
-
-func last(c Catalog, name string, schedule string) (id BackupID) {
-	var date SQLInt
-	c.QueryRow("SELECT MAX(date) FROM backups WHERE finished AND ? IN ('', name) AND ? IN ('', schedule)", name, schedule).Scan(&date)
-	return BackupID(date)
-}
-
 func min(a, b BackupID) BackupID {
 	if a > b {
 		return b
@@ -219,13 +207,37 @@ func reschedule(backup BackupID, name string, s string) (schedule string) {
 		return
 	}
 
-	earliest, firstweekly, firstmonthly := first(catalog, name, ""),
-		first(catalog, name, "weekly"),
-		first(catalog, name, "monthly")
-	latest, lastweekly, lastmonthly, lastyearly := last(catalog, name, ""),
-		last(catalog, name, "weekly"),
-		last(catalog, name, "monthly"),
-		last(catalog, name, "yearly")
+	var earliest, firstweekly, firstmonthly, latest, lastweekly, lastmonthly, lastyearly BackupID
+
+	for _, b := range Backups(repository, name, "*") {
+		if earliest == 0 || b.Date < earliest {
+			earliest = b.Date
+		}
+		if b.Date > latest {
+			latest = b.Date
+		}
+
+		switch b.Schedule {
+		case "weekly":
+			if firstweekly == 0 || b.Date < firstweekly {
+				firstweekly = b.Date
+			}
+			if b.Date > lastweekly {
+				lastweekly = b.Date
+			}
+		case "monthly":
+			if firstmonthly == 0 || b.Date < firstmonthly {
+				firstmonthly = b.Date
+			}
+			if b.Date > lastmonthly {
+				lastmonthly = b.Date
+			}
+		case "yearly":
+			if b.Date > lastyearly {
+				lastyearly = b.Date
+			}
+		}
+	}
 
 	if latest == 0 { // this is our first backup ever
 		return
