@@ -286,7 +286,12 @@ func dumpfiles(files int, backup *Backup) (bytes int64) {
 
 	info.Print("Sending files... ")
 
-	cmd := remotecommand("submitfiles", "-name", backup.Name, "-date", fmt.Sprintf("%d", backup.Date))
+	cmdline := []string{"submitfiles", "-name", backup.Name, "-date", fmt.Sprintf("%d", backup.Date)}
+	if backup.Schedule != "" {
+		cmdline = append(cmdline, "-schedule", backup.Schedule)
+	}
+
+	cmd := remotecommand(cmdline...)
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		failure.Println("Backend error:", err)

@@ -66,7 +66,7 @@ func absolute(s string) string {
 func newbackup() {
 	flag.StringVar(&name, "name", "", "Backup name")
 	flag.StringVar(&name, "n", "", "-name")
-	flag.StringVar(&schedule, "schedule", "", "Backup schedule")
+	flag.StringVar(&schedule, "schedule", "", "IGNORED") // kept for compatibility with older clients
 	flag.StringVar(&schedule, "r", "", "-schedule")
 	flag.BoolVar(&full, "full", full, "Full backup")
 	flag.BoolVar(&full, "f", full, "-full")
@@ -405,6 +405,8 @@ func submitfiles() {
 	flag.StringVar(&name, "n", "", "-name")
 	flag.Var(&date, "date", "Backup set")
 	flag.Var(&date, "d", "-date")
+	flag.StringVar(&schedule, "schedule", "", "Backup schedule")
+	flag.StringVar(&schedule, "r", "", "-schedule")
 
 	SetupServer()
 	cfg.ServerOnly()
@@ -435,6 +437,7 @@ func submitfiles() {
 	}
 
 	files, missing := countfiles(repository, date)
+	schedule = reschedule(date, name, schedule)
 
 	log.Printf("Receiving files for backup set: date=%d name=%q schedule=%q files=%d missing=%d\n", date, name, schedule, files, missing)
 
