@@ -457,7 +457,6 @@ func submitfiles() {
 		// skip fake entries used only for extended attributes and various metadata
 		if hdr.Name != hdr.Linkname && hdr.Typeflag != tar.TypeXHeader && hdr.Typeflag != tar.TypeXGlobalHeader {
 			var hash string
-			//checksum := sha512.New()
 
 			if !filepath.IsAbs(hdr.Name) {
 				hdr.Name = filepath.Join(string(filepath.Separator), hdr.Name)
@@ -493,53 +492,6 @@ func submitfiles() {
 				received += hdr.Size
 				hash = string(blob.ID())
 				manifest[dataname(hdr.Name)] = git.File(blob)
-				/*
-					if tmpfile, err := ioutil.TempFile(cfg.Vault, programName+"-"); err == nil {
-						gz := gzip.NewWriter(tmpfile)
-						gz.Header.Name = toascii(filepath.Base(hdr.Name))
-						gz.Header.ModTime = hdr.ModTime
-						gz.Header.OS = gzipOS
-						buf := make([]byte, 1024*1024) // 1MiB
-						for {
-							nr, er := tr.Read(buf)
-							catalog.Exec("UPDATE backups SET lastmodified=?,size=size+? WHERE date=?", time.Now().Unix(), nr, date)
-							if nr > 0 {
-								nw, ew := gz.Write(buf[0:nr])
-								checksum.Write(buf[0:nr])
-								if ew != nil {
-									err = ew
-									break
-								}
-								if nr != nw {
-									err = io.ErrShortWrite
-									break
-								}
-							}
-							if er == io.EOF {
-								break
-							}
-							if er != nil {
-								err = er
-								break
-							}
-						}
-						gz.Close()
-						tmpfile.Close()
-
-						if err != nil {
-							LogExit(err)
-						}
-
-						received += hdr.Size
-						hash = EncodeHash(checksum.Sum(nil))
-
-						if _, err := os.Stat(filepath.Join(cfg.Vault, hash)); os.IsNotExist(err) {
-							os.Rename(tmpfile.Name(), filepath.Join(cfg.Vault, hash))
-						} else {
-							os.Remove(tmpfile.Name())
-							os.Chtimes(filepath.Join(cfg.Vault, hash), time.Now(), time.Now())
-						}
-					}*/
 
 			}
 			if stmt, err := catalog.Prepare("INSERT OR REPLACE INTO files (hash,backupid,nameid,size,type,linknameid,username,groupname,uid,gid,mode,access,modify,change,devmajor,devminor) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"); err != nil {
