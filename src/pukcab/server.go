@@ -208,28 +208,9 @@ func dumpcatalog(what DumpFlags) {
 	tw := tar.NewWriter(os.Stdout)
 	defer tw.Close()
 
-	var query string
-	if date != 0 {
-		query = "SELECT date, name, schedule, finished, lastmodified, files, size FROM backups WHERE date"
-		if what&Reverse != 0 {
-			query += ">="
-		} else {
-			query += "<="
-		}
-		query += "? AND ? IN ('', name) AND ? IN ('', schedule) ORDER BY date"
-		if what&Reverse == 0 {
-			query += " DESC"
-		}
-		if what&SingleBackup != 0 {
-			query += " LIMIT 1"
-		}
-		details = true
-	} else {
-		query = "SELECT date, name, schedule, finished, lastmodified, files, size FROM backups WHERE ? NOT NULL AND ? IN ('', name) AND ? IN ('', schedule) ORDER BY date"
-	}
-
 	backups := Backups(repository, name, schedule)
 	if date != 0 {
+		details = true
 		if what&Reverse != 0 {
 			backups = After(date, backups)
 			if len(backups) > 1 && what&SingleBackup != 0 {
@@ -253,8 +234,8 @@ func dumpcatalog(what DumpFlags) {
 				LastModified: backup.LastModified,
 				Name:         backup.Name,
 				Schedule:     backup.Schedule,
-				//Files:        backup.Files,
-				//Size:         backup.Size,
+				Files:        backup.Files,
+				Size:         backup.Size,
 			})
 
 			globalhdr := &tar.Header{
@@ -517,7 +498,7 @@ func submitfiles() {
 				Date:     date,
 				Name:     name,
 				Schedule: schedule,
-				Files:    int64(files),
+				Files:    files,
 				Size:     received,
 				Finished: time.Now().Unix(),
 				// note: LastModified is 0

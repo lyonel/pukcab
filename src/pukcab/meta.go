@@ -232,6 +232,8 @@ func Backups(repository *git.Repository, name string, schedule string) (list []B
 				Date:         b.Date,
 				Name:         b.Name,
 				Schedule:     b.Schedule,
+				Size:         b.Size,
+				Files:        b.Files,
 				Started:      unixtime(int64(b.Date)),
 				Finished:     unixtime(b.Finished),
 				LastModified: unixtime(b.LastModified),

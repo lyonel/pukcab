@@ -18,6 +18,8 @@ type Backup struct {
 	Started        time.Time
 	Finished       time.Time
 	LastModified   time.Time
+	Files          int64
+	Size           int64
 
 	backupset   map[string]struct{}
 	directories map[string]bool

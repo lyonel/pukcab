@@ -344,7 +344,7 @@ func realname(path string) string {
 	}
 }
 
-func countfiles(repository *git.Repository, date BackupID) (files int, missing int) {
+func countfiles(repository *git.Repository, date BackupID) (files int64, missing int64) {
 	empty, _ := repository.NewEmptyBlob()
 	if ref := repository.Reference(date.String()); git.Valid(ref) {
 		if err := repository.Recurse(repository.Reference(date.String()),
