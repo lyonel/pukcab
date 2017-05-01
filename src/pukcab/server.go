@@ -256,11 +256,11 @@ func dumpcatalog(what DumpFlags) {
 				if err := repository.Recurse(ref, func(path string, node git.Node) error {
 					if ismeta(path) {
 						if obj, err := repository.Object(node); err == nil {
-							if blob, ok := obj.(git.Blob); ok {
+							if blob, ok := obj.(git.Blob); ok { //only consider blobs
 								if r, err := blob.Open(); err == nil {
 									if decoder := json.NewDecoder(r); decoder != nil {
 										var meta Meta
-										if err := decoder.Decode(&meta); err == nil {
+										if err := decoder.Decode(&meta); err == nil || blob.Size() == 0 { // don't complain about empty metadata
 											meta.Path = realname(path)
 											hdr := meta.TarHeader()
 											if what&Data == 0 {
@@ -277,10 +277,18 @@ func dumpcatalog(what DumpFlags) {
 													hdr.Linkname = string(node.ID())
 												}
 											}
-											if what&Data != 0 && hdr.Typeflag != tar.TypeSymlink && hdr.Typeflag != tar.TypeLink {
-												hdr.Linkname = ""
-											}
 											tw.WriteHeader(hdr)
+											if what&Data != 0 && hdr.Size > 0 {
+												if data, err := repository.Get(ref, dataname(realname(path))); err == nil {
+													if blob, ok := data.(git.Blob); ok {
+														if r, err := blob.Open(); err == nil {
+															io.Copy(tw, r)
+														}
+													}
+												} else {
+													failure.Println("Missing data from vault:", meta.Path, err)
+												}
+											}
 										} else {
 											failure.Println(err)
 										}

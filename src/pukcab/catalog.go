@@ -338,9 +338,9 @@ func ismeta(path string) bool {
 
 func realname(path string) string {
 	if ismeta(path) {
-		return "/" + strings.TrimPrefix(strings.TrimSuffix(path, "/..."), "META/")
+		return strings.TrimPrefix(strings.TrimSuffix(path, "/..."), "META/")
 	} else {
-		return "/" + strings.TrimPrefix(path, "DATA/")
+		return strings.TrimPrefix(path, "DATA/")
 	}
 }
 
