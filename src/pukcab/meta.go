@@ -134,6 +134,10 @@ func HeaderMeta(h *tar.Header) Meta {
 		meta.Type = "?"
 	}
 
+	if h.Linkname == "." {
+		meta.Target = ""
+	}
+
 	if meta.Type == string(tar.TypeReg) {
 		meta.Hash, meta.Target = meta.Target, ""
 	}
