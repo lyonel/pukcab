@@ -272,6 +272,13 @@ func dumpcatalog(what DumpFlags) {
 													hdr.Xattrs["backup.size"] = fmt.Sprintf("%d", meta.Size)
 													hdr.Xattrs["backup.hash"] = string(node.ID())
 												}
+											} else {
+												if hdr.Typeflag == tar.TypeReg {
+													hdr.Linkname = string(node.ID())
+												}
+											}
+											if what&Data != 0 && hdr.Typeflag != tar.TypeSymlink && hdr.Typeflag != tar.TypeLink {
+												hdr.Linkname = ""
 											}
 											tw.WriteHeader(hdr)
 										} else {

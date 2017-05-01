@@ -104,6 +104,9 @@ func (meta Meta) TarHeader() *tar.Header {
 			hdr.Xattrs[k] = v
 		}
 	}
+	if meta.Target == "" {
+		hdr.Linkname = "."
+	}
 	return &hdr
 }
 
