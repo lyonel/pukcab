@@ -42,7 +42,7 @@ type Meta struct {
 	Attributes map[string]string `json:"attributes,omitempty"`
 }
 
-func Type(mode os.FileMode) rune {
+func Type(mode os.FileMode) byte {
 	switch {
 	case mode.IsDir():
 		return tar.TypeDir // directory
@@ -75,24 +75,80 @@ func (meta Meta) Perm() os.FileMode {
 	return os.FileMode(meta.Mode).Perm()
 }
 
-func HeaderMeta(h *tar.Header) Meta {
-	return Meta{
-		Path:       h.Name,
-		Mode:       h.Mode,
-		Uid:        h.Uid,
-		Gid:        h.Gid,
-		Size:       h.Size,
-		Modified:   h.ModTime.Unix(),
-		Accessed:   h.AccessTime.Unix(),
-		Changed:    h.ChangeTime.Unix(),
-		Type:       string(rune(h.Typeflag)),
-		Target:     h.Linkname,
-		Owner:      h.Uname,
-		Group:      h.Gname,
-		Devmajor:   h.Devmajor,
-		Devminor:   h.Devminor,
-		Attributes: h.Xattrs,
+func (meta Meta) TarHeader() *tar.Header {
+	switch meta.Type {
+	case string(tar.TypeRegA):
+		meta.Type = string(tar.TypeReg)
+	case "":
+		meta.Type = "?"
 	}
+	hdr := tar.Header{
+		Name:       meta.Path,
+		Mode:       meta.Mode,
+		Uid:        meta.Uid,
+		Gid:        meta.Gid,
+		Size:       meta.Size,
+		ModTime:    time.Unix(meta.Modified, 0),
+		AccessTime: time.Unix(meta.Accessed, 0),
+		ChangeTime: time.Unix(meta.Changed, 0),
+		Typeflag:   meta.Type[0],
+		Linkname:   meta.Target,
+		Uname:      meta.Owner,
+		Gname:      meta.Group,
+		Devmajor:   meta.Devmajor,
+		Devminor:   meta.Devminor,
+	}
+	if meta.Attributes != nil {
+		hdr.Xattrs = make(map[string]string)
+		for k, v := range meta.Attributes {
+			hdr.Xattrs[k] = v
+		}
+	}
+	return &hdr
+}
+
+func HeaderMeta(h *tar.Header) Meta {
+	meta := Meta{
+		Path:     h.Name,
+		Mode:     h.Mode,
+		Uid:      h.Uid,
+		Gid:      h.Gid,
+		Size:     h.Size,
+		Modified: h.ModTime.Unix(),
+		Accessed: h.AccessTime.Unix(),
+		Changed:  h.ChangeTime.Unix(),
+		Type:     string(h.Typeflag),
+		Target:   h.Linkname,
+		Owner:    h.Uname,
+		Group:    h.Gname,
+		Devmajor: h.Devmajor,
+		Devminor: h.Devminor,
+	}
+	switch meta.Type {
+	case string(tar.TypeRegA):
+		meta.Type = string(tar.TypeReg)
+	case "":
+		meta.Type = "?"
+	}
+
+	if meta.Type == string(tar.TypeReg) {
+		meta.Hash, meta.Target = meta.Target, ""
+	}
+
+	if h.Xattrs != nil {
+		meta.Attributes = make(map[string]string)
+		for k, v := range h.Xattrs {
+			switch k {
+			case "backup.size":
+				meta.Size, _ = strconv.ParseInt(v, 10, 64)
+			case "backup.hash":
+				meta.Hash = v
+			default:
+				meta.Attributes[k] = v
+			}
+		}
+	}
+	return meta
 }
 
 func JSON(v interface{}) string {
