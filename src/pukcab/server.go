@@ -3,8 +3,9 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"compress/gzip"
+	//"compress/gzip"
 	"encoding/gob"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -203,7 +204,7 @@ func dumpcatalog(what DumpFlags) {
 	if len(filter) == 0 {
 		filter = append(filter, "*")
 	}
-	namefilter := ConvertGlob("names.name", depth, filter...)
+	//namefilter := ConvertGlob("names.name", depth, filter...)
 
 	tw := tar.NewWriter(os.Stdout)
 	defer tw.Close()
@@ -251,86 +252,127 @@ func dumpcatalog(what DumpFlags) {
 		}
 
 		if details {
-			if files, err := catalog.Query("SELECT names.name AS name,type,hash,links.name AS linkname,size,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor FROM files,names,names AS links WHERE backupid=? AND nameid=names.id AND linknameid=links.id AND ("+namefilter+") ORDER BY name", int64(backup.Date)); err == nil {
-				defer files.Close()
-				for files.Next() {
-					var hdr tar.Header
-					var size int64
-					var access int64
-					var modify int64
-					var change int64
-					var hash string
-					var filetype string
-					var devmajor int64
-					var devminor int64
-
-					if err := files.Scan(&hdr.Name,
-						&filetype,
-						&hash,
-						&hdr.Linkname,
-						&size,
-						&access,
-						&modify,
-						&change,
-						&hdr.Mode,
-						&hdr.Uid,
-						&hdr.Gid,
-						&hdr.Uname,
-						&hdr.Gname,
-						&devmajor,
-						&devminor,
-					); err == nil {
-						hdr.Typeflag = '?'
-						hdr.ModTime = time.Unix(modify, 0)
-						hdr.Devmajor = devmajor
-						hdr.Devminor = devminor
-						hdr.AccessTime = time.Unix(access, 0)
-						hdr.ChangeTime = time.Unix(change, 0)
-						if filetype == string(tar.TypeReg) || filetype == string(tar.TypeRegA) {
-							hdr.Typeflag = tar.TypeReg
-							if what&Data != 0 {
-								hdr.Linkname = hash
-							} else {
-								hdr.Xattrs = make(map[string]string)
-								hdr.Xattrs["backup.size"] = fmt.Sprintf("%d", size)
-								if hash != "" {
-									hdr.Xattrs["backup.hash"] = hash
-								}
-							}
-						} else {
-							if len(filetype) > 0 {
-								hdr.Typeflag = filetype[0]
-							}
-						}
-						if what&Data != 0 && hdr.Typeflag != tar.TypeSymlink && hdr.Typeflag != tar.TypeLink {
-							hdr.Linkname = ""
-						}
-						if what&Data != 0 && hdr.Typeflag == tar.TypeReg {
-							hdr.Size = size
-						}
-						if hdr.Typeflag == tar.TypeReg && !Exists(filepath.Join(cfg.Vault, hash)) {
-							log.Printf("Vault corrupted: msg=\"data file missing\" vault=%q hash=%q name=%q date=%d file=%q error=critical\n", absolute(cfg.Vault), hash, name, backup.Date, hdr.Name)
-							failure.Println("Missing from vault:", hdr.Name)
-						} else {
-							tw.WriteHeader(&hdr)
-
-							if what&Data != 0 && size > 0 && hash != "" {
-								if zdata, err := os.Open(filepath.Join(cfg.Vault, hash)); err == nil {
-									gz, _ := gzip.NewReader(zdata)
-									io.Copy(tw, gz)
-									zdata.Close()
+			if ref := repository.Reference(backup.Date.String()); git.Valid(ref) {
+				if err := repository.Recurse(ref, func(path string, node git.Node) error {
+					if ismeta(path) {
+						if obj, err := repository.Object(node); err == nil {
+							if blob, ok := obj.(git.Blob); ok {
+								if r, err := blob.Open(); err == nil {
+									if decoder := json.NewDecoder(r); decoder != nil {
+										var meta Meta
+										if err := decoder.Decode(&meta); err == nil {
+											meta.Path = realname(path)
+											hdr := meta.TarHeader()
+											if what&Data == 0 {
+												hdr.Size = 0
+												if hdr.Typeflag == tar.TypeReg {
+													if hdr.Xattrs == nil {
+														hdr.Xattrs = make(map[string]string)
+													}
+													hdr.Xattrs["backup.size"] = fmt.Sprintf("%d", meta.Size)
+													hdr.Xattrs["backup.hash"] = string(node.ID())
+												}
+											}
+											tw.WriteHeader(hdr)
+										} else {
+											failure.Println(err)
+										}
+									}
 								} else {
-									log.Println(err)
+									failure.Println(err)
 								}
 							}
+						} else {
+							failure.Println(err)
 						}
-					} else {
-						log.Println(err)
 					}
+					return nil
+				}); err != nil {
+					LogExit(err)
 				}
-			} else {
-				log.Println(err)
 			}
+			/*
+				if files, err := catalog.Query("SELECT names.name AS name,type,hash,links.name AS linkname,size,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor FROM files,names,names AS links WHERE backupid=? AND nameid=names.id AND linknameid=links.id AND ("+namefilter+") ORDER BY name", int64(backup.Date)); err == nil {
+					defer files.Close()
+					for files.Next() {
+						var hdr tar.Header
+						var size int64
+						var access int64
+						var modify int64
+						var change int64
+						var hash string
+						var filetype string
+						var devmajor int64
+						var devminor int64
+
+						if err := files.Scan(&hdr.Name,
+							&filetype,
+							&hash,
+							&hdr.Linkname,
+							&size,
+							&access,
+							&modify,
+							&change,
+							&hdr.Mode,
+							&hdr.Uid,
+							&hdr.Gid,
+							&hdr.Uname,
+							&hdr.Gname,
+							&devmajor,
+							&devminor,
+						); err == nil {
+							hdr.Typeflag = '?'
+							hdr.ModTime = time.Unix(modify, 0)
+							hdr.Devmajor = devmajor
+							hdr.Devminor = devminor
+							hdr.AccessTime = time.Unix(access, 0)
+							hdr.ChangeTime = time.Unix(change, 0)
+							if filetype == string(tar.TypeReg) || filetype == string(tar.TypeRegA) {
+								hdr.Typeflag = tar.TypeReg
+								if what&Data != 0 {
+									hdr.Linkname = hash
+								} else {
+									hdr.Xattrs = make(map[string]string)
+									hdr.Xattrs["backup.size"] = fmt.Sprintf("%d", size)
+									if hash != "" {
+										hdr.Xattrs["backup.hash"] = hash
+									}
+								}
+							} else {
+								if len(filetype) > 0 {
+									hdr.Typeflag = filetype[0]
+								}
+							}
+							if what&Data != 0 && hdr.Typeflag != tar.TypeSymlink && hdr.Typeflag != tar.TypeLink {
+								hdr.Linkname = ""
+							}
+							if what&Data != 0 && hdr.Typeflag == tar.TypeReg {
+								hdr.Size = size
+							}
+							if hdr.Typeflag == tar.TypeReg && !Exists(filepath.Join(cfg.Vault, hash)) {
+								log.Printf("Vault corrupted: msg=\"data file missing\" vault=%q hash=%q name=%q date=%d file=%q error=critical\n", absolute(cfg.Vault), hash, name, backup.Date, hdr.Name)
+								failure.Println("Missing from vault:", hdr.Name)
+							} else {
+								tw.WriteHeader(&hdr)
+
+								if what&Data != 0 && size > 0 && hash != "" {
+									if zdata, err := os.Open(filepath.Join(cfg.Vault, hash)); err == nil {
+										gz, _ := gzip.NewReader(zdata)
+										io.Copy(tw, gz)
+										zdata.Close()
+									} else {
+										log.Println(err)
+									}
+								}
+							}
+						} else {
+							log.Println(err)
+						}
+					}
+				} else {
+					log.Println(err)
+				}
+			*/
 		}
 	}
 }
