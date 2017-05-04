@@ -281,8 +281,9 @@ func dumpcatalog(what DumpFlags) {
 											if what&Data != 0 && hdr.Size > 0 {
 												if data, err := repository.Get(ref, dataname(realname(path))); err == nil {
 													if blob, ok := data.(git.Blob); ok {
-														if r, err := blob.Open(); err == nil {
-															io.Copy(tw, r)
+														if reader, err := blob.Open(); err == nil {
+															io.Copy(tw, reader)
+															reader.Close()
 														}
 													}
 												} else {
