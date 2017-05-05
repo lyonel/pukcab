@@ -3,14 +3,12 @@ package main
 import (
 	"bufio"
 	"bytes"
-	//"compress/gzip"
 	"encoding/gob"
 	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"path"
@@ -85,15 +83,6 @@ func newbackup() {
 	}
 
 	var fsstat syscall.Statfs_t
-	if err := syscall.Statfs(cfg.Catalog, &fsstat); err == nil {
-		var page_size, page_count SQLInt
-		catalog.QueryRow("PRAGMA page_count").Scan(&page_count)
-		catalog.QueryRow("PRAGMA page_size").Scan(&page_size)
-
-		if int64(page_size*page_count) > int64(fsstat.Bsize)*int64(fsstat.Bavail)/3 {
-			log.Printf("Low disk space: msg=\"catalog disk filling up\" available=%d required=%d where=%q error=warn\n", int64(fsstat.Bsize)*int64(fsstat.Bavail), 3*page_size*page_count, absolute(cfg.Catalog))
-		}
-	}
 	if err := syscall.Statfs(cfg.Vault, &fsstat); err == nil {
 		if 10*fsstat.Bavail < fsstat.Blocks {
 			log.Printf("Low disk space: msg=\"vault filling up (>90%%)\" available=%d required=%d where=%q error=warn\n", int64(fsstat.Bsize)*int64(fsstat.Bavail), int64(fsstat.Bsize)*int64(fsstat.Blocks)/10, absolute(cfg.Vault))
@@ -117,7 +106,6 @@ func newbackup() {
 		if git.Valid(repository.Reference(date.String())) { // this backup ID already exists
 			return errors.New("Duplicate backup ID")
 		}
-		catalog.Exec("INSERT INTO backups (date,name,schedule,lastmodified,size) VALUES(?,?,?,?,0)", date, name, schedule, date)
 		return repository.TagBranch(name, date.String())
 	}); err != nil {
 		LogExit(err)
@@ -131,7 +119,6 @@ func newbackup() {
 		LogExit(err)
 	}
 	manifest := git.Manifest{}
-	tx, _ := catalog.Begin()
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		f, err := strconv.Unquote(scanner.Text())
@@ -140,21 +127,12 @@ func newbackup() {
 		}
 		f = path.Clean(f)
 		manifest[metaname(f)] = git.File(empty)
-		if _, err := tx.Exec("INSERT INTO files (backupid,nameid) VALUES(?,?)", date, nameid(tx, filepath.Clean(f))); err != nil {
-			tx.Rollback()
-			LogExit(err)
-		}
 	}
-	tx.Exec("UPDATE backups SET lastmodified=? WHERE date=?", time.Now().Unix(), date)
-	tx.Commit()
 
 	// report new backup ID
 	fmt.Println(date)
 
 	if !full {
-		catalog.Exec("WITH previousbackups AS (SELECT date FROM backups WHERE name=? AND date<? ORDER BY date DESC LIMIT 2), newfiles AS (SELECT nameid from files where backupid=?) INSERT OR REPLACE INTO files (backupid,hash,type,nameid,linknameid,size,birth,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor) SELECT ?,hash,type,nameid,linknameid,size,birth,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor FROM (SELECT * FROM files WHERE type!='?' AND nameid IN newfiles AND backupid IN previousbackups ORDER BY backupid) GROUP BY nameid", name, date, date, date)
-		catalog.Exec("UPDATE backups SET lastmodified=? WHERE date=?", time.Now().Unix(), date)
-
 		if previous := repository.Reference(name); git.Valid(previous) {
 			repository.Recurse(previous, func(path string, node git.Node) error {
 				if _, ok := manifest[metaname(realname(path))]; ok {
@@ -198,7 +176,6 @@ func dumpcatalog(what DumpFlags) {
 	if err := opencatalog(); err != nil {
 		LogExit(err)
 	}
-	autocheckpoint(catalog, false)
 
 	filter := flag.Args()
 	if len(filter) == 0 {
@@ -307,88 +284,6 @@ func dumpcatalog(what DumpFlags) {
 					LogExit(err)
 				}
 			}
-			/*
-				if files, err := catalog.Query("SELECT names.name AS name,type,hash,links.name AS linkname,size,access,modify,change,mode,uid,gid,username,groupname,devmajor,devminor FROM files,names,names AS links WHERE backupid=? AND nameid=names.id AND linknameid=links.id AND ("+namefilter+") ORDER BY name", int64(backup.Date)); err == nil {
-					defer files.Close()
-					for files.Next() {
-						var hdr tar.Header
-						var size int64
-						var access int64
-						var modify int64
-						var change int64
-						var hash string
-						var filetype string
-						var devmajor int64
-						var devminor int64
-
-						if err := files.Scan(&hdr.Name,
-							&filetype,
-							&hash,
-							&hdr.Linkname,
-							&size,
-							&access,
-							&modify,
-							&change,
-							&hdr.Mode,
-							&hdr.Uid,
-							&hdr.Gid,
-							&hdr.Uname,
-							&hdr.Gname,
-							&devmajor,
-							&devminor,
-						); err == nil {
-							hdr.Typeflag = '?'
-							hdr.ModTime = time.Unix(modify, 0)
-							hdr.Devmajor = devmajor
-							hdr.Devminor = devminor
-							hdr.AccessTime = time.Unix(access, 0)
-							hdr.ChangeTime = time.Unix(change, 0)
-							if filetype == string(tar.TypeReg) || filetype == string(tar.TypeRegA) {
-								hdr.Typeflag = tar.TypeReg
-								if what&Data != 0 {
-									hdr.Linkname = hash
-								} else {
-									hdr.Xattrs = make(map[string]string)
-									hdr.Xattrs["backup.size"] = fmt.Sprintf("%d", size)
-									if hash != "" {
-										hdr.Xattrs["backup.hash"] = hash
-									}
-								}
-							} else {
-								if len(filetype) > 0 {
-									hdr.Typeflag = filetype[0]
-								}
-							}
-							if what&Data != 0 && hdr.Typeflag != tar.TypeSymlink && hdr.Typeflag != tar.TypeLink {
-								hdr.Linkname = ""
-							}
-							if what&Data != 0 && hdr.Typeflag == tar.TypeReg {
-								hdr.Size = size
-							}
-							if hdr.Typeflag == tar.TypeReg && !Exists(filepath.Join(cfg.Vault, hash)) {
-								log.Printf("Vault corrupted: msg=\"data file missing\" vault=%q hash=%q name=%q date=%d file=%q error=critical\n", absolute(cfg.Vault), hash, name, backup.Date, hdr.Name)
-								failure.Println("Missing from vault:", hdr.Name)
-							} else {
-								tw.WriteHeader(&hdr)
-
-								if what&Data != 0 && size > 0 && hash != "" {
-									if zdata, err := os.Open(filepath.Join(cfg.Vault, hash)); err == nil {
-										gz, _ := gzip.NewReader(zdata)
-										io.Copy(tw, gz)
-										zdata.Close()
-									} else {
-										log.Println(err)
-									}
-								}
-							}
-						} else {
-							log.Println(err)
-						}
-					}
-				} else {
-					log.Println(err)
-				}
-			*/
 		}
 	}
 }
@@ -479,8 +374,6 @@ func submitfiles() {
 
 		// skip fake entries used only for extended attributes and various metadata
 		if hdr.Name != hdr.Linkname && hdr.Typeflag != tar.TypeXHeader && hdr.Typeflag != tar.TypeXGlobalHeader {
-			var hash string
-
 			if !filepath.IsAbs(hdr.Name) {
 				hdr.Name = filepath.Join(string(filepath.Separator), hdr.Name)
 			}
@@ -501,8 +394,6 @@ func submitfiles() {
 				LogExit(err)
 			}
 
-			catalog.Exec("UPDATE backups SET lastmodified=? WHERE date=?", time.Now().Unix(), date)
-
 			switch hdr.Typeflag {
 			case tar.TypeReg, tar.TypeRegA:
 				blob, err := repository.NewBlob(&TarReader{
@@ -513,19 +404,8 @@ func submitfiles() {
 					LogExit(err)
 				}
 				received += hdr.Size
-				hash = string(blob.ID())
 				manifest[dataname(hdr.Name)] = git.File(blob)
 
-			}
-			if stmt, err := catalog.Prepare("INSERT OR REPLACE INTO files (hash,backupid,nameid,size,type,linknameid,username,groupname,uid,gid,mode,access,modify,change,devmajor,devminor) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"); err != nil {
-				LogExit(err)
-			} else {
-				if err := retryif(cfg.Maxtries, busy, func() error {
-					_, err := stmt.Exec(hash, date, nameid(catalog, filepath.Clean(hdr.Name)), hdr.Size, string(hdr.Typeflag), nameid(catalog, filepath.Clean(hdr.Linkname)), hdr.Uname, hdr.Gname, hdr.Uid, hdr.Gid, hdr.Mode, hdr.AccessTime.Unix(), hdr.ModTime.Unix(), hdr.ChangeTime.Unix(), hdr.Devmajor, hdr.Devminor)
-					return err
-				}); err != nil {
-					LogExit(err)
-				}
 			}
 		}
 	}
@@ -544,9 +424,6 @@ func submitfiles() {
 	}
 	repository.TagBranch(name, date.String())
 
-	catalog.Exec("UPDATE backups SET lastmodified=NULL WHERE date=?", date)
-	checkpoint(catalog, false)
-
 	files, missing = countfiles(repository, date)
 
 	if missing == 0 { // the backup is complete, tag it
@@ -562,10 +439,6 @@ func submitfiles() {
 				// note: LastModified is 0
 			}))
 
-		catalog.Exec("DELETE FROM files WHERE backupid=? AND type='X'", date)
-		catalog.Exec("UPDATE backups SET finished=? WHERE date=?", time.Now().Unix(), date)
-		catalog.Exec("UPDATE backups SET files=(SELECT COUNT(*) FROM files WHERE backupid=date) WHERE date=?", date)
-		catalog.Exec("UPDATE backups SET size=(SELECT SUM(size) FROM files WHERE backupid=date) WHERE date=?", date)
 		log.Printf("Finished backup: date=%d name=%q schedule=%q files=%d received=%d duration=%.0f elapsed=%.0f\n", date, name, schedule, files, received, time.Since(started).Seconds(), time.Since(time.Unix(int64(date), 0)).Seconds())
 		fmt.Printf("Backup %d complete (%d files)\n", date, files)
 	} else {
@@ -598,70 +471,11 @@ func purgebackup() {
 		LogExit(err)
 	}
 
-	if r, err := catalog.Exec("DELETE FROM backups WHERE ? IN (date,-1) AND name=?", date, name); err != nil {
-		LogExit(err)
-	} else {
-		if n, _ := r.RowsAffected(); n < 1 {
-			fmt.Println("Backup not found.")
-			return
-		} else {
-			log.Printf("Deleted backup: date=%d name=%q\n", date, name)
-		}
-	}
+	// TODO
 }
 
 func vacuum() {
-	checkpoint(catalog, true)
-
-	done := make(chan error)
-	go func() {
-		done <- backupcatalog()
-	}()
-
-	used := make(map[string]bool)
-	if datafiles, err := catalog.Query("SELECT DISTINCT hash FROM files"); err == nil {
-		defer datafiles.Close()
-		for datafiles.Next() {
-			var f string
-			if err := datafiles.Scan(&f); err == nil {
-				used[f] = true
-			} else {
-				log.Println(err)
-				return
-			}
-		}
-	} else {
-		log.Println(err)
-		return
-	}
-
-	var unused, kept, freed, remaining int64
-
-	if vaultfiles, err := ioutil.ReadDir(cfg.Vault); err == nil {
-		for _, f := range vaultfiles {
-			if time.Since(f.ModTime()).Hours() > 24 && !used[f.Name()] { // f is older than 24 hours
-				unused++
-				if err := os.Remove(filepath.Join(cfg.Vault, f.Name())); err != nil {
-					log.Println(err)
-					return
-				} else {
-					freed += f.Size()
-				}
-			} else {
-				kept++
-				remaining += f.Size()
-			}
-		}
-	} else {
-		log.Println(err)
-		return
-	}
-
-	log.Printf("Vacuum: removed=%d kept=%d freed=%d used=%d\n", unused, kept, freed, remaining)
-
-	if err := <-done; err != nil {
-		log.Printf("Could not backup catalog: msg=%q error=warn\n", err)
-	}
+	// TODO
 }
 
 func days(val, def int64) int64 {
@@ -717,19 +531,7 @@ func expirebackup() {
 		}
 
 		log.Printf("Expiring backups: name=%q schedule=%q date=%d (%v)\n", name, schedule, date, time.Unix(int64(date), 0))
-
-		tx, _ := catalog.Begin()
-		if _, err := tx.Exec(fmt.Sprintf("CREATE TEMPORARY VIEW expendable AS SELECT backups.date FROM backups WHERE backups.finished IS NOT NULL AND backups.date NOT IN (SELECT date FROM backups AS sets WHERE backups.name=sets.name ORDER BY date DESC LIMIT %d)", keep)); err != nil {
-			tx.Rollback()
-			LogExit(err)
-		}
-
-		if _, err := tx.Exec("DELETE FROM backups WHERE date<? AND ? IN (name,'') AND schedule=? AND date IN (SELECT * FROM expendable)", date, name, schedule); err != nil {
-			tx.Rollback()
-			LogExit(err)
-		}
-		tx.Exec("DROP VIEW expendable")
-		tx.Commit()
+		// TODO
 	}
 
 	vacuum()
@@ -763,15 +565,7 @@ func df() {
 		printstats("vault", &vstat)
 	}
 
-	var backups, names, schedules, files, size SQLInt
-	if err := catalog.QueryRow("SELECT COUNT(*),COUNT(DISTINCT name),COUNT(DISTINCT schedule),SUM(files),SUM(size) FROM backups").Scan(&backups, &names, &schedules, &files, &size); err == nil {
-		fmt.Println()
-		fmt.Println("Backup names:", names)
-		fmt.Println("Retention schedules:", schedules)
-		fmt.Println("Backup sets:", backups)
-		fmt.Printf("Data in vault: %s (%d files)\n", Bytes(uint64(size)), files)
-		fmt.Printf("Compression factor: %.1f\n", float32(size)/(float32(vstat.Bsize)*float32(vstat.Blocks-vstat.Bavail)))
-	}
+	// TODO
 }
 
 func dbmaintenance() {
@@ -786,132 +580,7 @@ func dbmaintenance() {
 }
 
 func fsck(fix bool) {
-	errors := 0
-
-	if tx, err := catalog.Begin(); err == nil {
-		info.Println("#1: [catalog] checking integrity")
-		result, err := tx.Exec("PRAGMA integrity_check")
-		if err != nil {
-			tx.Rollback()
-			LogExit(err)
-		}
-
-		info.Println("#2: [catalog] checking orphan files")
-		if fix {
-			result, err = tx.Exec("DELETE FROM files WHERE backupid NOT IN (SELECT date FROM backups)")
-			if err != nil {
-				tx.Rollback()
-				LogExit(err)
-			}
-			if n, _ := result.RowsAffected(); n > 0 {
-				fmt.Printf("%d orphan files deleted\n", n)
-				log.Printf("Catalog fix: orphans=%d\n", n)
-			}
-		} else {
-			var n SQLInt
-			err = tx.QueryRow("SELECT COUNT(*) FROM files WHERE backupid NOT IN (SELECT date FROM backups)").Scan(&n)
-			if err != nil {
-				tx.Rollback()
-				LogExit(err)
-			}
-			if n > 0 {
-				fmt.Printf("%d orphan files\n", n)
-				log.Printf("Catalog check: orphans=%d\n", n)
-			}
-			errors += int(n)
-		}
-
-		info.Println("#3: [catalog] checking nameless files")
-		if fix {
-			result, err = tx.Exec("INSERT OR IGNORE INTO names SELECT nameid,'/lost+found/'||nameid FROM files WHERE nameid NOT IN (SELECT id FROM names)")
-			if err != nil {
-				tx.Rollback()
-				LogExit(err)
-			}
-			if n, _ := result.RowsAffected(); n > 0 {
-				fmt.Printf("%d file names recovered\n", n)
-				log.Printf("Catalog fix: foundfiles=%d\n", n)
-			}
-		} else {
-			var n SQLInt
-			err = tx.QueryRow("SELECT COUNT(*) FROM files WHERE nameid NOT IN (SELECT id FROM names)").Scan(&n)
-			if err != nil {
-				tx.Rollback()
-				LogExit(err)
-			}
-			if n > 0 {
-				fmt.Printf("%d nameless files\n", n)
-				log.Printf("Catalog check: lostfiles=%d\n", n)
-			}
-			errors += int(n)
-		}
-
-		info.Println("#4: [catalog] checking nameless links")
-		if fix {
-			result, err = tx.Exec("INSERT OR IGNORE INTO names SELECT linknameid,'/lost+found/'||linknameid FROM files WHERE linknameid NOT IN (SELECT id FROM names)")
-			if err != nil {
-				tx.Rollback()
-				LogExit(err)
-			}
-			if n, _ := result.RowsAffected(); n > 0 {
-				fmt.Printf("%d link names recovered\n", n)
-				log.Printf("Catalog fix: foundlinks=%d\n", n)
-			}
-		} else {
-			var n SQLInt
-			err = tx.QueryRow("SELECT COUNT(*) FROM files WHERE linknameid NOT IN (SELECT id FROM names)").Scan(&n)
-			if err != nil {
-				tx.Rollback()
-				LogExit(err)
-			}
-			if n > 0 {
-				fmt.Printf("%d nameless links\n", n)
-				log.Printf("Catalog check: lostlinks=%d\n", n)
-			}
-			errors += int(n)
-		}
-
-		info.Println("#5: [vault] checking data files")
-		if datafiles, err := tx.Query("SELECT DISTINCT hash FROM files WHERE type IN (?,?)", tar.TypeReg, tar.TypeRegA); err == nil {
-			n := 0
-			defer datafiles.Close()
-			for datafiles.Next() {
-				var hash string
-				if err := datafiles.Scan(&hash); err == nil {
-					if hash != "" && !Exists(filepath.Join(cfg.Vault, hash)) {
-						n++
-						if fix {
-							_, err = tx.Exec("UPDATE files SET type='?' WHERE hash=?", hash)
-							if err != nil {
-								tx.Rollback()
-								LogExit(err)
-							}
-						}
-					}
-				} else {
-					log.Println(err)
-					return
-				}
-			}
-			if n > 0 {
-				fmt.Printf("%d missing datafiles\n", n)
-				log.Printf("Vault check: lostfiles=%d\n", n)
-			}
-			errors += int(n)
-		} else {
-			log.Println(err)
-			return
-		}
-
-		tx.Commit()
-	} else {
-		LogExit(err)
-	}
-
-	if !fix && errors > 0 {
-		fmt.Println(errors, "errors found.")
-		os.Exit(1)
-	}
+	// TODO
 }
 
 func dbcheck() {
