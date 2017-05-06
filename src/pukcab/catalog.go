@@ -11,7 +11,11 @@ import (
 	"ezix.org/src/pkg/git"
 )
 
-const schemaVersion = 3
+const (
+	DATAROOT = "DATA"
+	METAROOT = "META"
+	METAFILE = ".\n"
+)
 
 var repository *git.Repository
 
@@ -113,22 +117,22 @@ func busy(err error) bool {
 }
 
 func metaname(p string) string {
-	return path.Join("META", p, "...")
+	return path.Join(METAROOT, p, METAFILE)
 }
 
 func dataname(p string) string {
-	return path.Join("DATA", p)
+	return path.Join(DATAROOT, p)
 }
 
 func ismeta(path string) bool {
-	return strings.HasPrefix(path, "META/") && strings.HasSuffix(path, "/...")
+	return strings.HasPrefix(path, METAROOT+"/") && strings.HasSuffix(path, "/"+METAFILE)
 }
 
 func realname(path string) string {
 	if ismeta(path) {
-		return "/" + strings.TrimPrefix(strings.TrimSuffix(path, "/..."), "META/")
+		return "/" + strings.TrimPrefix(strings.TrimSuffix(path, "/"+METAFILE), METAROOT+"/")
 	} else {
-		return "/" + strings.TrimPrefix(path, "DATA/")
+		return "/" + strings.TrimPrefix(path, DATAROOT+"/")
 	}
 }
 
