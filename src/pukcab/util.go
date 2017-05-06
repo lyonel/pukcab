@@ -1,8 +1,10 @@
 package main
 
 import (
+	"crypto/sha1"
 	"crypto/sha512"
 	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"log"
@@ -92,13 +94,19 @@ func EncodeHash(h []byte) (hash string) {
 	return hash
 }
 
-func Hash(filename string) (hash string) {
+func Hash(filename string) (hash1 string, hash2 string) {
 	if file, err := os.Open(filename); err == nil {
-		checksum := sha512.New()
-		if _, err = io.Copy(checksum, file); err == nil {
-			hash = EncodeHash(checksum.Sum(nil))
+		defer file.Close()
+
+		if fileinfo, err := file.Stat(); err == nil {
+			h1 := sha512.New()
+			h2 := sha1.New()
+			io.WriteString(h2, "blob "+strconv.FormatInt(fileinfo.Size(), 10)+"\000")
+
+			if _, err := io.Copy(io.MultiWriter(h1, h2), file); err == nil {
+				return EncodeHash(h1.Sum(nil)), hex.EncodeToString(h2.Sum(nil))
+			}
 		}
-		file.Close()
 	}
 
 	return

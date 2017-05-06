@@ -247,7 +247,9 @@ func dumpcatalog(what DumpFlags) {
 														hdr.Xattrs = make(map[string]string)
 													}
 													hdr.Xattrs["backup.size"] = fmt.Sprintf("%d", meta.Size)
-													hdr.Xattrs["backup.hash"] = string(node.ID())
+													if data, err := repository.Get(ref, dataname(realname(path))); err == nil {
+														hdr.Xattrs["backup.hash"] = string(data.ID())
+													}
 												}
 											} else {
 												if hdr.Typeflag == tar.TypeReg {

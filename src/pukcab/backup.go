@@ -244,8 +244,10 @@ func Check(hdr tar.Header, quick bool) (result Status) {
 			return
 		}
 
-		if hdr.Xattrs["backup.hash"] != Hash(hdr.Name) {
-			result = Modified
+		if hash, ok := hdr.Xattrs["backup.hash"]; ok {
+			if hash1, hash2 := Hash(hdr.Name); hash != hash1 && hash != hash2 {
+				result = Modified
+			}
 		}
 	} else {
 		if os.IsNotExist(err) {
