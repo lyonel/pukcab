@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"os"
 	"path"
 	"path/filepath"
@@ -18,11 +17,6 @@ const (
 )
 
 var repository *git.Repository
-
-type Catalog interface {
-	Exec(query string, args ...interface{}) (sql.Result, error)
-	QueryRow(query string, args ...interface{}) *sql.Row
-}
 
 func opencatalog() error {
 	if err := os.MkdirAll(cfg.Vault, 0700); err != nil {
