@@ -473,7 +473,16 @@ func purgebackup() {
 		LogExit(err)
 	}
 
-	// TODO
+	for _, backup := range Backups(repository, name, "*") {
+		if date == -1 || backup.Date == date {
+			if err := repository.UnTag(backup.Date.String()); err != nil {
+				failure.Printf("Error: could not delete backup set date=%d\n", backup.Date)
+				log.Printf("Deleting backup: date=%d name=%q error=warn msg=%q\n", backup.Date, backup.Name, err)
+			} else {
+				log.Printf("Deleted backup: date=%d name=%q\n", backup.Date, backup.Name)
+			}
+		}
+	}
 }
 
 func vacuum() {
