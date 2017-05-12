@@ -524,25 +524,35 @@ func expirebackup() {
 	}
 
 	for _, schedule = range strings.Split(schedules, ",") {
-
+		expdate := date
 		if date == -1 {
 			switch schedule {
 			case "daily":
-				date = BackupID(time.Now().Unix() - days(cfg.Expiration.Daily, 2*7)*24*60*60) // 2 weeks
+				expdate = BackupID(time.Now().Unix() - days(cfg.Expiration.Daily, 2*7)*24*60*60) // 2 weeks
 			case "weekly":
-				date = BackupID(time.Now().Unix() - days(cfg.Expiration.Weekly, 6*7)*24*60*60) // 6 weeks
+				expdate = BackupID(time.Now().Unix() - days(cfg.Expiration.Weekly, 6*7)*24*60*60) // 6 weeks
 			case "monthly":
-				date = BackupID(time.Now().Unix() - days(cfg.Expiration.Monthly, 365)*24*60*60) // 1 year
+				expdate = BackupID(time.Now().Unix() - days(cfg.Expiration.Monthly, 365)*24*60*60) // 1 year
 			case "yearly":
-				date = BackupID(time.Now().Unix() - days(cfg.Expiration.Yearly, 10*365)*24*60*60) // 10 years
+				expdate = BackupID(time.Now().Unix() - days(cfg.Expiration.Yearly, 10*365)*24*60*60) // 10 years
 			default:
 				failure.Println("Missing expiration")
 				log.Fatal("Client did not provide an expiration")
 			}
 		}
 
-		log.Printf("Expiring backups: name=%q schedule=%q date=%d (%v)\n", name, schedule, date, time.Unix(int64(date), 0))
-		// TODO
+		log.Printf("Expiring backups: name=%q schedule=%q date=%d (%v)\n", name, schedule, expdate, time.Unix(int64(expdate), 0))
+		backups := Backups(repository, name, schedule)
+		for i, backup := range backups {
+			if i < len(backups)-keep && backup.Date < expdate {
+				if err := repository.UnTag(backup.Date.String()); err != nil {
+					failure.Printf("Error: could not delete backup set date=%d\n", backup.Date)
+					log.Printf("Deleting backup: date=%d name=%q error=warn msg=%q\n", backup.Date, backup.Name, err)
+				} else {
+					log.Printf("Deleted backup: date=%d name=%q\n", backup.Date, backup.Name)
+				}
+			}
+		}
 	}
 
 	vacuum()
