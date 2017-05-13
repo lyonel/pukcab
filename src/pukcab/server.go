@@ -544,7 +544,13 @@ func expirebackup() {
 		log.Printf("Expiring backups: name=%q schedule=%q date=%d (%v)\n", name, schedule, expdate, time.Unix(int64(expdate), 0))
 		backups := Backups(repository, name, schedule)
 		for i, backup := range backups {
-			if i < len(backups)-keep && backup.Date < expdate {
+			remaining := 0
+			for j := i; j < len(backups); j++ {
+				if backups[j].Name == backup.Name && backups[j].Date >= expdate {
+					remaining++
+				}
+			}
+			if remaining >= keep && backup.Date < expdate {
 				if err := repository.UnTag(backup.Date.String()); err != nil {
 					failure.Printf("Error: could not delete backup set date=%d\n", backup.Date)
 					log.Printf("Deleting backup: date=%d name=%q error=warn msg=%q\n", backup.Date, backup.Name, err)
