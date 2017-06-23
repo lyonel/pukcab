@@ -3,13 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/lyonel/go-sqlite3"
 	"log"
 	"log/syslog"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
+
+	"github.com/lyonel/go-sqlite3"
 )
 
 var name string = ""
@@ -204,6 +205,8 @@ func main() {
 		purgebackup()
 	case "submitfiles":
 		submitfiles()
+	case "convert":
+		convert()
 	// shared commands
 	case "help":
 		fmt.Fprintf(os.Stderr, "Usage: %s help [command]", programName)
