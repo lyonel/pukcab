@@ -21,10 +21,12 @@ import (
 	"pukcab/tar"
 )
 
+// Report is the base type for all report pages
 type Report struct {
 	Title string
 }
 
+// AboutReport includes version and environment details
 type AboutReport struct {
 	Report
 	Name          string
@@ -39,17 +41,20 @@ type AboutReport struct {
 	Load          float64
 }
 
+// ConfigReport displays configuration details
 type ConfigReport struct {
 	Report
 	Config
 }
 
+// DashboardReport displays the number of backups and first/latest backups for clients
 type DashboardReport struct {
 	Report
 	Schedules []string
 	Clients   []Client
 }
 
+// BackupsReport is a chronological list of all backups
 type BackupsReport struct {
 	Report
 	Names, Schedules []string
@@ -57,6 +62,7 @@ type BackupsReport struct {
 	Backups          []BackupInfo
 }
 
+// StorageReport show disk usage
 type StorageReport struct {
 	Report
 	VaultFS, CatalogFS                         string
@@ -67,7 +73,7 @@ type StorageReport struct {
 
 func stylesheets(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/css; charset=UTF-8")
-	fmt.Fprintf(w, css)
+	fmt.Fprint(w, css)
 }
 
 func webhome(w http.ResponseWriter, r *http.Request) {
@@ -181,12 +187,12 @@ func webdashboard(w http.ResponseWriter, r *http.Request) {
 	delete(schedules, "weekly")
 	delete(schedules, "monthly")
 	delete(schedules, "yearly")
-	for s, _ := range schedules {
+	for s := range schedules {
 		report.Schedules = append(report.Schedules, s)
 	}
 
 	names := []string{}
-	for n, _ := range clients {
+	for n := range clients {
 		names = append(names, n)
 	}
 	sort.Strings(names)
@@ -282,14 +288,13 @@ func webinfo(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, "Protocol error: "+err.Error(), http.StatusBadGateway)
 				log.Println(err)
 				return
-			} else {
-				if date == 0 || header.Date == date {
-					report.Backups = append(report.Backups, header)
-					report.Size += header.Size
-					report.Files += header.Files
-					names[header.Name] = struct{}{}
-					schedules[header.Schedule] = struct{}{}
-				}
+			}
+			if date == 0 || header.Date == date {
+				report.Backups = append(report.Backups, header)
+				report.Size += header.Size
+				report.Files += header.Files
+				names[header.Name] = struct{}{}
+				schedules[header.Schedule] = struct{}{}
 			}
 		}
 	}
@@ -499,9 +504,8 @@ func web() {
 		"executable": func(args ...interface{}) string {
 			if m, ok := args[0].(int64); ok && m&0111 != 0 {
 				return "T"
-			} else {
-				return "F"
 			}
+			return "F"
 		},
 	})
 

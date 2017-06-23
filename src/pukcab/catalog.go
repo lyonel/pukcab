@@ -10,10 +10,11 @@ import (
 	"ezix.org/src/pkg/git"
 )
 
+// basic Git repository structure
 const (
-	DATAROOT = "DATA"
-	METAROOT = "META"
-	METAFILE = ".\n"
+	DATAROOT = "DATA" // data sub-directory
+	METAROOT = "META" // metadata sub-directory
+	METAFILE = ".\n"  // metadata file
 )
 
 var repository *git.Repository
@@ -36,9 +37,8 @@ func opencatalog() error {
 func min(a, b BackupID) BackupID {
 	if a > b {
 		return b
-	} else {
-		return a
 	}
+	return a
 }
 
 func midnight(backup BackupID) BackupID {
@@ -125,9 +125,8 @@ func ismeta(path string) bool {
 func realname(path string) string {
 	if ismeta(path) {
 		return "/" + strings.TrimPrefix(strings.TrimSuffix(path, "/"+METAFILE), METAROOT+"/")
-	} else {
-		return "/" + strings.TrimPrefix(path, DATAROOT+"/")
 	}
+	return "/" + strings.TrimPrefix(path, DATAROOT+"/")
 }
 
 func countfiles(repository *git.Repository, date BackupID) (files int64, missing int64) {

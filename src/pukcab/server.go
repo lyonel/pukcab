@@ -18,8 +18,9 @@ import (
 	"syscall"
 	"time"
 
-	"ezix.org/src/pkg/git"
 	"pukcab/tar"
+
+	"ezix.org/src/pkg/git"
 )
 
 type DumpFlags int
@@ -55,9 +56,8 @@ func SetupServer() {
 func absolute(s string) string {
 	if result, err := filepath.Abs(s); err == nil {
 		return result
-	} else {
-		return s
 	}
+	return s
 }
 
 func newbackup() {
@@ -492,9 +492,8 @@ func vacuum() {
 func days(val, def int64) int64 {
 	if val > 0 {
 		return val
-	} else {
-		return def
 	}
+	return def
 }
 
 func expirebackup() {

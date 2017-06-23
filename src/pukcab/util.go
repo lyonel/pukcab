@@ -169,9 +169,8 @@ func printdebug() {
 func DisplayTime(d time.Time) string {
 	if time.Since(d).Hours() < 365*24 {
 		return d.Format("Jan _2 15:04")
-	} else {
-		return d.Format("Jan _2  2006")
 	}
+	return d.Format("Jan _2  2006")
 }
 
 func Exists(name string) bool {

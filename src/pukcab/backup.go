@@ -1,13 +1,14 @@
 package main
 
 import (
-	"github.com/antage/mntent"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/antage/mntent"
 
 	"pukcab/tar"
 )
@@ -188,6 +189,7 @@ func (b *Backup) ForEach(action func(string)) {
 
 type Status int
 
+// used when checking a backup
 const (
 	OK = iota
 	Modified
@@ -213,11 +215,11 @@ func Check(hdr tar.Header, quick bool) (result Status) {
 
 	if fi, err := os.Lstat(hdr.Name); err == nil {
 		fhdr, err := tar.FileInfoHeader(fi, hdr.Linkname)
-		if err != nil {
-			return
-		} else {
+		if err == nil {
 			fhdr.Uname = Username(fhdr.Uid)
 			fhdr.Gname = Groupname(fhdr.Gid)
+		} else {
+			return
 		}
 		result = OK
 		if fhdr.Mode != hdr.Mode ||

@@ -84,7 +84,7 @@ func dobackup(name string, schedule string, full bool) (fail error) {
 
 	info.Println("done.")
 
-	var previous int64 = 0
+	var previous int64
 	scanner := bufio.NewScanner(stdout)
 	if scanner.Scan() {
 		if d, err := strconv.ParseInt(scanner.Text(), 10, 0); err != nil {
@@ -231,7 +231,7 @@ func checkmetadata(backup *Backup, files ...string) (fail error) {
 }
 
 func resume() {
-	var date BackupID = 0
+	var date BackupID
 
 	flag.StringVar(&name, "name", defaultName, "Backup name")
 	flag.StringVar(&name, "n", defaultName, "-name")
@@ -360,7 +360,7 @@ func dumpfiles(files int, backup *Backup) (bytes int64) {
 					if file, err := os.Open(f); err != nil {
 						log.Println(err)
 					} else {
-						var written int64 = 0
+						var written int64
 						buf := make([]byte, 1024*1024) // 1MiB
 
 						tw.WriteHeader(hdr)
@@ -516,9 +516,9 @@ func list() {
 	}
 
 	first := true
-	var size int64 = 0
-	var files int64 = 0
-	var missing int64 = 0
+	var size int64
+	var files int64
+	var missing int64
 	if err := process("metadata", backup, func(hdr tar.Header) {
 		switch hdr.Typeflag {
 		case tar.TypeXGlobalHeader:
@@ -589,6 +589,7 @@ func list() {
 	}
 }
 
+// Client represents a dashboard line
 type Client struct {
 	Name  string
 	First time.Time
@@ -665,7 +666,7 @@ func dashboard() {
 	delete(schedules, "monthly")
 	delete(schedules, "yearly")
 	allschedules := []string{"daily", "weekly", "monthly", "yearly"}
-	for s, _ := range schedules {
+	for s := range schedules {
 		allschedules = append(allschedules, s)
 	}
 
@@ -769,12 +770,12 @@ func verify() {
 	backup.Init(date, name)
 
 	first := true
-	var size int64 = 0
-	var files int64 = 0
-	var missing int64 = 0
-	var modified int64 = 0
-	var deleted int64 = 0
-	var errors int64 = 0
+	var size int64
+	var files int64
+	var missing int64
+	var modified int64
+	var deleted int64
+	var errors int64
 	if err := process("metadata", backup, func(hdr tar.Header) {
 		switch hdr.Typeflag {
 		case tar.TypeXGlobalHeader:
