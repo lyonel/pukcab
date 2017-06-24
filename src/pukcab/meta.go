@@ -13,6 +13,7 @@ import (
 	"ezix.org/src/pkg/git"
 )
 
+// BackupMeta represents catalog metadata for a backup set
 type BackupMeta struct {
 	Date         BackupID `json:"-"`
 	Name         string   `json:"-"`
@@ -23,6 +24,7 @@ type BackupMeta struct {
 	LastModified int64    `json:"-"`
 }
 
+// Meta represents catalog metadata for a backup entry (file or directory)
 type Meta struct {
 	Path       string            `json:"-"`
 	Hash       string            `json:"hash,omitempty"`
@@ -43,6 +45,7 @@ type Meta struct {
 	Attributes map[string]string `json:"attributes,omitempty"`
 }
 
+// Type returns a tar-like type byte
 func Type(mode os.FileMode) byte {
 	switch {
 	case mode.IsDir():
@@ -62,6 +65,7 @@ func Type(mode os.FileMode) byte {
 	}
 }
 
+// FileInfoMeta translates os.FileInfo into catalog metadata
 func FileInfoMeta(fi os.FileInfo) Meta {
 	return Meta{
 		Path:     fi.Name(),
@@ -72,10 +76,12 @@ func FileInfoMeta(fi os.FileInfo) Meta {
 	}
 }
 
+// Perm returns permissions of a backup entry
 func (meta Meta) Perm() os.FileMode {
 	return os.FileMode(meta.Mode).Perm()
 }
 
+// TarHeader translates catalog metadata into tar header
 func (meta Meta) TarHeader() *tar.Header {
 	switch meta.Type {
 	case string(tar.TypeRegA):
@@ -111,6 +117,7 @@ func (meta Meta) TarHeader() *tar.Header {
 	return &hdr
 }
 
+// HeaderMeta translates tar header into catalog metadata
 func HeaderMeta(h *tar.Header) Meta {
 	meta := Meta{
 		Path:     h.Name,
@@ -159,6 +166,7 @@ func HeaderMeta(h *tar.Header) Meta {
 	return meta
 }
 
+// JSON returns a JSON-encoded string representation of an object (or empty string if conversion failed)
 func JSON(v interface{}) string {
 	if b, err := json.Marshal(v); err == nil {
 		return string(b) + "\n"
@@ -175,6 +183,7 @@ func unixtime(t int64) time.Time {
 	}
 }
 
+// First returns the earliest backup set of a list
 func First(list []Backup) (first Backup) {
 	for _, b := range list {
 		if first.Date == 0 || b.Date < first.Date {
@@ -184,6 +193,7 @@ func First(list []Backup) (first Backup) {
 	return first
 }
 
+// Last returns the latest backup set of a list
 func Last(list []Backup) (last Backup) {
 	for _, b := range list {
 		if b.Date > last.Date {
@@ -193,6 +203,7 @@ func Last(list []Backup) (last Backup) {
 	return last
 }
 
+// Finished returns all complete backup sets of a list
 func Finished(list []Backup) (backups []Backup) {
 	for _, b := range list {
 		if !b.Finished.IsZero() {
@@ -202,6 +213,7 @@ func Finished(list []Backup) (backups []Backup) {
 	return backups
 }
 
+// Get returns a given backup set from a list
 func Get(date BackupID, list []Backup) Backup {
 	for _, b := range list {
 		if b.Date == date {
@@ -211,6 +223,7 @@ func Get(date BackupID, list []Backup) Backup {
 	return Backup{}
 }
 
+// Before returns all backups sets older than a given date from a list
 func Before(date BackupID, list []Backup) (backups []Backup) {
 	for _, b := range list {
 		if b.Date <= date {
@@ -220,6 +233,7 @@ func Before(date BackupID, list []Backup) (backups []Backup) {
 	return backups
 }
 
+// Filter only returns backup sets for a given name/schedule from a list
 func Filter(name string, schedule string, list []Backup) (backups []Backup) {
 	// empty filter = no filter
 	if name == "" {
@@ -240,6 +254,7 @@ func Filter(name string, schedule string, list []Backup) (backups []Backup) {
 	return backups
 }
 
+// After returns all backup sets more recent than a given date from a list
 func After(date BackupID, list []Backup) (backups []Backup) {
 	for _, b := range list {
 		if b.Date >= date {
@@ -249,6 +264,7 @@ func After(date BackupID, list []Backup) (backups []Backup) {
 	return backups
 }
 
+// Backups returns a list of backup sets for a given name/schedule from a catalog
 func Backups(repository *git.Repository, name string, schedule string) (list []Backup) {
 	// empty filter = no filter
 	if name == "" {

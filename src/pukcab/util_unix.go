@@ -97,49 +97,45 @@ func Getpwnam(name string) (pw *Passwd, err error) {
 
 // Uid returns the numeric user ID that corresponds to a username (or -1 if none does)
 func Uid(username string) int {
-	if pw, err := Getpwnam(name); err != nil {
-		return -1
-	} else {
+	if pw, err := Getpwnam(name); err == nil {
 		return pw.Uid
 	}
+	return -1
 }
 
 // Gid returns the numeric group ID that corresponds to a groupname (or -1 if none does)
 func Gid(username string) int {
-	if pw, err := Getpwnam(name); err != nil {
-		return -1
-	} else {
+	if pw, err := Getpwnam(name); err == nil {
 		return pw.Gid
 	}
+	return -1
 }
 
 // Impersonate switch the running process to another user (requires root privileges)
 func Impersonate(name string) error {
-	if pw, err := Getpwnam(name); err != nil {
-		return err
-	} else {
+	if pw, err := Getpwnam(name); err == nil {
 		os.Setenv("USER", pw.Name)
 		os.Setenv("LOGNAME", name)
 		os.Chdir(pw.Dir)
 
 		os.Setenv("HOME", pw.Dir)
 		C.setugid(C.uid_t(pw.Uid), C.gid_t(pw.Gid))
+	} else {
 		return err
 	}
+	return nil
 }
 
 // ExitCode returns the exit code of a child process
 func ExitCode(s *os.ProcessState) int {
 	if r, ok := s.Sys().(syscall.WaitStatus); ok {
 		return r.ExitStatus()
-	} else {
-		return -1
 	}
+	return -1
 }
 
 // LoadAvg returns the system load average
 func LoadAvg() (result float64) {
-
 	C.getloadavg((*C.double)(unsafe.Pointer(&result)), 1)
 
 	return

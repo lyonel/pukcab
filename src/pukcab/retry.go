@@ -5,10 +5,10 @@ import (
 	"time"
 )
 
-type Operation func() error
-type Condition func(error) bool
+type operation func() error
+type condition func(error) bool
 
-func retry(n int, o Operation) (err error) {
+func retry(n int, o operation) (err error) {
 	for ; n > 0; n-- {
 		if err = o(); err == nil {
 			return
@@ -20,7 +20,7 @@ func retry(n int, o Operation) (err error) {
 	return err
 }
 
-func retryif(n int, c Condition, o Operation) (err error) {
+func retryif(n int, c condition, o operation) (err error) {
 	for ; n > 0; n-- {
 		if err = o(); err == nil || !c(err) {
 			return err
