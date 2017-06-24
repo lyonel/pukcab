@@ -40,6 +40,7 @@ func IsNodump(fi os.FileInfo, file string) bool {
 	return false
 }
 
+// Fstype returns the name of a numeric filesystem type
 func Fstype(t uint64) string {
 	switch t {
 	case 0x11:
