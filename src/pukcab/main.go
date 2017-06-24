@@ -13,10 +13,10 @@ import (
 	"github.com/lyonel/go-sqlite3"
 )
 
-var name string = ""
+var name = ""
 var date BackupID = -1
-var schedule string = ""
-var full bool = false
+var schedule = ""
+var full = false
 
 type boolFlag interface {
 	flag.Value
@@ -236,7 +236,7 @@ func main() {
 		fmt.Printf("%s version %d.%d %s/%s\n", programName, versionMajor, versionMinor, runtime.GOOS, runtime.GOARCH)
 		if verbose {
 			fmt.Println()
-			fmt.Println("Build", buildId)
+			fmt.Println("Build", buildID)
 			fmt.Println("Go version", runtime.Version())
 			sqliteversion, _, _ := sqlite3.Version()
 			fmt.Println("SQLite version", sqliteversion)

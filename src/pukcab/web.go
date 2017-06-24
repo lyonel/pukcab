@@ -88,7 +88,7 @@ func webhome(w http.ResponseWriter, r *http.Request) {
 		Name:       defaultName,
 		Major:      versionMajor,
 		Minor:      versionMinor,
-		Build:      buildId,
+		Build:      buildID,
 		OS:         strings.ToTitle(runtime.GOOS[:1]) + runtime.GOOS[1:],
 		Arch:       runtime.GOARCH,
 		CPUs:       runtime.NumCPU(),
