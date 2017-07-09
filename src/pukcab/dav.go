@@ -17,9 +17,13 @@ import (
 	"pukcab/tar"
 )
 
+// StatusMulti represents HTTP 207
 const StatusMulti = 207
+
+// DAVOptions lists the default options we return
 const DAVOptions = "1, 2, access-control, redirectrefs"
 
+// FilesReport lists files under a given path
 type FilesReport struct {
 	Report
 	Date           BackupID

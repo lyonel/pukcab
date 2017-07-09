@@ -15,6 +15,7 @@ var debug = log.New(ioutil.Discard, "", 0)
 var info = log.New(ioutil.Discard, "", 0)
 var failure = log.New(os.Stderr, failPrefix, 0)
 
+// Debug enables (or disables) debug logging
 func Debug(on bool) {
 	if on {
 		arg0 := os.Args[0]
@@ -30,6 +31,7 @@ func Debug(on bool) {
 	debug = log.New(ioutil.Discard, "", 0)
 }
 
+// Info enables (or disables) info logging
 func Info(on bool) {
 	if on {
 		info = log.New(os.Stdout, "", 0)
@@ -38,6 +40,7 @@ func Info(on bool) {
 	}
 }
 
+// Failure enables (or disables) error logging
 func Failure(on bool) {
 	if on {
 		failure = log.New(os.Stderr, failPrefix, 0)
@@ -46,10 +49,12 @@ func Failure(on bool) {
 	}
 }
 
+// LogStream represents a bespoke logger
 type LogStream struct {
 	*log.Logger
 }
 
+// NewLogStream creates a new bespoke logger
 func NewLogStream(logger *log.Logger) (stream *LogStream) {
 	stream = &LogStream{
 		Logger: logger,
@@ -62,6 +67,7 @@ func (l *LogStream) Write(p []byte) (n int, err error) {
 	return len(p), nil
 }
 
+// LogExit logs an error and exits (returning 2 for EBUSY and 1 otherwise)
 func LogExit(err error) {
 	if busy(err) {
 		os.Exit(2)

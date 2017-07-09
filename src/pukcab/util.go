@@ -79,10 +79,10 @@ func (id *BackupID) Set(s string) error {
 	// go back to a given date
 	if date, err := time.ParseInLocation("2006-01-02", s, time.Local); err == nil {
 		*id = BackupID(date.Unix())
-		return nil
 	} else {
 		return err
 	}
+	return nil
 }
 
 func EncodeHash(h []byte) (hash string) {
@@ -169,9 +169,8 @@ func printdebug() {
 func DisplayTime(d time.Time) string {
 	if time.Since(d).Hours() < 365*24 {
 		return d.Format("Jan _2 15:04")
-	} else {
-		return d.Format("Jan _2  2006")
 	}
+	return d.Format("Jan _2  2006")
 }
 
 func Exists(name string) bool {

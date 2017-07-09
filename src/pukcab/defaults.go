@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-var buildId string
+var buildID string
 
 const programName = "pukcab"
 const versionMajor = 1
@@ -19,14 +19,14 @@ const defaultTimeout = 6 * 3600 // 6 hours
 
 const protocolVersion = 1
 
-var programFile string = "backup"
-var defaultName string = "backup"
-var defaultSchedule string = "daily"
+var programFile = "backup"
+var defaultName = "backup"
+var defaultSchedule = "daily"
 
-var verbose bool = false
-var protocol int = protocolVersion
-var timeout int = defaultTimeout
-var force bool = false
+var verbose = false
+var protocol = protocolVersion
+var timeout = defaultTimeout
+var force = false
 
 func setDefaults() {
 	defaultName, _ = os.Hostname()

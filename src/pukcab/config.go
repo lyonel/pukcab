@@ -10,6 +10,7 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
+// Config is used to store configuration
 type Config struct {
 	Server  string
 	User    string
@@ -31,8 +32,9 @@ type Config struct {
 }
 
 var cfg Config
-var configFile string = defaultConfig
+var configFile = defaultConfig
 
+// Load parses a configuration file
 func (cfg *Config) Load(filename string) {
 	if _, err := toml.DecodeFile(filename, &cfg); err != nil && !os.IsNotExist(err) {
 		fmt.Fprintln(os.Stderr, "Failed to parse configuration: ", err)
@@ -80,10 +82,12 @@ func (cfg *Config) Load(filename string) {
 	return
 }
 
+// IsServer returns true is we are on a server
 func (cfg *Config) IsServer() bool {
 	return len(cfg.Server) < 1
 }
 
+// ServerOnly ensures we are on a server (or aborts)
 func (cfg *Config) ServerOnly() {
 	if !cfg.IsServer() {
 		fmt.Println("This command can only be used on a", programName, "server.")
@@ -91,6 +95,7 @@ func (cfg *Config) ServerOnly() {
 	}
 }
 
+// ClientOnly ensures we are on a client (or aborts)
 func (cfg *Config) ClientOnly() {
 	if cfg.IsServer() {
 		fmt.Println("This command can only be used on a", programName, "client.")
@@ -98,6 +103,7 @@ func (cfg *Config) ClientOnly() {
 	}
 }
 
+// Setup loads configuration and command-line flags
 func Setup() {
 	flag.Parse()
 	Info(verbose)

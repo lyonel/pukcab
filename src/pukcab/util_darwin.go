@@ -8,18 +8,21 @@ import (
 
 import "C"
 
+// Attributes returns the contents of a file's attributes
 func Attributes(file string) (result []string) {
 	result = make([]string, 0)
 
 	return
 }
 
+// Attribute returns the content of a file's attribute
 func Attribute(file string, name string) (result []byte) {
 	result = make([]byte, 0)
 
 	return
 }
 
+// DevMajorMinor returns device number components
 func DevMajorMinor(file string) (major int64, minor int64) {
 	var st syscall.Stat_t
 
@@ -30,6 +33,7 @@ func DevMajorMinor(file string) (major int64, minor int64) {
 	return
 }
 
+// IsNodump returns true if a file if flagged as non-backupable
 func IsNodump(fi os.FileInfo, file string) bool {
 	if fi.Mode()&(os.ModeTemporary|os.ModeSocket) != 0 {
 		return true
@@ -40,6 +44,7 @@ func IsNodump(fi os.FileInfo, file string) bool {
 	return false
 }
 
+// Fstype returns the name of a numeric filesystem type
 func Fstype(t uint64) string {
 	switch t {
 	case 0x11:
