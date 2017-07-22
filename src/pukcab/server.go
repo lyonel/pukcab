@@ -23,10 +23,10 @@ import (
 	"ezix.org/src/pkg/git"
 )
 
-type DumpFlags int
+type dumpflags int
 
 const (
-	Short DumpFlags = 1 << iota
+	Short dumpflags = 1 << iota
 	FullDetails
 	SingleBackup
 	Reverse
@@ -156,7 +156,7 @@ func newbackup() {
 	}
 }
 
-func dumpcatalog(what DumpFlags) {
+func dumpcatalog(what dumpflags) {
 	details := what&FullDetails != 0
 	date = 0
 

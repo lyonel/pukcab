@@ -10,7 +10,6 @@ import (
 	"log"
 	"math"
 	"os"
-	"path/filepath"
 	"regexp"
 	"runtime"
 	"strconv"
@@ -20,8 +19,10 @@ import (
 
 const infinite = -1
 
+// BackupID identifies a backup set
 type BackupID int64
 
+// BackupInfo describes a backup set
 type BackupInfo struct {
 	Date           BackupID
 	Finished       time.Time
@@ -30,10 +31,12 @@ type BackupInfo struct {
 	Files, Size    int64
 }
 
+// String returns the backup set ID as a printable string
 func (id *BackupID) String() string {
 	return fmt.Sprintf("%d", *id)
 }
 
+// Time returns the backup set ID as a time.Time
 func (id *BackupID) Time() time.Time {
 	return time.Unix(int64(*id), 0)
 }
@@ -85,6 +88,7 @@ func (id *BackupID) Set(s string) error {
 	return nil
 }
 
+// EncodeHash returns a base64 encoding modified to be acceptable as filename
 func EncodeHash(h []byte) (hash string) {
 	hash = base64.StdEncoding.EncodeToString(h)
 	hash = strings.Replace(hash, "/", "_", -1)
@@ -94,6 +98,7 @@ func EncodeHash(h []byte) (hash string) {
 	return hash
 }
 
+// Hash computes SHA-512 and Git-style (SHA-1 with "blob<size>\0" prefix) hash of a file
 func Hash(filename string) (hash1 string, hash2 string) {
 	if file, err := os.Open(filename); err == nil {
 		defer file.Close()
@@ -110,31 +115,6 @@ func Hash(filename string) (hash1 string, hash2 string) {
 	}
 
 	return
-}
-
-func ConvertGlob(name string, depth int, filters ...string) (SQL string) {
-	clauses := []string{}
-
-	for _, f := range filters {
-		f = strings.TrimRight(f, string(filepath.Separator))
-		if f == "" {
-			f = "/"
-		}
-		f = strings.Replace(f, "'", "''", -1)
-		if !filepath.IsAbs(f) {
-			f = filepath.Join("*", f)
-		}
-		clauses = append(clauses, name+" GLOB '"+f+"'")
-		if depth != 0 && filepath.Base(f) != "*" {
-			if depth == 1 {
-				clauses = append(clauses, "("+name+" GLOB '"+filepath.Join(f, "*")+"' AND NOT "+name+" GLOB '"+filepath.Join(f, "*", "*")+"')")
-			} else {
-				clauses = append(clauses, name+" GLOB '"+filepath.Join(f, "*")+"'")
-			}
-		}
-	}
-
-	return strings.Join(clauses, " OR ")
 }
 
 func human(s uint64, base float32, sizes []string) string {
@@ -166,6 +146,7 @@ func printdebug() {
 	log.Printf("DEBUG %s:%d\n", fn, line)
 }
 
+// DisplayTime return a human-readable date (and time)
 func DisplayTime(d time.Time) string {
 	if time.Since(d).Hours() < 365*24 {
 		return d.Format("Jan _2 15:04")
@@ -173,6 +154,7 @@ func DisplayTime(d time.Time) string {
 	return d.Format("Jan _2  2006")
 }
 
+// Exists checks whether a file exists
 func Exists(name string) bool {
 	if _, err := os.Stat(name); err != nil {
 		if os.IsNotExist(err) {
