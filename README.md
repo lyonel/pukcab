@@ -37,7 +37,7 @@ Little to no configuration should ever be required to satisfy most needs:
 
 ## Download
 
- * [all platforms](http://ezix.org/download/?package=pukcab.ezix.org) (source code -- you will need a [Go](http://golang.org Go) environment to compile)
+ * [all platforms](http://ezix.org/download/?package=pukcab.ezix.org) (source code -- you will need a [Go](http://golang.org) environment to compile)
  * [Linux for ARM](http://ezix.org/download/?package=arm.linux.pukcab.ezix.org) (Raspberry Pi and the like)
  * [Linux for x86-64](http://ezix.org/download/?package=x86-64.linux.pukcab.ezix.org) (Fedora, Debian, Ubuntu, Red Hat, ...)
  * [Linux for i686 (32bit)](http://ezix.org/download/?package=i686.linux.pukcab.ezix.org) (Fedora, Debian, Ubuntu, Red Hat, ...)
